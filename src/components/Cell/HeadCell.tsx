@@ -1,12 +1,12 @@
-import { Box, Stack, Typography } from "@mui/material"
+import { Box, Stack, Typography } from "@mui/material";
 
 interface HeadCellProps {
-  style: React.CSSProperties
-  columnIndex: number
-  rowIndex: number
-  hourRange: string[]
-  dateRange: string[]
-  weekRange: string[]
+  style: React.CSSProperties;
+  columnIndex: number;
+  rowIndex: number;
+  hourRange: string[];
+  dateRange: string[];
+  weekRange: string[];
 }
 
 export function HeadCell({
@@ -18,14 +18,14 @@ export function HeadCell({
   weekRange,
 }: HeadCellProps) {
   const renderLabel = (range: string[], columnIndex: number, span: number) => {
-    const index = columnIndex % (range.length * span)
-    const label = range[Math.floor(index / span)]
+    const index = columnIndex % (range.length * span);
+    const label = range[Math.floor(index / span)];
     if ((columnIndex % span) - 1 == 0) {
-      return <Typography>{label}</Typography>
+      return <Typography paddingLeft="1rem">{label}</Typography>;
     } else {
-      return <Typography sx={{ color: "transparent" }}>/</Typography>
+      return <Typography sx={{ color: "transparent" }}>/</Typography>;
     }
-  }
+  };
 
   return (
     <div
@@ -38,11 +38,12 @@ export function HeadCell({
         sx={{
           width: "100%",
           height: 100,
-          bgcolor: "white",
+          bgcolor: "#D9D9D9",
         }}
       >
-        <Box
+        <Stack
           height="100%"
+          justifyContent="center"
           sx={{
             borderBottom: columnIndex != 0 ? "1px solid black" : "",
             //display right border every 7 * 24 * 4th column
@@ -51,9 +52,10 @@ export function HeadCell({
           }}
         >
           {renderLabel(weekRange, columnIndex, 24 * 7 * 4)}
-        </Box>
-        <Box
+        </Stack>
+        <Stack
           height="100%"
+          justifyContent="center"
           sx={{
             borderBottom: columnIndex != 0 ? "1px solid black" : "",
             //display right border every 24 * 4th column
@@ -61,12 +63,13 @@ export function HeadCell({
           }}
         >
           {renderLabel(dateRange, columnIndex, 24 * 4)}
-        </Box>
-        <Box
+        </Stack>
+        <Stack
           height="100%"
+          justifyContent="center"
           sx={{
             //display right border every 4th column
-            borderRight: columnIndex % 1 == 0 ? "1px solid black" : "",
+            borderRight: columnIndex % 4 == 0 ? "1px solid black" : "",
             borderBottom: "1px solid black",
           }}
         >
@@ -74,8 +77,8 @@ export function HeadCell({
             //display hour every 4th column
           }
           {renderLabel(hourRange, columnIndex, 4)}
-        </Box>
+        </Stack>
       </Stack>
     </div>
-  )
+  );
 }
