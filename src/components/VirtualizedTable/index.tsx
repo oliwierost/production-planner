@@ -107,7 +107,7 @@ export const VirtualizedTable = ({
       columnCount={dateRange?.length * 24 * 4 + 1}
       columnWidth={() => 100}
       height={1000}
-      rowCount={stands?.length + 6}
+      rowCount={stands?.length}
       rowHeight={() => 50}
       width={window.innerWidth}
       onScroll={handleScroll}

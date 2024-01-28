@@ -20,6 +20,7 @@ export function DroppedTaskStart({ task }: TaskProps) {
         borderBottomLeftRadius: 5,
         borderTop: "1px solid black",
         borderBottom: "1px solid black",
+        borderLeft: "1px solid black",
       }}
     >
       <Typography variant="body2" fontWeight={700}>

@@ -78,7 +78,6 @@ function useInnerElementType(Cell, columnWidth, rowHeight) {
             style: {
               display: "inline-flex",
               width: 100,
-              height: 100,
               position: "sticky",
               top: 0,
               left: 0,
@@ -109,6 +108,7 @@ function useInnerElementType(Cell, columnWidth, rowHeight) {
                 width,
                 height,
                 position: "sticky",
+                left: 100,
                 top: 0,
                 zIndex: 3,
               },
@@ -137,6 +137,7 @@ function useInnerElementType(Cell, columnWidth, rowHeight) {
                 height,
                 position: "sticky",
                 left: 0,
+                top: 100,
                 zIndex: 2,
               },
             })
