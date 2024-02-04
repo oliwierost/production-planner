@@ -1,8 +1,9 @@
-import { Task as TaskType } from "../../../types/task"
-import { Stack, Typography } from "@mui/material"
+import { Task as TaskType } from "../../../types/task";
+import { Stack, Typography } from "@mui/material";
+import { Task as GridTaskType } from "../../App";
 
 interface TaskProps {
-  task: TaskType
+  task: TaskType | GridTaskType;
 }
 
 export function Task({ task }: TaskProps) {
@@ -20,5 +21,5 @@ export function Task({ task }: TaskProps) {
         {task.title}
       </Typography>
     </Stack>
-  )
+  );
 }

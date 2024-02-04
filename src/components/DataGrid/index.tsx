@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react"
-import { DataGridPro, useGridApiRef } from "@mui/x-data-grid-pro"
-import { Stand } from "../../../types/stand"
-import { Cell } from "../Cell/Cell"
+import { useEffect, useState } from "react";
+import { DataGridPro, useGridApiRef } from "@mui/x-data-grid-pro";
+import { Stand } from "../../../types/stand";
+import { Cell } from "../Cell/Cell";
+import { CellStateMap, DraggedTask } from "../../App";
+import { View } from "../../../types/view";
 
 interface DataGridProps {
-  stands: Array<{ id: number } | Stand>
-  cellStateMap: any
-  draggedTask: any
-  view: any
+  stands: Array<{ id: number } | Stand>;
+  cellStateMap: CellStateMap;
+  draggedTask: DraggedTask;
+  view: View;
 }
 
 export function DataGrid({
@@ -16,39 +18,39 @@ export function DataGrid({
   draggedTask,
   view,
 }: DataGridProps) {
-  const [cellWidth, setCellWidth] = useState<number>(100)
-  const apiRef = useGridApiRef()
+  const [, setCellWidth] = useState<number>(100);
+  const apiRef = useGridApiRef();
 
   const handleZoom = (event: WheelEvent) => {
     // Check if the "Ctrl" key is pressed
     if (event.metaKey) {
-      event.preventDefault()
-      const minCellWidth = 50
-      const maxCellWidth = 200
+      event.preventDefault();
+      const minCellWidth = 50;
+      const maxCellWidth = 200;
       // Zoom in
       if (event.deltaY < 0) {
         setCellWidth((cellWidth) =>
           cellWidth >= maxCellWidth ? cellWidth : cellWidth + 2
-        )
+        );
       }
       // Zoom out
       if (event.deltaY > 0) {
         setCellWidth((cellWidth) =>
           cellWidth <= minCellWidth ? cellWidth : cellWidth - 2
-        )
+        );
       }
     }
-  }
+  };
 
   useEffect(() => {
     // Add event listener to the component when it mounts
-    document.addEventListener("wheel", handleZoom, { passive: false })
+    document.addEventListener("wheel", handleZoom, { passive: false });
 
     // Clean up the event listener when the component unmounts
     return () => {
-      document.removeEventListener("wheel", handleZoom)
-    }
-  }, []) //
+      document.removeEventListener("wheel", handleZoom);
+    };
+  }, []); //
 
   return (
     <DataGridPro
@@ -78,7 +80,7 @@ export function DataGrid({
       }}
       slotProps={{
         cell: {
-          cellStateMap: cellStateMap,
+          cellStateMap: cellStateMap.cells,
           draggedTask: draggedTask,
           view: view,
           stands: stands,
@@ -114,5 +116,5 @@ export function DataGrid({
         },
       }}
     />
-  )
+  );
 }

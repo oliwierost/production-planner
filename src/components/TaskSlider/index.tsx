@@ -1,16 +1,17 @@
-import { Task as TaskType } from "../../../types/task"
-import { Stack, Divider } from "@mui/material"
-import { Task } from "../Task"
-import { useRef } from "react"
-import { Draggable } from "../Draggable"
+import { Task as TaskType } from "../../../types/task";
+import { Stack, Divider } from "@mui/material";
+import { Task } from "../Task";
+import { useRef } from "react";
+import { Draggable } from "../Draggable";
+import { Task as GridTaskType } from "../../App";
 
 interface TaskSliderProps {
-  tasks: TaskType[]
+  tasks: Array<TaskType | GridTaskType>;
 }
 
 export function TaskSlider({ tasks }: TaskSliderProps) {
-  const outerRef = useRef<HTMLDivElement>(null)
-  const innerRef = useRef<HTMLDivElement>(null)
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
 
   return (
     <Stack width="100%">
@@ -62,5 +63,5 @@ export function TaskSlider({ tasks }: TaskSliderProps) {
         </Stack>
       </Stack>
     </Stack>
-  )
+  );
 }
