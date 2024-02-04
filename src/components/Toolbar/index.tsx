@@ -47,14 +47,14 @@ export function Toolbar() {
   return (
     <Stack
       direction="row"
-      width="100vw"
+      width="100%"
       minHeight="2.2rem"
       bgcolor="lightgrey"
       alignItems="center"
       justifyContent="space-between"
       borderTop="1px solid #000000"
     >
-      <Stack direction="row" height="100%">
+      <Stack direction="row" height="100%" width="100%">
         <ToolbarIcon icon={<MenuIcon />} />
         <button style={{ all: "unset" }} onClick={handleCreateOpen}>
           <ToolbarIcon
