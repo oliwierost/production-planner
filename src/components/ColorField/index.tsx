@@ -1,5 +1,5 @@
-import { Stack, Box } from "@mui/material"
-import AddIcon from "@mui/icons-material/Add"
+import { Stack, Box } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 
 const colors = [
   {
@@ -22,13 +22,20 @@ const colors = [
     bgcolor: "#FF6347",
     color: "#000000",
   },
-]
+];
 
-export function ColorField() {
+interface ColorFieldProps {
+  value?: string;
+  name: string;
+  setFieldValue: (name: string, value: string) => void;
+}
+
+export function ColorField({ value, setFieldValue, name }: ColorFieldProps) {
   return (
     <Stack direction="row" justifyContent="space-between" width={400}>
       {colors.map((color, index) => (
         <Box
+          onClick={() => setFieldValue(name, color.bgcolor)}
           key={index}
           bgcolor={color.bgcolor}
           color={color.color}
@@ -40,7 +47,10 @@ export function ColorField() {
           sx={{
             cursor: "pointer",
             boxSizing: "border-box",
-            border: "1px solid black",
+            border:
+              value === color.bgcolor
+                ? "2px solid #1D1D1D"
+                : "1px solid #1D1D1D",
           }}
         />
       ))}
@@ -59,5 +69,5 @@ export function ColorField() {
         <AddIcon fontSize="large" sx={{ color: "#D9D9D9" }} />
       </Stack>
     </Stack>
-  )
+  );
 }

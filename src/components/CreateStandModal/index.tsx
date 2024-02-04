@@ -187,7 +187,11 @@ export function CreateStandModal({ open, setOpen }: CreateStandModalProps) {
                       <Typography variant="body1" width={100}>
                         Kolor
                       </Typography>
-                      <ColorField />
+                      <ColorField
+                        value={values.color}
+                        setFieldValue={setFieldValue}
+                        name="color"
+                      />
                     </Stack>
                   </Stack>
                   <Stack

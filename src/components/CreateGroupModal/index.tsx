@@ -20,12 +20,14 @@ interface FormData {
   name: string;
   group: string;
   place: string;
+  color: string;
 }
 
 const initialValues = {
   name: "",
   group: "",
   place: "",
+  color: "",
 };
 
 const stands = [
@@ -80,7 +82,7 @@ export function CreateGroupModal({ open, setOpen }: CreateGroupModalProps) {
       alert("Dodano grupe");
     } catch (error) {
       resetForm();
-      alert(error.message);
+      alert((error as Error).message);
     }
   };
 
@@ -162,7 +164,11 @@ export function CreateGroupModal({ open, setOpen }: CreateGroupModalProps) {
                       <Typography variant="body1" width={100}>
                         Kolor
                       </Typography>
-                      <ColorField />
+                      <ColorField
+                        value={values.color}
+                        setFieldValue={setFieldValue}
+                        name="color"
+                      />
                     </Stack>
                   </Stack>
                   <Stack

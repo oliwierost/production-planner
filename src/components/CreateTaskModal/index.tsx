@@ -177,7 +177,11 @@ export function CreateTaskModal({ open, setOpen }: CreateTaskModalProps) {
                       <Typography variant="body1" width={100}>
                         Kolor
                       </Typography>
-                      <ColorField />
+                      <ColorField
+                        value={values.color}
+                        setFieldValue={setFieldValue}
+                        name="color"
+                      />
                     </Stack>
                   </Stack>
                   <Stack
