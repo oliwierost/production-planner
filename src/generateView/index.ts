@@ -46,7 +46,7 @@ export const generateMonthView = (numberOfColumns: number) => {
         width: cellWidth,
         minWidth: cellWidth,
       }
-    })
+    }),
   )
   const headerTopData = headerBottomData.map((date) => {
     const week = getWeek(new Date(date.date))
@@ -89,7 +89,7 @@ export const generateQuarterYearView = (numberOfColumns: number) => {
         width: cellWidth,
         minWidth: cellWidth,
       }
-    })
+    }),
   )
   const headerTopData = headerBottomData.map((date) => {
     const month = getMonth(new Date(date.date))
@@ -132,7 +132,7 @@ export const generateYearView = (numberOfColumns: number) => {
         width: cellWidth,
         minWidth: cellWidth,
       }
-    })
+    }),
   )
   const headerTopData = headerBottomData.map((date) => {
     const year = getYear(new Date(date.date))

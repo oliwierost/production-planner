@@ -24,7 +24,7 @@ interface TasksState {
 // Helper function to check time slot availability (pseudo-code)
 export const isTimeSlotAvailable = (
   task: Task,
-  tasks: { [id: string]: Task }
+  tasks: { [id: string]: Task },
 ): boolean => {
   task && tasks
   // Implement logic to check if the time slot for the task is available.
@@ -72,7 +72,7 @@ export const tasksSlice = createSlice({
         id: string
         facilityId: string
         startTime: number
-      }>
+      }>,
     ) => {
       const { id, facilityId, startTime } = action.payload
       const task = state.tasks[id]
@@ -88,7 +88,7 @@ export const tasksSlice = createSlice({
     // You can add more actions here as needed, for example, to mark a task as dropped
     setTaskDropped: (
       state,
-      action: PayloadAction<{ id: string; dropped: boolean }>
+      action: PayloadAction<{ id: string; dropped: boolean }>,
     ) => {
       const { id, dropped } = action.payload
       const task = state.tasks[id]
@@ -131,7 +131,7 @@ export const tasksSlice = createSlice({
         colId: string
         cellSpan: number
         taskId: string
-      }>
+      }>,
     ) {
       state.loading = true
       state.error = null
@@ -143,7 +143,7 @@ export const tasksSlice = createSlice({
         facilityId?: string
         colId?: number
         cellSpan?: number
-      }>
+      }>,
     ) {
       state.loading = true
       state.error = null
@@ -156,7 +156,7 @@ export const tasksSlice = createSlice({
         rowId: string
         colId: number
         cellSpan: number
-      }>
+      }>,
     ) {
       state.loading = true
       state.error = null

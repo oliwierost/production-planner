@@ -7,7 +7,7 @@ export interface Data {
 
 export const fetchData = async (
   projectId: string,
-  collections: Array<string>
+  collections: Array<string>,
 ) => {
   try {
     const basePath = `projects/${projectId}`
@@ -15,7 +15,7 @@ export const fetchData = async (
     collections.forEach(async (collectionName) => {
       const collectionRef = collection(
         firestore,
-        `${basePath}/${collectionName}`
+        `${basePath}/${collectionName}`,
       )
       const colData = await getDocs(collectionRef)
       data[collectionName] = colData.docs.map((doc) => doc.data())

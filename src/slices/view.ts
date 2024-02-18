@@ -49,7 +49,7 @@ const initialState: ViewState = {
 
 function findClosestDateStart(
   dateTimestamps: Array<number>,
-  dateTimestamp: number
+  dateTimestamp: number,
 ) {
   const closest = dateTimestamps.reduce((acc, weekTimestamp) => {
     const num = weekTimestamp - dateTimestamp
@@ -66,7 +66,7 @@ const getTaskLeftOffset = (
   targetTimestamp: number,
   dayTimestamp: number,
   cellWidth: number,
-  diff: number
+  diff: number,
 ) => {
   //calculate amount of days from week timestamp to day timestamp
   const days = (dayTimestamp - targetTimestamp) / (1000 * 60 * 60 * 24)
@@ -80,7 +80,7 @@ export const viewSlice = createSlice({
   reducers: {
     setMonthView: (
       state,
-      action: PayloadAction<{ view: View; grid: GridType }>
+      action: PayloadAction<{ view: View; grid: GridType }>,
     ) => {
       state.view = action.payload.view
       state.view.cells = action.payload.grid.cells
@@ -89,7 +89,7 @@ export const viewSlice = createSlice({
 
     setQuarterView: (
       state,
-      action: PayloadAction<{ view: View; grid: GridType }>
+      action: PayloadAction<{ view: View; grid: GridType }>,
     ) => {
       const view = action.payload.view
       const cells = action.payload.grid.cells
@@ -108,28 +108,38 @@ export const viewSlice = createSlice({
         const taskArr = Object.values(value.tasks)
         if (!cellsAcc[newKey]) {
           cellsAcc[newKey] = { ...value, state: "occupied-start" }
-          const newTasks = taskArr.reduce((acc, task) => {
-            if (acc[task.taskId]) {
-              return acc
-            }
-            const width = (cellWidth / 7) * task.duration
-            const left = getTaskLeftOffset(
-              newColId,
-              Number(colId),
-              cellWidth,
-              7
-            )
-            addedTasks.push(task.taskId)
-            return {
-              ...acc,
-              [task.taskId]: {
-                ...task,
-                left,
-                width,
-                duration: task.duration,
-              },
-            }
-          }, {} as { [key: string]: { taskId: string; left?: number; width: number; duration: number } })
+          const newTasks = taskArr.reduce(
+            (acc, task) => {
+              if (acc[task.taskId]) {
+                return acc
+              }
+              const width = (cellWidth / 7) * task.duration
+              const left = getTaskLeftOffset(
+                newColId,
+                Number(colId),
+                cellWidth,
+                7,
+              )
+              addedTasks.push(task.taskId)
+              return {
+                ...acc,
+                [task.taskId]: {
+                  ...task,
+                  left,
+                  width,
+                  duration: task.duration,
+                },
+              }
+            },
+            {} as {
+              [key: string]: {
+                taskId: string
+                left?: number
+                width: number
+                duration: number
+              }
+            },
+          )
           cellsAcc[newKey].tasks = { ...newTasks }
         }
 
@@ -140,7 +150,7 @@ export const viewSlice = createSlice({
     },
     setYearView: (
       state,
-      action: PayloadAction<{ view: View; grid: GridType }>
+      action: PayloadAction<{ view: View; grid: GridType }>,
     ) => {
       const view = action.payload.view
       const cells = action.payload.grid.cells
@@ -159,28 +169,38 @@ export const viewSlice = createSlice({
         const taskArr = Object.values(value.tasks)
         if (!cellsAcc[newKey]) {
           cellsAcc[newKey] = { ...value, state: "occupied-start" }
-          const newTasks = taskArr.reduce((acc, task) => {
-            if (acc[task.taskId]) {
-              return acc
-            }
-            const width = (cellWidth / 30) * task.duration
-            const left = getTaskLeftOffset(
-              newColId,
-              Number(colId),
-              cellWidth,
-              30
-            )
-            addedTasks.push(task.taskId)
-            return {
-              ...acc,
-              [task.taskId]: {
-                ...task,
-                left,
-                width,
-                duration: task.duration,
-              },
-            }
-          }, {} as { [key: string]: { taskId: string; left?: number; width: number; duration: number } })
+          const newTasks = taskArr.reduce(
+            (acc, task) => {
+              if (acc[task.taskId]) {
+                return acc
+              }
+              const width = (cellWidth / 30) * task.duration
+              const left = getTaskLeftOffset(
+                newColId,
+                Number(colId),
+                cellWidth,
+                30,
+              )
+              addedTasks.push(task.taskId)
+              return {
+                ...acc,
+                [task.taskId]: {
+                  ...task,
+                  left,
+                  width,
+                  duration: task.duration,
+                },
+              }
+            },
+            {} as {
+              [key: string]: {
+                taskId: string
+                left?: number
+                width: number
+                duration: number
+              }
+            },
+          )
           cellsAcc[newKey].tasks = { ...newTasks }
         }
 

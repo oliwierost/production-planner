@@ -22,7 +22,7 @@ export const toastSlice = createSlice({
       action: PayloadAction<{
         message: string
         severity: AlertColor
-      }>
+      }>,
     ) => {
       state.message = action.payload.message
       state.severity = action.payload.severity
