@@ -35,6 +35,10 @@ export function NumberField({
         placeholder={placeholder}
         type="number"
         disabled={disabled}
+        defaultValue={1}
+        inputProps={{
+          min: 1,
+        }}
       />
       <Stack
         bgcolor="#D9D9D9"

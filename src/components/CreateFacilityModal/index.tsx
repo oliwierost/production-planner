@@ -1,36 +1,38 @@
-import { Stack, Typography } from "@mui/material";
-import { Modal } from "../Modal";
-import { TitleBar } from "../TitleBar";
-import { TextArea } from "../TextArea";
-import { SecondaryButton } from "../SecondaryButton";
-import { PrimaryButton } from "../PrimaryButton";
-import { doc, collection } from "firebase/firestore";
-import { firestore } from "../../../firebase.config";
-import { Form, Formik, FormikHelpers } from "formik";
-import { Dropdown } from "../Dropdown";
-import { ColorField } from "../ColorField";
-import { NumberField } from "../NumberField";
-import { useAppDispatch, useAppSelector } from "../../hooks";
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
+import { Box, Stack, Tooltip, Typography } from "@mui/material"
+import { Modal } from "../Modal"
+import { TitleBar } from "../TitleBar"
+import { TextArea } from "../TextArea"
+import { SecondaryButton } from "../SecondaryButton"
+import { PrimaryButton } from "../PrimaryButton"
+import { doc, collection } from "firebase/firestore"
+import { firestore } from "../../../firebase.config"
+import { Form, Formik, FormikHelpers } from "formik"
+import { Dropdown } from "../Dropdown"
+import { ColorField } from "../ColorField"
+import { NumberField } from "../NumberField"
+import { useAppDispatch, useAppSelector } from "../../hooks"
 import {
   Facility,
   addFacilityStart,
   updateFacilityStart,
-} from "../../slices/facilities";
-import GroupsIcon from "@mui/icons-material/Groups";
-import { useEffect, useState } from "react";
+} from "../../slices/facilities"
+import GroupsIcon from "@mui/icons-material/Groups"
+import { useEffect, useState } from "react"
+import { modalsSchema } from "../../../validationSchema"
 
 interface CreateFacilityModalProps {
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<string | null>>;
-  facilityId?: string;
+  open: boolean
+  setOpen: React.Dispatch<React.SetStateAction<string | null>>
+  facilityId?: string
 }
 
 interface FormData {
-  location: string;
-  activity: string;
-  description: string;
-  manpower: number;
-  bgcolor: string;
+  location: string
+  activity: string
+  description: string
+  manpower: number
+  bgcolor: string
 }
 
 const initialValues = {
@@ -40,14 +42,14 @@ const initialValues = {
   location: "",
   activity: "",
   description: "",
-  manpower: 0,
+  manpower: 1,
   bgcolor: "",
-};
+}
 
 const locations = [
   { value: "BOP_GA", label: "BOP_GA" },
   { value: "BOP_GD", label: "BOP_GD" },
-];
+]
 
 const activities = [
   { value: "CUTTING", label: "CUTTING" },
@@ -57,7 +59,7 @@ const activities = [
   { value: "QUALITY CONTROL", label: "QUALITY CONTROL" },
   { value: "PAINTING", label: "PAINTING" },
   { value: "INSTALLATION", label: "INSTALLATION" },
-];
+]
 
 const colorOptions = [
   {
@@ -80,30 +82,30 @@ const colorOptions = [
     bgcolor: "#b19cd9",
     color: "#000000",
   },
-];
+]
 
 export function CreateFacilityModal({
   open,
   setOpen,
   facilityId,
 }: CreateFacilityModalProps) {
-  const [facility, setFacility] = useState<Facility>(initialValues);
-  const dispatch = useAppDispatch();
-  const facilities = useAppSelector((state) => state.facilities.facilities);
+  const [facility, setFacility] = useState<Facility>(initialValues)
+  const dispatch = useAppDispatch()
+  const facilities = useAppSelector((state) => state.facilities.facilities)
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: FormikHelpers<FormData>["setFieldValue"]
   ) => {
-    const { name, value } = e.target;
-    setFieldValue(name, value);
-  };
+    const { name, value } = e.target
+    setFieldValue(name, value)
+  }
 
   useEffect(() => {
     if (facilityId) {
-      const facility = facilities[facilityId];
-      setFacility(facility);
+      const facility = facilities[facilityId]
+      setFacility(facility)
     }
-  }, [facilityId, facilities]);
+  }, [facilityId, facilities])
 
   const handleSubmit = async (
     values: FormData,
@@ -111,7 +113,7 @@ export function CreateFacilityModal({
   ) => {
     try {
       if (!facilityId) {
-        const id = doc(collection(firestore, "facilities")).id;
+        const id = doc(collection(firestore, "facilities")).id
         dispatch(
           addFacilityStart({
             ...values,
@@ -119,35 +121,43 @@ export function CreateFacilityModal({
             title: values.location + " " + values.activity,
             tasks: [],
           })
-        );
+        )
       } else {
         dispatch(
           updateFacilityStart({
             id: facility.id,
             data: { ...values, title: values.location + " " + values.activity },
           })
-        );
+        )
       }
-      setOpen(null);
-      resetForm();
+      setOpen(null)
+      resetForm()
     } catch (error) {
-      resetForm();
+      resetForm()
     }
-  };
+  }
 
   const handleClose = (resetForm: FormikHelpers<FormData>["resetForm"]) => {
-    setOpen(null);
-    resetForm();
-  };
+    setOpen(null)
+    resetForm()
+  }
   return (
     <Formik
       initialValues={facility}
+      validationSchema={modalsSchema}
       enableReinitialize
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)
       }
     >
-      {({ values, handleSubmit, setFieldValue, resetForm }) => (
+      {({
+        values,
+        handleSubmit,
+        setFieldValue,
+        resetForm,
+        errors,
+        touched,
+      }) => (
         <>
           <Form onSubmit={handleSubmit}>
             <Modal open={open} onClose={() => handleClose(resetForm)}>
@@ -165,13 +175,30 @@ export function CreateFacilityModal({
                       alignItems="center"
                     >
                       <Typography variant="body1">Lokalizacja</Typography>
-                      <Dropdown
-                        options={locations}
-                        placeholder="Wybierz lokalizacje"
-                        value={values.location}
-                        setFieldValue={setFieldValue}
-                        name="location"
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.location && touched.location ? (
+                            <Tooltip title={errors.location} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <Dropdown
+                          options={locations}
+                          placeholder="Wybierz lokalizacje"
+                          value={values.location}
+                          setFieldValue={setFieldValue}
+                          name="location"
+                        />
+                      </Stack>
                     </Stack>
                     <Stack
                       direction="row"
@@ -180,13 +207,30 @@ export function CreateFacilityModal({
                       alignItems="center"
                     >
                       <Typography variant="body1">Czynność</Typography>
-                      <Dropdown
-                        options={activities}
-                        placeholder="Wybierz czynność"
-                        value={values.activity}
-                        setFieldValue={setFieldValue}
-                        name="activity"
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.activity && touched.activity ? (
+                            <Tooltip title={errors.activity} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <Dropdown
+                          options={activities}
+                          placeholder="Wybierz czynność"
+                          value={values.activity}
+                          setFieldValue={setFieldValue}
+                          name="activity"
+                        />
+                      </Stack>
                     </Stack>
                     <Stack
                       direction="row"
@@ -205,13 +249,30 @@ export function CreateFacilityModal({
                       <Typography variant="body1" width={100}>
                         Siła robocza
                       </Typography>
-                      <NumberField
-                        placeholder="ilość osób"
-                        icon={<GroupsIcon />}
-                        value={values.manpower}
-                        onChange={(e) => handleInputChange(e, setFieldValue)}
-                        name="manpower"
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.manpower && touched.manpower ? (
+                            <Tooltip title={errors.manpower} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <NumberField
+                          placeholder="ilość osób"
+                          icon={<GroupsIcon />}
+                          value={values.manpower}
+                          onChange={(e) => handleInputChange(e, setFieldValue)}
+                          name="manpower"
+                        />
+                      </Stack>
                     </Stack>
                     <Stack
                       direction="row"
@@ -222,12 +283,29 @@ export function CreateFacilityModal({
                       <Typography variant="body1" width={100}>
                         Kolor
                       </Typography>
-                      <ColorField
-                        value={values.bgcolor}
-                        setFieldValue={setFieldValue}
-                        name="bgcolor"
-                        colorOptions={colorOptions}
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.bgcolor && touched.bgcolor ? (
+                            <Tooltip title={errors.bgcolor} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <ColorField
+                          value={values.bgcolor}
+                          setFieldValue={setFieldValue}
+                          name="bgcolor"
+                          colorOptions={colorOptions}
+                        />
+                      </Stack>
                     </Stack>
                   </Stack>
                   <Stack
@@ -252,5 +330,5 @@ export function CreateFacilityModal({
         </>
       )}
     </Formik>
-  );
+  )
 }

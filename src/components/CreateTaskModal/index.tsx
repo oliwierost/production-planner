@@ -1,5 +1,6 @@
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline"
-import { Stack, Typography } from "@mui/material"
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
+import { Box, Stack, Tooltip, Typography } from "@mui/material"
 import { TextField } from "../TextField"
 import { Modal } from "../Modal"
 import { TitleBar } from "../TitleBar"
@@ -15,6 +16,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Task, addTaskStart, updateTaskStart } from "../../slices/tasks"
 import { useEffect, useState } from "react"
 import { setDragDisabled } from "../../slices/drag"
+import { modalsSchema } from "../../../validationSchema"
 
 interface CreateTaskModalProps {
   open: boolean
@@ -57,7 +59,7 @@ const initialValues = {
   title: "",
   dropped: false,
   description: "",
-  duration: 0,
+  duration: 1,
   bgcolor: "",
 }
 
@@ -118,12 +120,20 @@ export function CreateTaskModal({
   return (
     <Formik
       initialValues={task}
+      validationSchema={modalsSchema}
       enableReinitialize
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)
       }
     >
-      {({ values, handleSubmit, setFieldValue, resetForm }) => (
+      {({
+        values,
+        handleSubmit,
+        setFieldValue,
+        resetForm,
+        errors,
+        touched,
+      }) => (
         <>
           <Form onSubmit={handleSubmit}>
             <Modal open={open} onClose={() => handleClose(resetForm)}>
@@ -141,13 +151,30 @@ export function CreateTaskModal({
                       alignItems="center"
                     >
                       <Typography variant="body1">Nazwa</Typography>
-                      <TextField
-                        placeholder="Nazwa"
-                        icon={<DriveFileRenameOutlineIcon />}
-                        value={values.title}
-                        onChange={(e) => handleInputChange(e, setFieldValue)}
-                        name="title"
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.title && touched.title ? (
+                            <Tooltip title={errors.title} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <TextField
+                          placeholder="Nazwa"
+                          icon={<DriveFileRenameOutlineIcon />}
+                          value={values.title}
+                          onChange={(e) => handleInputChange(e, setFieldValue)}
+                          name="title"
+                        />
+                      </Stack>
                     </Stack>
                     <Stack
                       direction="row"
@@ -171,14 +198,31 @@ export function CreateTaskModal({
                       <Typography variant="body1" width={100}>
                         Czas trwania
                       </Typography>
-                      <NumberField
-                        placeholder="Czas"
-                        icon={<Typography fontWeight={600}>[dni]</Typography>}
-                        value={values.duration}
-                        onChange={(e) => handleInputChange(e, setFieldValue)}
-                        name="duration"
-                        disabled={taskId && task.dropped ? true : false}
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.duration && touched.duration ? (
+                            <Tooltip title={errors.duration} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <NumberField
+                          placeholder="Czas"
+                          icon={<Typography fontWeight={600}>[dni]</Typography>}
+                          value={values.duration}
+                          onChange={(e) => handleInputChange(e, setFieldValue)}
+                          name="duration"
+                          disabled={taskId && task.dropped ? true : false}
+                        />
+                      </Stack>
                     </Stack>
                     <Stack
                       direction="row"
@@ -189,12 +233,29 @@ export function CreateTaskModal({
                       <Typography variant="body1" width={100}>
                         Kolor
                       </Typography>
-                      <ColorField
-                        value={values.bgcolor}
-                        setFieldValue={setFieldValue}
-                        name="bgcolor"
-                        colorOptions={colorOptions}
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.bgcolor && touched.bgcolor ? (
+                            <Tooltip title={errors.bgcolor} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <ColorField
+                          value={values.bgcolor}
+                          setFieldValue={setFieldValue}
+                          name="bgcolor"
+                          colorOptions={colorOptions}
+                        />
+                      </Stack>
                     </Stack>
                   </Stack>
                   <Stack
