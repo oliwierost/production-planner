@@ -62,7 +62,7 @@ export function ContextMenu({
           },
         }}
       >
-        <MenuList dense>
+        <MenuList dense sx={{ outline: "none" }}>
           <MenuItem
             disableTouchRipple
             sx={{

@@ -25,6 +25,7 @@ export function Modal({ open, children, onClose }: ModalProps) {
         top="50%"
         left="50%"
         sx={{
+          outline: "none",
           transform: "translate(-50%, -50%)",
         }}
         border="1px solid #1E1E1E"
