@@ -29,7 +29,7 @@ export function NumberField({
     >
       <InputBase
         name={name}
-        value={value}
+        value={value < 1 ? 1 : Number(value).toString()}
         onChange={onChange}
         sx={{ mx: 3, flex: 1 }}
         placeholder={placeholder}
