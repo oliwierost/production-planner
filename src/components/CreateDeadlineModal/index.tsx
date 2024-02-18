@@ -1,17 +1,19 @@
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline"
-import { Stack, Typography } from "@mui/material"
+import { Box, Stack, Tooltip, Typography } from "@mui/material"
 import { TextField } from "../TextField"
 import { Modal } from "../Modal"
 import { TitleBar } from "../TitleBar"
 import { TextArea } from "../TextArea"
 import { SecondaryButton } from "../SecondaryButton"
 import { PrimaryButton } from "../PrimaryButton"
-import { doc, collection, Timestamp } from "firebase/firestore"
+import { doc, collection } from "firebase/firestore"
 import { firestore } from "../../../firebase.config"
 import { Form, Formik, FormikHelpers } from "formik"
 import { DateField } from "../DateField"
 import { useAppDispatch } from "../../hooks"
 import { addDeadlineStart } from "../../slices/deadlines"
+import { modalsSchema } from "../../../validationSchema"
 
 interface CreateDeadlineModalProps {
   open: boolean
@@ -89,11 +91,19 @@ export function CreateDeadlineModal({
   return (
     <Formik
       initialValues={initialValues}
+      validationSchema={modalsSchema}
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)
       }
     >
-      {({ values, handleSubmit, setFieldValue, resetForm }) => (
+      {({
+        values,
+        handleSubmit,
+        setFieldValue,
+        resetForm,
+        errors,
+        touched,
+      }) => (
         <>
           <Form onSubmit={handleSubmit}>
             <Modal open={open} onClose={() => handleClose(resetForm)}>
@@ -109,13 +119,30 @@ export function CreateDeadlineModal({
                       alignItems="center"
                     >
                       <Typography variant="body1">Nazwa</Typography>
-                      <TextField
-                        placeholder="Nazwa"
-                        icon={<DriveFileRenameOutlineIcon />}
-                        value={values.title}
-                        onChange={(e) => handleInputChange(e, setFieldValue)}
-                        name="title"
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.title && touched.title ? (
+                            <Tooltip title={errors.title} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <TextField
+                          placeholder="Nazwa"
+                          icon={<DriveFileRenameOutlineIcon />}
+                          value={values.title}
+                          onChange={(e) => handleInputChange(e, setFieldValue)}
+                          name="title"
+                        />
+                      </Stack>
                     </Stack>
                     <Stack
                       direction="row"
@@ -139,12 +166,29 @@ export function CreateDeadlineModal({
                       <Typography variant="body1" width={100}>
                         Data
                       </Typography>
-                      <DateField
-                        placeholder="Wybierz datę"
-                        value={values.date}
-                        setFieldValue={setFieldValue}
-                        name="date"
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.date && touched.date ? (
+                            <Tooltip title="Data jest wymagana" arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <DateField
+                          placeholder="Wybierz datę"
+                          value={values.date}
+                          setFieldValue={setFieldValue}
+                          name="date"
+                        />
+                      </Stack>
                     </Stack>
                   </Stack>
                   <Stack

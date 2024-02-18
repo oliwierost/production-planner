@@ -1,32 +1,34 @@
-import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
-import { Stack, Typography } from "@mui/material";
-import { TextField } from "../TextField";
-import { Modal } from "../Modal";
-import { TitleBar } from "../TitleBar";
-import { TextArea } from "../TextArea";
-import { SecondaryButton } from "../SecondaryButton";
-import { PrimaryButton } from "../PrimaryButton";
-import { doc, collection } from "firebase/firestore";
-import { firestore } from "../../../firebase.config";
-import { Form, Formik, FormikHelpers } from "formik";
-import { ColorField } from "../ColorField";
-import { NumberField } from "../NumberField";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { Task, addTaskStart, updateTaskStart } from "../../slices/tasks";
-import { useEffect, useState } from "react";
-import { setDragDisabled } from "../../slices/drag";
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline"
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
+import { Box, Stack, Tooltip, Typography } from "@mui/material"
+import { TextField } from "../TextField"
+import { Modal } from "../Modal"
+import { TitleBar } from "../TitleBar"
+import { TextArea } from "../TextArea"
+import { SecondaryButton } from "../SecondaryButton"
+import { PrimaryButton } from "../PrimaryButton"
+import { doc, collection } from "firebase/firestore"
+import { firestore } from "../../../firebase.config"
+import { Form, Formik, FormikHelpers } from "formik"
+import { ColorField } from "../ColorField"
+import { NumberField } from "../NumberField"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { Task, addTaskStart, updateTaskStart } from "../../slices/tasks"
+import { useEffect, useState } from "react"
+import { setDragDisabled } from "../../slices/drag"
+import { modalsSchema } from "../../../validationSchema"
 
 interface CreateTaskModalProps {
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<string | null>>;
-  taskId?: string;
+  open: boolean
+  setOpen: React.Dispatch<React.SetStateAction<string | null>>
+  taskId?: string
 }
 
 interface FormData {
-  title: string;
-  description: string;
-  duration: number;
-  bgcolor: string;
+  title: string
+  description: string
+  duration: number
+  bgcolor: string
 }
 
 const colorOptions = [
@@ -50,39 +52,39 @@ const colorOptions = [
     bgcolor: "#8e44ad",
     color: "#000000",
   },
-];
+]
 
 const initialValues = {
   id: "",
   title: "",
   dropped: false,
   description: "",
-  duration: 0,
+  duration: 1,
   bgcolor: "",
-};
+}
 
 export function CreateTaskModal({
   open,
   setOpen,
   taskId,
 }: CreateTaskModalProps) {
-  const [task, setTask] = useState<Task>(initialValues);
-  const tasks = useAppSelector((state) => state.tasks.tasks);
-  const dispatch = useAppDispatch();
+  const [task, setTask] = useState<Task>(initialValues)
+  const tasks = useAppSelector((state) => state.tasks.tasks)
+  const dispatch = useAppDispatch()
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: FormikHelpers<FormData>["setFieldValue"]
   ) => {
-    const { name, value } = e.target;
-    setFieldValue(name, value);
-  };
+    const { name, value } = e.target
+    setFieldValue(name, value)
+  }
 
   useEffect(() => {
     if (taskId) {
-      const task = tasks[taskId];
-      setTask(task);
+      const task = tasks[taskId]
+      setTask(task)
     }
-  }, [taskId, tasks]);
+  }, [taskId, tasks])
 
   const handleSubmit = async (
     values: FormData,
@@ -90,40 +92,48 @@ export function CreateTaskModal({
   ) => {
     try {
       if (!taskId) {
-        const id = doc(collection(firestore, "tasks")).id;
+        const id = doc(collection(firestore, "tasks")).id
         dispatch(
           addTaskStart({
             ...values,
             dropped: false,
             id,
           })
-        );
+        )
       } else {
-        dispatch(updateTaskStart({ id: task.id, data: values }));
+        dispatch(updateTaskStart({ id: task.id, data: values }))
       }
-      setOpen(null);
-      resetForm();
-      dispatch(setDragDisabled(false));
+      setOpen(null)
+      resetForm()
+      dispatch(setDragDisabled(false))
     } catch (error) {
-      resetForm();
+      resetForm()
     }
-  };
+  }
 
   const handleClose = (resetForm: FormikHelpers<FormData>["resetForm"]) => {
-    setOpen(null);
-    resetForm();
-    dispatch(setDragDisabled(false));
-  };
+    setOpen(null)
+    resetForm()
+    dispatch(setDragDisabled(false))
+  }
 
   return (
     <Formik
       initialValues={task}
+      validationSchema={modalsSchema}
       enableReinitialize
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)
       }
     >
-      {({ values, handleSubmit, setFieldValue, resetForm }) => (
+      {({
+        values,
+        handleSubmit,
+        setFieldValue,
+        resetForm,
+        errors,
+        touched,
+      }) => (
         <>
           <Form onSubmit={handleSubmit}>
             <Modal open={open} onClose={() => handleClose(resetForm)}>
@@ -141,13 +151,30 @@ export function CreateTaskModal({
                       alignItems="center"
                     >
                       <Typography variant="body1">Nazwa</Typography>
-                      <TextField
-                        placeholder="Nazwa"
-                        icon={<DriveFileRenameOutlineIcon />}
-                        value={values.title}
-                        onChange={(e) => handleInputChange(e, setFieldValue)}
-                        name="title"
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.title && touched.title ? (
+                            <Tooltip title={errors.title} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <TextField
+                          placeholder="Nazwa"
+                          icon={<DriveFileRenameOutlineIcon />}
+                          value={values.title}
+                          onChange={(e) => handleInputChange(e, setFieldValue)}
+                          name="title"
+                        />
+                      </Stack>
                     </Stack>
                     <Stack
                       direction="row"
@@ -171,15 +198,31 @@ export function CreateTaskModal({
                       <Typography variant="body1" width={100}>
                         Czas trwania
                       </Typography>
-
-                      <NumberField
-                        placeholder="Czas"
-                        icon={<Typography fontWeight={600}>[dni]</Typography>}
-                        value={values.duration}
-                        onChange={(e) => handleInputChange(e, setFieldValue)}
-                        name="duration"
-                        disabled={taskId ? true : false}
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.duration && touched.duration ? (
+                            <Tooltip title={errors.duration} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <NumberField
+                          placeholder="Czas"
+                          icon={<Typography fontWeight={600}>[dni]</Typography>}
+                          value={values.duration}
+                          onChange={(e) => handleInputChange(e, setFieldValue)}
+                          name="duration"
+                          disabled={taskId ? true : false}
+                        />
+                      </Stack>
                     </Stack>
                     <Stack
                       direction="row"
@@ -190,12 +233,29 @@ export function CreateTaskModal({
                       <Typography variant="body1" width={100}>
                         Kolor
                       </Typography>
-                      <ColorField
-                        value={values.bgcolor}
-                        setFieldValue={setFieldValue}
-                        name="bgcolor"
-                        colorOptions={colorOptions}
-                      />
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.bgcolor && touched.bgcolor ? (
+                            <Tooltip title={errors.bgcolor} arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <ColorField
+                          value={values.bgcolor}
+                          setFieldValue={setFieldValue}
+                          name="bgcolor"
+                          colorOptions={colorOptions}
+                        />
+                      </Stack>
                     </Stack>
                   </Stack>
                   <Stack
@@ -220,5 +280,5 @@ export function CreateTaskModal({
         </>
       )}
     </Formik>
-  );
+  )
 }
