@@ -49,7 +49,7 @@ export function Facility({ facility }: FacilityProps) {
         handleClose()
         dispatch(setDragDisabled(true))
       },
-      icon: <EditIcon fontSize="small" />,
+      icon: <EditIcon fontSize="small" sx={{ color: "black" }} />,
     },
     {
       title: "Usuń",
@@ -58,7 +58,7 @@ export function Facility({ facility }: FacilityProps) {
         setIsGridUpdated(true)
         handleClose()
       },
-      icon: <DeleteForeverIcon fontSize="small" />,
+      icon: <DeleteForeverIcon fontSize="small" sx={{ color: "black" }} />,
     },
   ]
 
