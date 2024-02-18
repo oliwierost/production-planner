@@ -19,7 +19,7 @@ import {
 } from "../../slices/facilities"
 import GroupsIcon from "@mui/icons-material/Groups"
 import { useEffect, useState } from "react"
-import { modalsSchema } from "../../../validationSchema"
+import { facilityModalSchema } from "../../../validationSchema"
 
 interface CreateFacilityModalProps {
   open: boolean
@@ -94,7 +94,7 @@ export function CreateFacilityModal({
   const facilities = useAppSelector((state) => state.facilities.facilities)
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: FormikHelpers<FormData>["setFieldValue"]
+    setFieldValue: FormikHelpers<FormData>["setFieldValue"],
   ) => {
     const { name, value } = e.target
     setFieldValue(name, value)
@@ -109,7 +109,7 @@ export function CreateFacilityModal({
 
   const handleSubmit = async (
     values: FormData,
-    resetForm: FormikHelpers<FormData>["resetForm"]
+    resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     try {
       if (!facilityId) {
@@ -120,14 +120,14 @@ export function CreateFacilityModal({
             id: id,
             title: values.location + " " + values.activity,
             tasks: [],
-          })
+          }),
         )
       } else {
         dispatch(
           updateFacilityStart({
             id: facility.id,
             data: { ...values, title: values.location + " " + values.activity },
-          })
+          }),
         )
       }
       setOpen(null)
@@ -144,7 +144,7 @@ export function CreateFacilityModal({
   return (
     <Formik
       initialValues={facility}
-      validationSchema={modalsSchema}
+      validationSchema={facilityModalSchema}
       enableReinitialize
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)
@@ -320,7 +320,7 @@ export function CreateFacilityModal({
                     <PrimaryButton
                       type="submit"
                       onClick={() => handleSubmit()}
-                      label="Zapisz"
+                      label={facilityId ? "Zapisz" : "Dodaj"}
                     />
                   </Stack>
                 </Stack>

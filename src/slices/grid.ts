@@ -60,7 +60,7 @@ const gridSlice = createSlice({
         colId: string
         taskId: string
         cellSpan: number
-      }>
+      }>,
     ) => {
       const { rowId, colId, taskId, cellSpan } = action.payload
       const colTime = Number(colId)
@@ -108,7 +108,7 @@ const gridSlice = createSlice({
     },
     removeFacilityFromGrid: (
       state,
-      action: PayloadAction<{ facilityId: string }>
+      action: PayloadAction<{ facilityId: string }>,
     ) => {
       if (!state.grid) {
         return
@@ -122,7 +122,7 @@ const gridSlice = createSlice({
     },
     removeCells: (
       state,
-      action: PayloadAction<{ rowId: string; colId: string; cellSpan: number }>
+      action: PayloadAction<{ rowId: string; colId: string; cellSpan: number }>,
     ) => {
       const { rowId, colId, cellSpan } = action.payload
       if (!state.grid) {

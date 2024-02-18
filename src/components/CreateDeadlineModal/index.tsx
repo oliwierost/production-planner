@@ -13,7 +13,7 @@ import { Form, Formik, FormikHelpers } from "formik"
 import { DateField } from "../DateField"
 import { useAppDispatch } from "../../hooks"
 import { addDeadlineStart } from "../../slices/deadlines"
-import { modalsSchema } from "../../../validationSchema"
+import { deadlineModalSchema } from "../../../validationSchema"
 
 interface CreateDeadlineModalProps {
   open: boolean
@@ -41,7 +41,7 @@ export function CreateDeadlineModal({
   const dispatch = useAppDispatch()
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: FormikHelpers<FormData>["setFieldValue"]
+    setFieldValue: FormikHelpers<FormData>["setFieldValue"],
   ) => {
     const { name, value } = e.target
     setFieldValue(name, value)
@@ -49,7 +49,7 @@ export function CreateDeadlineModal({
 
   const handleSubmit = async (
     values: FormData,
-    resetForm: FormikHelpers<FormData>["resetForm"]
+    resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     const { date, ...rest } = values
     const quarterDate = new Date(2024, 1, 1, 0, 0)
@@ -75,7 +75,7 @@ export function CreateDeadlineModal({
             week: weekTimestamp,
             month: monthTimestamp,
           },
-        })
+        }),
       )
       setOpen(null)
       resetForm()
@@ -91,7 +91,7 @@ export function CreateDeadlineModal({
   return (
     <Formik
       initialValues={initialValues}
-      validationSchema={modalsSchema}
+      validationSchema={deadlineModalSchema}
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)
       }

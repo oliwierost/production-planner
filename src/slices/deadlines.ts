@@ -46,7 +46,7 @@ export const deadlinesSlice = createSlice({
     },
     setDeadlines: (
       state,
-      action: PayloadAction<{ [id: string]: Deadline }>
+      action: PayloadAction<{ [id: string]: Deadline }>,
     ) => {
       state.deadlines = action.payload
       state.loading = false
@@ -62,7 +62,7 @@ export const deadlinesSlice = createSlice({
           week: number
           month: number
         }
-      }>
+      }>,
     ) => {
       state.loading = true
       state.error = null
@@ -82,7 +82,7 @@ export const deadlinesSlice = createSlice({
           week: number
           month: number
         }
-      }>
+      }>,
     ) => {
       state.loading = true
       state.error = null

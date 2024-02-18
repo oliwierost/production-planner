@@ -34,7 +34,7 @@ export function TaskSlider() {
         bgcolor="#EFEFEF"
         sx={{
           scrollbarWidth: "thin",
-          scrollbarColor: "#333333 #EFEFEF", // thumb color and track color
+          scrollbarColor: "#5A5A5A #EFEFEF", // thumb color and track color
           "&::-webkit-scrollbar": {
             width: "100%",
           },

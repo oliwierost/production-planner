@@ -1,4 +1,4 @@
-import { Facility, Task } from "../App";
+import { Facility, Task } from "../App"
 
 export const tasks: Array<Task> = [
   {
@@ -89,7 +89,7 @@ export const tasks: Array<Task> = [
     duration: 4,
     dropped: false,
   },
-];
+]
 
 export const stands: Array<Facility> = [
   {
@@ -134,4 +134,4 @@ export const stands: Array<Facility> = [
     description: "Description 4",
     bgcolor: "#9FD1FF",
   },
-];
+]
