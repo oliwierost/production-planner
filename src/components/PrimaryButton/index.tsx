@@ -1,11 +1,11 @@
-import { Button, Typography } from "@mui/material";
+import { Button, Typography } from "@mui/material"
 
 interface PrimaryButtonProps {
-  type?: "submit" | "button" | "reset";
-  width?: string;
-  height?: string;
-  px?: number;
-  py?: number;
+  type?: "submit" | "button" | "reset"
+  width?: string
+  height?: string
+  px?: number
+  py?: number
   fontVariant?:
     | "h1"
     | "h2"
@@ -15,10 +15,10 @@ interface PrimaryButtonProps {
     | "h6"
     | "body1"
     | "body2"
-    | "button";
-  fontWeight?: number;
-  label: string;
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+    | "button"
+  fontWeight?: number
+  label: string
+  onClick?: React.MouseEventHandler<HTMLButtonElement>
 }
 
 export function PrimaryButton({
@@ -47,6 +47,10 @@ export function PrimaryButton({
           bgcolor: "button.hover",
           color: "button.primaryText",
         },
+        //target touched
+        "&:focus": {
+          outline: "none",
+        },
         borderRadius: 0,
       }}
     >
@@ -54,5 +58,5 @@ export function PrimaryButton({
         {label}
       </Typography>
     </Button>
-  );
+  )
 }

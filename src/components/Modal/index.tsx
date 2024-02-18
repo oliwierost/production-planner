@@ -1,9 +1,9 @@
-import { Modal as MuiModal, Stack } from "@mui/material";
+import { Modal as MuiModal, Stack } from "@mui/material"
 
 interface ModalProps {
-  open: boolean;
-  children: React.ReactNode;
-  onClose: () => void;
+  open: boolean
+  children: React.ReactNode
+  onClose: () => void
 }
 
 export function Modal({ open, children, onClose }: ModalProps) {
@@ -33,5 +33,5 @@ export function Modal({ open, children, onClose }: ModalProps) {
         {children}
       </Stack>
     </MuiModal>
-  );
+  )
 }

@@ -46,6 +46,9 @@ export function Dropdown({
           "& .MuiOutlinedInput-root": {
             height: "100%",
           },
+          ".MuiOutlinedInput-notchedOutline": {
+            border: "none",
+          },
           "& .MuiOutlinedInput-input": {
             height: 45,
             padding: 0,

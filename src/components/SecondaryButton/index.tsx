@@ -47,6 +47,9 @@ export function SecondaryButton({
           borderColor: "button.hover",
           color: "button.primaryText",
         },
+        "&:focus": {
+          outline: "none",
+        },
         borderRadius: 0,
       }}
     >
