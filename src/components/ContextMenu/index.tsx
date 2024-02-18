@@ -73,7 +73,7 @@ export function ContextMenu({
             }}
           >
             <ListItemIcon>
-              <AssignmentIcon fontSize="small" sx={{ color: "primary.main" }} />
+              <AssignmentIcon fontSize="small" sx={{ color: "primary.dark" }} />
             </ListItemIcon>
             <Typography
               variant="body1"
