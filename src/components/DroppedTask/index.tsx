@@ -112,7 +112,7 @@ export function DroppedTask({
             transform: "translateY(-50%)",
             boxSizing: "border-box",
             bgcolor: task.bgcolor,
-            color: "black",
+            color: "background.default",
             borderRadius: 1,
             border: "1px solid black",
           }}
