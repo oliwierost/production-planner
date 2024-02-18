@@ -220,7 +220,7 @@ export function CreateTaskModal({
                           value={values.duration}
                           onChange={(e) => handleInputChange(e, setFieldValue)}
                           name="duration"
-                          disabled={taskId ? true : false}
+                          disabled={taskId && task.dropped ? true : false}
                         />
                       </Stack>
                     </Stack>
