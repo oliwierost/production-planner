@@ -320,7 +320,7 @@ export function CreateFacilityModal({
                     <PrimaryButton
                       type="submit"
                       onClick={() => handleSubmit()}
-                      label="Zapisz"
+                      label={facilityId ? "Zapisz" : "Dodaj"}
                     />
                   </Stack>
                 </Stack>

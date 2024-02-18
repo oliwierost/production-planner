@@ -270,7 +270,7 @@ export function CreateTaskModal({
                     <PrimaryButton
                       type="submit"
                       onClick={() => handleSubmit()}
-                      label="Zapisz"
+                      label={taskId ? "Zapisz" : "Dodaj"}
                     />
                   </Stack>
                 </Stack>
