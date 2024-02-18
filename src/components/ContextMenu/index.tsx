@@ -1,28 +1,28 @@
-import Divider from "@mui/material/Divider";
-import MenuList from "@mui/material/MenuList";
-import MenuItem from "@mui/material/MenuItem";
-import ListItemText from "@mui/material/ListItemText";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import { Menu } from "@mui/material";
-import { Task } from "../../slices/tasks";
-import { CreateTaskModal } from "../CreateTaskModal";
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { updateGridStart } from "../../slices/grid";
-import { Facility } from "../../slices/facilities";
-import { CreateFacilityModal } from "../CreateFacilityModal";
+import Divider from "@mui/material/Divider"
+import MenuList from "@mui/material/MenuList"
+import MenuItem from "@mui/material/MenuItem"
+import ListItemText from "@mui/material/ListItemText"
+import ListItemIcon from "@mui/material/ListItemIcon"
+import AssignmentIcon from "@mui/icons-material/Assignment"
+import { Menu, Typography } from "@mui/material"
+import { Task } from "../../slices/tasks"
+import { CreateTaskModal } from "../CreateTaskModal"
+import { useEffect } from "react"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { updateGridStart } from "../../slices/grid"
+import { Facility } from "../../slices/facilities"
+import { CreateFacilityModal } from "../CreateFacilityModal"
 
 interface ContextMenuProps {
-  open: boolean;
-  onClose: () => void;
-  modalOpen: string | null;
-  setModalOpen: React.Dispatch<React.SetStateAction<string | null>>;
-  isGridUpdated: boolean;
-  setIsGridUpdated: React.Dispatch<React.SetStateAction<boolean>>;
-  item: Task | Facility;
-  cursorPosition: { top: number; left: number };
-  options: { title: string; onClick: () => void; icon: JSX.Element }[];
+  open: boolean
+  onClose: () => void
+  modalOpen: string | null
+  setModalOpen: React.Dispatch<React.SetStateAction<string | null>>
+  isGridUpdated: boolean
+  setIsGridUpdated: React.Dispatch<React.SetStateAction<boolean>>
+  item: Task | Facility
+  cursorPosition: { top: number; left: number }
+  options: { title: string; onClick: () => void; icon: JSX.Element }[]
 }
 
 export function ContextMenu({
@@ -36,15 +36,15 @@ export function ContextMenu({
   modalOpen,
   setModalOpen,
 }: ContextMenuProps) {
-  const dispatch = useAppDispatch();
-  const grid = useAppSelector((state) => state.grid.grid);
+  const dispatch = useAppDispatch()
+  const grid = useAppSelector((state) => state.grid.grid)
 
   useEffect(() => {
     if (isGridUpdated && grid) {
-      dispatch(updateGridStart(grid));
-      setIsGridUpdated(false);
+      dispatch(updateGridStart(grid))
+      setIsGridUpdated(false)
     }
-  }, [isGridUpdated, dispatch, setIsGridUpdated, grid]);
+  }, [isGridUpdated, dispatch, setIsGridUpdated, grid])
 
   return (
     <>
@@ -53,25 +53,40 @@ export function ContextMenu({
         onClose={onClose}
         anchorReference="anchorPosition"
         anchorPosition={{ top: cursorPosition.top, left: cursorPosition.left }}
+        transitionDuration={0}
         sx={{
           width: 320,
           "& .MuiPaper-root": {
             bgcolor: "white",
+            boxShadow: "none",
+            borderRadius: 0,
+            border: "2px solid black",
+            cursor: "default",
           },
         }}
       >
-        <MenuList>
-          <MenuItem>
+        <MenuList dense>
+          <MenuItem
+            disableTouchRipple
+            sx={{
+              cursor: "default",
+              "&:hover": {
+                backgroundColor: "transparent",
+              },
+            }}
+          >
             <ListItemIcon>
-              <AssignmentIcon fontSize="small" />
+              <AssignmentIcon fontSize="small" sx={{ color: "black" }} />
             </ListItemIcon>
-            <ListItemText>{item.title}</ListItemText>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+              {item.title}
+            </Typography>
           </MenuItem>
-          <Divider />
+          <Divider sx={{ bgcolor: "black" }} />
           {options.map((option, idx) => (
             <MenuItem key={idx} onClick={option.onClick}>
               <ListItemIcon>{option.icon}</ListItemIcon>
-              <ListItemText>{option.title}</ListItemText>
+              <Typography variant="body1">{option.title}</Typography>
             </MenuItem>
           ))}
         </MenuList>
@@ -91,5 +106,5 @@ export function ContextMenu({
         />
       ) : null}
     </>
-  );
+  )
 }

@@ -1,20 +1,20 @@
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import { Stack, Typography } from "@mui/material";
-import { Task, deleteTaskStart, setTaskDroppedStart } from "../../slices/tasks";
-import { ContextMenu } from "../ContextMenu";
-import { useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { setDragDisabled } from "../../slices/drag";
+import EditIcon from "@mui/icons-material/Edit"
+import DeleteIcon from "@mui/icons-material/Delete"
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
+import { Stack, Typography } from "@mui/material"
+import { Task, deleteTaskStart, setTaskDroppedStart } from "../../slices/tasks"
+import { ContextMenu } from "../ContextMenu"
+import { useState } from "react"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { setDragDisabled } from "../../slices/drag"
 
 interface DroppedTaskProps {
-  task: Task;
-  cellWidth: number;
-  left: number | undefined;
-  width: number | undefined;
-  rowId: string | number;
-  colId: number;
+  task: Task
+  cellWidth: number
+  left: number | undefined
+  width: number | undefined
+  rowId: string | number
+  colId: number
 }
 
 export function DroppedTask({
@@ -25,40 +25,40 @@ export function DroppedTask({
   rowId,
   colId,
 }: DroppedTaskProps) {
-  const [modalOpen, setModalOpen] = useState<string | null>(null);
-  const [isGridUpdated, setIsGridUpdated] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 });
+  const [modalOpen, setModalOpen] = useState<string | null>(null)
+  const [isGridUpdated, setIsGridUpdated] = useState(false)
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
 
-  const dispatch = useAppDispatch();
-  const view = useAppSelector((state) => state.view.view);
-  const cellSpan = task.duration;
+  const dispatch = useAppDispatch()
+  const view = useAppSelector((state) => state.view.view)
+  const cellSpan = task.duration
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
-    event.preventDefault();
-    if (view?.name !== "1 mies.") return;
+    event.preventDefault()
+    if (view?.name !== "1 mies.") return
     if (!anchorEl) {
-      setCursorPosition({ left: event.clientX - 2, top: event.clientY - 4 });
-      setAnchorEl(event.currentTarget);
-      dispatch(setDragDisabled(true));
+      setCursorPosition({ left: event.clientX - 2, top: event.clientY - 4 })
+      setAnchorEl(event.currentTarget)
+      dispatch(setDragDisabled(true))
     }
-  };
-  const open = Boolean(anchorEl);
+  }
+  const open = Boolean(anchorEl)
 
   const handleClose = () => {
-    setAnchorEl(null);
-    dispatch(setDragDisabled(false));
-  };
+    setAnchorEl(null)
+    dispatch(setDragDisabled(false))
+  }
 
   const contextMenuOptions = [
     {
       title: "Edytuj",
       onClick: () => {
-        setModalOpen("updateTask");
-        handleClose();
-        dispatch(setDragDisabled(true));
+        setModalOpen("updateTask")
+        handleClose()
+        dispatch(setDragDisabled(true))
       },
-      icon: <EditIcon fontSize="small" />,
+      icon: <EditIcon fontSize="small" sx={{ color: "black" }} />,
     },
     {
       title: "Usuń z osi czasu",
@@ -71,11 +71,11 @@ export function DroppedTask({
             colId,
             cellSpan,
           })
-        );
-        setIsGridUpdated(true);
-        handleClose();
+        )
+        setIsGridUpdated(true)
+        handleClose()
       },
-      icon: <DeleteIcon fontSize="small" />,
+      icon: <DeleteIcon fontSize="small" sx={{ color: "black" }} />,
     },
     {
       title: "Usuń",
@@ -87,13 +87,13 @@ export function DroppedTask({
             colId,
             cellSpan,
           })
-        );
-        setIsGridUpdated(true);
-        handleClose();
+        )
+        setIsGridUpdated(true)
+        handleClose()
       },
-      icon: <DeleteForeverIcon fontSize="small" />,
+      icon: <DeleteForeverIcon fontSize="small" sx={{ color: "black" }} />,
     },
-  ];
+  ]
 
   return (
     <>
@@ -147,5 +147,5 @@ export function DroppedTask({
         </Stack>
       ) : null}
     </>
-  );
+  )
 }
