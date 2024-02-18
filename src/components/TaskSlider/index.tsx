@@ -8,9 +8,17 @@ export function TaskSlider() {
   const outerRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
   const tasksState = useAppSelector((state) => state.tasks)
-  const taskArr = Object.entries(tasksState.tasks).filter(
-    ([, task]) => !task.dropped
-  )
+  const taskArr = Object.entries(tasksState.tasks)
+    .filter(([, task]) => !task.dropped)
+    .sort((a, b) => {
+      if (a[1].bgcolor < b[1].bgcolor) {
+        return -1
+      }
+      if (a[1].bgcolor > b[1].bgcolor) {
+        return 1
+      }
+      return 0
+    })
 
   return (
     <Stack width="100%">

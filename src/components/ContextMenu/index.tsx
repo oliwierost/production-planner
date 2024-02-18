@@ -55,7 +55,7 @@ export function ContextMenu({
         anchorPosition={{ top: cursorPosition.top, left: cursorPosition.left }}
         transitionDuration={0}
         sx={{
-          width: 320,
+          minWidth: 320,
           "& .MuiPaper-root": {
             bgcolor: "white",
             boxShadow: "none",

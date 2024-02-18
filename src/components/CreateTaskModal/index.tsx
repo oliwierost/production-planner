@@ -1,32 +1,32 @@
-import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
-import { Stack, Typography } from "@mui/material";
-import { TextField } from "../TextField";
-import { Modal } from "../Modal";
-import { TitleBar } from "../TitleBar";
-import { TextArea } from "../TextArea";
-import { SecondaryButton } from "../SecondaryButton";
-import { PrimaryButton } from "../PrimaryButton";
-import { doc, collection } from "firebase/firestore";
-import { firestore } from "../../../firebase.config";
-import { Form, Formik, FormikHelpers } from "formik";
-import { ColorField } from "../ColorField";
-import { NumberField } from "../NumberField";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import { Task, addTaskStart, updateTaskStart } from "../../slices/tasks";
-import { useEffect, useState } from "react";
-import { setDragDisabled } from "../../slices/drag";
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline"
+import { Stack, Typography } from "@mui/material"
+import { TextField } from "../TextField"
+import { Modal } from "../Modal"
+import { TitleBar } from "../TitleBar"
+import { TextArea } from "../TextArea"
+import { SecondaryButton } from "../SecondaryButton"
+import { PrimaryButton } from "../PrimaryButton"
+import { doc, collection } from "firebase/firestore"
+import { firestore } from "../../../firebase.config"
+import { Form, Formik, FormikHelpers } from "formik"
+import { ColorField } from "../ColorField"
+import { NumberField } from "../NumberField"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { Task, addTaskStart, updateTaskStart } from "../../slices/tasks"
+import { useEffect, useState } from "react"
+import { setDragDisabled } from "../../slices/drag"
 
 interface CreateTaskModalProps {
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<string | null>>;
-  taskId?: string;
+  open: boolean
+  setOpen: React.Dispatch<React.SetStateAction<string | null>>
+  taskId?: string
 }
 
 interface FormData {
-  title: string;
-  description: string;
-  duration: number;
-  bgcolor: string;
+  title: string
+  description: string
+  duration: number
+  bgcolor: string
 }
 
 const colorOptions = [
@@ -50,7 +50,7 @@ const colorOptions = [
     bgcolor: "#8e44ad",
     color: "#000000",
   },
-];
+]
 
 const initialValues = {
   id: "",
@@ -59,30 +59,30 @@ const initialValues = {
   description: "",
   duration: 0,
   bgcolor: "",
-};
+}
 
 export function CreateTaskModal({
   open,
   setOpen,
   taskId,
 }: CreateTaskModalProps) {
-  const [task, setTask] = useState<Task>(initialValues);
-  const tasks = useAppSelector((state) => state.tasks.tasks);
-  const dispatch = useAppDispatch();
+  const [task, setTask] = useState<Task>(initialValues)
+  const tasks = useAppSelector((state) => state.tasks.tasks)
+  const dispatch = useAppDispatch()
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: FormikHelpers<FormData>["setFieldValue"]
   ) => {
-    const { name, value } = e.target;
-    setFieldValue(name, value);
-  };
+    const { name, value } = e.target
+    setFieldValue(name, value)
+  }
 
   useEffect(() => {
     if (taskId) {
-      const task = tasks[taskId];
-      setTask(task);
+      const task = tasks[taskId]
+      setTask(task)
     }
-  }, [taskId, tasks]);
+  }, [taskId, tasks])
 
   const handleSubmit = async (
     values: FormData,
@@ -90,30 +90,30 @@ export function CreateTaskModal({
   ) => {
     try {
       if (!taskId) {
-        const id = doc(collection(firestore, "tasks")).id;
+        const id = doc(collection(firestore, "tasks")).id
         dispatch(
           addTaskStart({
             ...values,
             dropped: false,
             id,
           })
-        );
+        )
       } else {
-        dispatch(updateTaskStart({ id: task.id, data: values }));
+        dispatch(updateTaskStart({ id: task.id, data: values }))
       }
-      setOpen(null);
-      resetForm();
-      dispatch(setDragDisabled(false));
+      setOpen(null)
+      resetForm()
+      dispatch(setDragDisabled(false))
     } catch (error) {
-      resetForm();
+      resetForm()
     }
-  };
+  }
 
   const handleClose = (resetForm: FormikHelpers<FormData>["resetForm"]) => {
-    setOpen(null);
-    resetForm();
-    dispatch(setDragDisabled(false));
-  };
+    setOpen(null)
+    resetForm()
+    dispatch(setDragDisabled(false))
+  }
 
   return (
     <Formik
@@ -171,14 +171,13 @@ export function CreateTaskModal({
                       <Typography variant="body1" width={100}>
                         Czas trwania
                       </Typography>
-
                       <NumberField
                         placeholder="Czas"
                         icon={<Typography fontWeight={600}>[dni]</Typography>}
                         value={values.duration}
                         onChange={(e) => handleInputChange(e, setFieldValue)}
                         name="duration"
-                        disabled={taskId ? true : false}
+                        disabled={taskId && task.dropped ? true : false}
                       />
                     </Stack>
                     <Stack
@@ -220,5 +219,5 @@ export function CreateTaskModal({
         </>
       )}
     </Formik>
-  );
+  )
 }

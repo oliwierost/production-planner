@@ -55,8 +55,8 @@ export function Task({ task }: TaskProps) {
   ]
   return (
     <Stack
-      width={50}
-      height={50}
+      width={120}
+      height={60}
       border="1px solid #000000"
       justifyContent="center"
       px={3}
