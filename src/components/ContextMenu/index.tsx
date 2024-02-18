@@ -55,12 +55,9 @@ export function ContextMenu({
         anchorPosition={{ top: cursorPosition.top, left: cursorPosition.left }}
         transitionDuration={0}
         sx={{
-          width: 320,
           "& .MuiPaper-root": {
             bgcolor: "white",
-            boxShadow: "none",
-            borderRadius: 0,
-            border: "2px solid black",
+            borderRadius: 1,
             cursor: "default",
           },
         }}
@@ -76,17 +73,22 @@ export function ContextMenu({
             }}
           >
             <ListItemIcon>
-              <AssignmentIcon fontSize="small" sx={{ color: "black" }} />
+              <AssignmentIcon fontSize="small" sx={{ color: "primary.main" }} />
             </ListItemIcon>
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 600, color: "text.primary" }}
+            >
               {item.title}
             </Typography>
           </MenuItem>
-          <Divider sx={{ bgcolor: "black" }} />
+          <Divider sx={{ bgcolor: "primary.dark" }} />
           {options.map((option, idx) => (
             <MenuItem key={idx} onClick={option.onClick}>
               <ListItemIcon>{option.icon}</ListItemIcon>
-              <Typography variant="body1">{option.title}</Typography>
+              <Typography variant="body1" color="text.primary">
+                {option.title}
+              </Typography>
             </MenuItem>
           ))}
         </MenuList>

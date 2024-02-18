@@ -58,7 +58,7 @@ export function DroppedTask({
         handleClose()
         dispatch(setDragDisabled(true))
       },
-      icon: <EditIcon fontSize="small" sx={{ color: "black" }} />,
+      icon: <EditIcon fontSize="small" sx={{ color: "primary.dark" }} />,
     },
     {
       title: "Usuń z osi czasu",
@@ -75,7 +75,7 @@ export function DroppedTask({
         setIsGridUpdated(true)
         handleClose()
       },
-      icon: <DeleteIcon fontSize="small" sx={{ color: "black" }} />,
+      icon: <DeleteIcon fontSize="small" sx={{ color: "primary.dark" }} />,
     },
     {
       title: "Usuń",
@@ -91,7 +91,9 @@ export function DroppedTask({
         setIsGridUpdated(true)
         handleClose()
       },
-      icon: <DeleteForeverIcon fontSize="small" sx={{ color: "black" }} />,
+      icon: (
+        <DeleteForeverIcon fontSize="small" sx={{ color: "primary.dark" }} />
+      ),
     },
   ]
 

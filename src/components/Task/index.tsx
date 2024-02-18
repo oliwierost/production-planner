@@ -43,14 +43,16 @@ export function Task({ task }: TaskProps) {
         handleClose()
         dispatch(setDragDisabled(true))
       },
-      icon: <EditIcon fontSize="small" sx={{ color: "black" }} />,
+      icon: <EditIcon fontSize="small" sx={{ color: "primary.dark" }} />,
     },
     {
       title: "Usuń",
       onClick: () => {
         dispatch(deleteTaskStart({ taskId: task.id }))
       },
-      icon: <DeleteForeverIcon fontSize="small" sx={{ color: "black" }} />,
+      icon: (
+        <DeleteForeverIcon fontSize="small" sx={{ color: "primary.dark" }} />
+      ),
     },
   ]
   return (
