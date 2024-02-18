@@ -16,7 +16,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Task, addTaskStart, updateTaskStart } from "../../slices/tasks"
 import { useEffect, useState } from "react"
 import { setDragDisabled } from "../../slices/drag"
-import { modalsSchema } from "../../../validationSchema"
+import { taskModalSchema } from "../../../validationSchema"
 
 interface CreateTaskModalProps {
   open: boolean
@@ -73,7 +73,7 @@ export function CreateTaskModal({
   const dispatch = useAppDispatch()
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: FormikHelpers<FormData>["setFieldValue"]
+    setFieldValue: FormikHelpers<FormData>["setFieldValue"],
   ) => {
     const { name, value } = e.target
     setFieldValue(name, value)
@@ -88,7 +88,7 @@ export function CreateTaskModal({
 
   const handleSubmit = async (
     values: FormData,
-    resetForm: FormikHelpers<FormData>["resetForm"]
+    resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     try {
       if (!taskId) {
@@ -98,7 +98,7 @@ export function CreateTaskModal({
             ...values,
             dropped: false,
             id,
-          })
+          }),
         )
       } else {
         dispatch(updateTaskStart({ id: task.id, data: values }))
@@ -120,7 +120,7 @@ export function CreateTaskModal({
   return (
     <Formik
       initialValues={task}
-      validationSchema={modalsSchema}
+      validationSchema={taskModalSchema}
       enableReinitialize
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)
