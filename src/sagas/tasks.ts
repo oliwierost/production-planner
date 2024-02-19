@@ -162,7 +162,7 @@ export function* moveTaskSaga(
       yield call(assignTaskToFacilityInFirestore, rowId, taskId)
       yield call(removeTaskFromFacilityInFirestore, sourceRowId, taskId)
     }
-    yield call(updateTaskInFirestore, taskId, { rowId, colId, cellSpan })
+    // yield call(updateTaskInFirestore, taskId, { rowId, colId, cellSpan })
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
