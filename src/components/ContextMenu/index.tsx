@@ -1,7 +1,6 @@
 import Divider from "@mui/material/Divider"
 import MenuList from "@mui/material/MenuList"
 import MenuItem from "@mui/material/MenuItem"
-import ListItemText from "@mui/material/ListItemText"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import AssignmentIcon from "@mui/icons-material/Assignment"
 import { Menu, Typography } from "@mui/material"
@@ -40,6 +39,12 @@ export function ContextMenu({
   const grid = useAppSelector((state) => state.grid.grid)
 
   useEffect(() => {
+    if (modalOpen) {
+      onClose()
+    }
+  }, [modalOpen, onClose])
+
+  useEffect(() => {
     if (isGridUpdated && grid) {
       dispatch(updateGridStart(grid))
       setIsGridUpdated(false)
@@ -49,7 +54,7 @@ export function ContextMenu({
   return (
     <>
       <Menu
-        open={open}
+        open={modalOpen ? false : open}
         onClose={onClose}
         anchorReference="anchorPosition"
         anchorPosition={{ top: cursorPosition.top, left: cursorPosition.left }}

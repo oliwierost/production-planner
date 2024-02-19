@@ -30,7 +30,7 @@ export function ToggleView({}: ToggleViewProps) {
 
   const handleChange = (
     event: React.MouseEvent<HTMLElement, MouseEvent>,
-    newView: string
+    newView: string,
   ) => {
     if (cellStateMap) {
       switch (newView) {
@@ -39,7 +39,7 @@ export function ToggleView({}: ToggleViewProps) {
             setYearView({
               view: generateYearView(1000),
               grid: cellStateMap,
-            })
+            }),
           )
           dispatch(setDragDisabled(true))
           break
@@ -48,13 +48,13 @@ export function ToggleView({}: ToggleViewProps) {
             setQuarterView({
               view: generateQuarterYearView(1000),
               grid: cellStateMap,
-            })
+            }),
           )
           dispatch(setDragDisabled(true))
           break
         case "1month.":
           dispatch(
-            setMonthView({ view: generateMonthView(1000), grid: cellStateMap })
+            setMonthView({ view: generateMonthView(1000), grid: cellStateMap }),
           )
           dispatch(setDragDisabled(false))
           break
@@ -67,6 +67,7 @@ export function ToggleView({}: ToggleViewProps) {
       <Typography
         color={view?.name == "1 mies." ? "#228B22" : "#FF5349"}
         fontWeight={600}
+        variant="body2"
       >
         Tryb {view?.name == "1 mies." ? "edycji" : "odczytu"}
       </Typography>

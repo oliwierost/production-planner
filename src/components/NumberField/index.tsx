@@ -35,7 +35,6 @@ export function NumberField({
         placeholder={placeholder}
         type="number"
         disabled={disabled}
-        defaultValue={1}
         inputProps={{
           min: 1,
         }}
