@@ -10,6 +10,7 @@ import { useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
 import { updateGridStart } from "../../slices/grid"
+import PersonIcon from "@mui/icons-material/Person"
 
 interface FacilityProps {
   facility: FacilityType
@@ -83,6 +84,7 @@ export function Facility({ facility }: FacilityProps) {
             color: "#FFFFFF",
           }}
           onContextMenu={(e) => handleRightClick(e)}
+          position="relative"
         >
           <Typography variant="body2" color="#1E1E1E" fontWeight={600}>
             {facility.title}
@@ -98,6 +100,19 @@ export function Facility({ facility }: FacilityProps) {
             modalOpen={modalOpen}
             setModalOpen={setModalOpen}
           />
+          <Stack
+            direction="row"
+            position="absolute"
+            top={1}
+            right={2}
+            alignItems="center"
+            spacing={0.3}
+          >
+            <Typography fontSize="12px" color="black" fontWeight={600}>
+              {facility.manpower}
+            </Typography>
+            <PersonIcon sx={{ color: "black", fontSize: "15px" }} />
+          </Stack>
         </Stack>
       ) : null}
     </>

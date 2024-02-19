@@ -67,7 +67,7 @@ function App() {
   useEffect(() => {
     if (cellStateMap) {
       dispatch(
-        setMonthView({ view: generateMonthView(1000), grid: cellStateMap })
+        setMonthView({ view: generateMonthView(1000), grid: cellStateMap }),
       )
     }
   }, [dispatch, cellStateMap])
@@ -96,7 +96,7 @@ function App() {
             setToastOpen({
               message: "Wykryto kolizję",
               severity: "error",
-            })
+            }),
           )
           return false
         }
@@ -118,7 +118,7 @@ function App() {
         rowId,
         colId: Number(colId),
         cellSpan,
-      })
+      }),
     )
     setIsGridUpdated(true)
   }
@@ -138,7 +138,7 @@ function App() {
         cellSpan,
         sourceRowId,
         sourceColId: Number(sourceColId),
-      })
+      }),
     )
     setIsGridUpdated(true)
   }
@@ -171,7 +171,7 @@ function App() {
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
-      distance: 3,
+      distance: 1,
     },
   })
 

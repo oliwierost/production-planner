@@ -6,6 +6,7 @@ import { ContextMenu } from "../ContextMenu"
 import { useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
+import AccessTimeIcon from "@mui/icons-material/AccessTime"
 
 interface TaskProps {
   task: TaskType
@@ -65,10 +66,24 @@ export function Task({ task }: TaskProps) {
       borderRadius={1}
       sx={{ bgcolor: task.bgcolor, color: "#FFFFFF" }}
       onContextMenu={(e) => handleRightClick(e)}
+      position="relative"
     >
       <Typography variant="body1" fontWeight={700} noWrap>
         {task.title}
       </Typography>
+      <Stack
+        direction="row"
+        position="absolute"
+        top={1}
+        right={2}
+        spacing={0.3}
+        alignItems="center"
+      >
+        <Typography fontSize="12px" color="white" fontWeight={600}>
+          {task.duration}
+        </Typography>
+        <AccessTimeIcon sx={{ color: "white", fontSize: "15px" }} />
+      </Stack>
       <ContextMenu
         open={open}
         onClose={handleClose}
