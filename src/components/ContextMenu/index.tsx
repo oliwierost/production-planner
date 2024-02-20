@@ -11,6 +11,8 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 import { updateGridStart } from "../../slices/grid"
 import { Facility } from "../../slices/facilities"
 import { CreateFacilityModal } from "../CreateFacilityModal"
+import { Deadline } from "../../slices/deadlines"
+import { CreateDeadlineModal } from "../CreateDeadlineModal"
 
 interface ContextMenuProps {
   open: boolean
@@ -19,7 +21,7 @@ interface ContextMenuProps {
   setModalOpen: React.Dispatch<React.SetStateAction<string | null>>
   isGridUpdated: boolean
   setIsGridUpdated: React.Dispatch<React.SetStateAction<boolean>>
-  item: Task | Facility
+  item: Task | Facility | Deadline
   cursorPosition: { top: number; left: number }
   options: { title: string; onClick: () => void; icon: JSX.Element }[]
 }
@@ -110,6 +112,13 @@ export function ContextMenu({
           setOpen={setModalOpen}
           open={modalOpen == "updateFacility" ? true : false}
           facilityId={item.id}
+        />
+      ) : null}
+      {modalOpen == "updateDeadline" ? (
+        <CreateDeadlineModal
+          setOpen={setModalOpen}
+          open={modalOpen == "updateDeadline" ? true : false}
+          deadlineId={item.id}
         />
       ) : null}
     </>

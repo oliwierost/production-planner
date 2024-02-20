@@ -73,16 +73,7 @@ export const deadlinesSlice = createSlice({
     },
     updateDeadlineStart: (
       state,
-      action: PayloadAction<{
-        id: number
-        title: string
-        description: string
-        timestamp: {
-          day: number
-          week: number
-          month: number
-        }
-      }>,
+      action: PayloadAction<{ id: string; data: any }>,
     ) => {
       state.loading = true
       state.error = null

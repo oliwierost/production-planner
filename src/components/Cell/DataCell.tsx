@@ -37,7 +37,7 @@ export function DataCell({
     task: TaskType,
     left: number | undefined,
     width: number | undefined,
-    idx: number
+    idx: number,
   ) => {
     if (cell?.state == "occupied-start" && draggedTask.task?.id !== task.id) {
       return (

@@ -1,7 +1,14 @@
+import EditIcon from "@mui/icons-material/Edit"
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 import { useEffect, useState } from "react"
-import { Deadline as DeadlineType } from "../../slices/deadlines"
-import { useAppSelector } from "../../hooks"
+import {
+  Deadline as DeadlineType,
+  removeDeadlineStart,
+} from "../../slices/deadlines"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { setDragDisabled } from "../../slices/drag"
 import { Box, Typography } from "@mui/material"
+import { ContextMenu } from "../ContextMenu"
 
 interface DeadlineProps {
   time: number
@@ -18,9 +25,54 @@ export function Deadline({
 }: DeadlineProps) {
   const [timestamp, setTimestamp] = useState<number | null>(null)
   const [left, setLeft] = useState<number>(0)
+  const [modalOpen, setModalOpen] = useState<string | null>(null)
+  const [isGridUpdated, setIsGridUpdated] = useState(false)
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
+
+  const dispatch = useAppDispatch()
   const view = useAppSelector((state) => state.view.view)
   const cellWidth = view?.cellWidth
   const { day, week, month } = deadline.timestamp
+  const open = Boolean(anchorEl)
+
+  const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault()
+    if (view?.name !== "1 mies.") return
+    if (!anchorEl) {
+      setCursorPosition({ left: event.clientX - 2, top: event.clientY - 4 })
+      setAnchorEl(event.currentTarget)
+      dispatch(setDragDisabled(true))
+    }
+  }
+
+  const contextMenuOptions = [
+    {
+      title: "Edytuj",
+      onClick: () => {
+        setModalOpen("updateDeadline")
+        handleClose()
+        dispatch(setDragDisabled(true))
+      },
+      icon: <EditIcon fontSize="small" sx={{ color: "primary.dark" }} />,
+    },
+    {
+      title: "Usuń",
+      onClick: () => {
+        dispatch(removeDeadlineStart(deadline.id))
+        setIsGridUpdated(true)
+        handleClose()
+      },
+      icon: (
+        <DeleteForeverIcon fontSize="small" sx={{ color: "primary.dark" }} />
+      ),
+    },
+  ]
+
+  const handleClose = () => {
+    setAnchorEl(null)
+    dispatch(setDragDisabled(false))
+  }
 
   useEffect(() => {
     if (!view) return
@@ -40,7 +92,11 @@ export function Deadline({
 
   if (timestamp === time) {
     return (
-      <Box position="absolute" left={left}>
+      <Box
+        position="absolute"
+        left={left}
+        onContextMenu={(e) => handleRightClick(e)}
+      >
         <Box width="fit-content" height="50px">
           <Box
             sx={{
@@ -99,6 +155,17 @@ export function Deadline({
             </>
           ) : null}
         </Box>
+        <ContextMenu
+          open={open}
+          onClose={handleClose}
+          item={deadline}
+          cursorPosition={cursorPosition}
+          options={contextMenuOptions}
+          isGridUpdated={isGridUpdated}
+          setIsGridUpdated={setIsGridUpdated}
+          modalOpen={modalOpen}
+          setModalOpen={setModalOpen}
+        />
       </Box>
     )
   }

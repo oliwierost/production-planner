@@ -11,12 +11,14 @@ import { doc, collection } from "firebase/firestore"
 import { firestore } from "../../../firebase.config"
 import { Form, Formik, FormikHelpers } from "formik"
 import { DateField } from "../DateField"
-import { useAppDispatch } from "../../hooks"
-import { addDeadlineStart } from "../../slices/deadlines"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { addDeadlineStart, updateDeadlineStart } from "../../slices/deadlines"
 import { deadlineModalSchema } from "../../../validationSchema"
+import { useEffect, useState } from "react"
 
 interface CreateDeadlineModalProps {
   open: boolean
+  deadlineId: string
   setOpen: React.Dispatch<React.SetStateAction<string | null>>
 }
 
@@ -37,7 +39,10 @@ const initialValues = {
 export function CreateDeadlineModal({
   open,
   setOpen,
+  deadlineId,
 }: CreateDeadlineModalProps) {
+  const [deadline, setDeadline] = useState<FormData>(initialValues)
+  const deadlines = useAppSelector((state) => state.deadlines.deadlines)
   const dispatch = useAppDispatch()
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -65,18 +70,34 @@ export function CreateDeadlineModal({
     const monthTimestamp = yearDate.getTime()
 
     try {
-      const id = doc(collection(firestore, "deadlines")).id
-      dispatch(
-        addDeadlineStart({
-          ...rest,
-          id,
-          timestamp: {
-            day: timestamp,
-            week: weekTimestamp,
-            month: monthTimestamp,
-          },
-        }),
-      )
+      if (!deadlineId) {
+        const newDeadline = doc(collection(firestore, "deadlines"))
+        dispatch(
+          addDeadlineStart({
+            ...rest,
+            id: newDeadline.id,
+            timestamp: {
+              day: timestamp,
+              week: weekTimestamp,
+              month: monthTimestamp,
+            },
+          }),
+        )
+      } else {
+        dispatch(
+          updateDeadlineStart({
+            id: deadlineId,
+            data: {
+              ...rest,
+              timestamp: {
+                day: timestamp,
+                week: weekTimestamp,
+                month: monthTimestamp,
+              },
+            },
+          }),
+        )
+      }
       setOpen(null)
       resetForm()
     } catch (error) {
@@ -88,10 +109,23 @@ export function CreateDeadlineModal({
     setOpen(null)
     resetForm()
   }
+
+  useEffect(() => {
+    if (deadlineId) {
+      const deadline = deadlines[deadlineId]
+      const { timestamp, ...rest } = deadline
+      const formDeadline = {
+        ...rest,
+        date: new Date(timestamp.day),
+      }
+      setDeadline(formDeadline)
+    }
+  }, [deadlineId, deadlines])
   return (
     <Formik
-      initialValues={initialValues}
+      initialValues={deadline}
       validationSchema={deadlineModalSchema}
+      enableReinitialize
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)
       }
@@ -110,7 +144,9 @@ export function CreateDeadlineModal({
               <Stack alignItems="center" justifyContent="center">
                 <TitleBar onClose={() => handleClose(resetForm)} />
                 <Stack p={2} bgcolor="white" width="fit-content" spacing={4}>
-                  <Typography variant="h6">Dodaj deadline</Typography>
+                  <Typography variant="h6">
+                    {deadlineId ? "Edytuj" : "Dodaj"} deadline
+                  </Typography>
                   <Stack spacing={2}>
                     <Stack
                       direction="row"
@@ -203,7 +239,7 @@ export function CreateDeadlineModal({
                     <PrimaryButton
                       type="submit"
                       onClick={() => handleSubmit()}
-                      label="Zapisz"
+                      label={deadlineId ? "Zapisz" : "Dodaj"}
                     />
                   </Stack>
                 </Stack>

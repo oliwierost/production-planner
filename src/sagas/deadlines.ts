@@ -30,7 +30,7 @@ const updateDeadlineInFirestore = async (
   id: string,
   updateData: { [key: string]: any },
 ) => {
-  await updateDoc(doc(firestore, `tasks/${id}`), updateData)
+  await updateDoc(doc(firestore, `deadlines/${id}`), updateData)
 }
 
 const deleteDeadlineFromFirestore = async (deadlineId: string) => {
@@ -47,14 +47,13 @@ export function* addDeadlineSaga(action: PayloadAction<Deadline>) {
 }
 
 export function* deleteDeadlineSaga(
-  action: PayloadAction<{
-    deadlineId: string
-  }>,
+  action: PayloadAction<string>,
 ): Generator<any, void, any> {
   try {
-    const deadlineId = action.payload.deadlineId
+    const deadlineId = action.payload
 
     yield call(deleteDeadlineFromFirestore, deadlineId)
+
     yield put(removeDeadline(deadlineId))
     yield put(
       setToastOpen({ message: "Usunięto deadline", severity: "success" }),
@@ -74,7 +73,7 @@ export function* updateDeadlineSaga(
       setToastOpen({ message: "Zaktualizowano deadline", severity: "success" }),
     )
   } catch (error) {
-    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "success" }))
+    yield put(setToastOpen({ message: "wystąpił błąd", severity: "error" }))
   }
 }
 
@@ -89,7 +88,7 @@ export function* syncDeadlinesSaga() {
           (deadlines[doc.id] = {
             id: doc.id,
             ...doc.data(),
-          } as unknown as Deadline),
+          } as Deadline),
       )
       emitter(deadlines)
     })
