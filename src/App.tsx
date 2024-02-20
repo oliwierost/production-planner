@@ -1,4 +1,4 @@
-import { Alert, Snackbar, Stack } from "@mui/material"
+import { Alert, Box, Snackbar, Stack } from "@mui/material"
 import { TaskSlider } from "./components/TaskSlider"
 import {
   Active,
@@ -11,7 +11,7 @@ import {
   MouseSensor,
 } from "@dnd-kit/core"
 import { Toolbar } from "./components/Toolbar"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { snapCenterToCursor } from "@dnd-kit/modifiers"
 import { DataGrid } from "./components/DataGrid"
 import { ThemeProvider } from "@mui/material/styles"
@@ -38,6 +38,7 @@ import { setToastClose, setToastOpen } from "./slices/toast"
 import { setMonthView } from "./slices/view"
 import { TimelineToolbar } from "./components/TimelineToolbar"
 import { syncDeadlinesStart } from "./slices/deadlines"
+import { Timeline } from "./components/Timeline"
 
 export interface DraggedTask {
   draggableId: string | null
@@ -51,6 +52,8 @@ function App() {
     task: null,
   })
   const dispatch = useAppDispatch()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     dispatch(syncTasksStart())
@@ -144,6 +147,7 @@ function App() {
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
+    rootRef.current?.style.setProperty("cursor", "default")
     if (!event.over) {
       return
     }
@@ -159,6 +163,7 @@ function App() {
   }
 
   const handleDragStart = (event: DragStartEvent) => {
+    rootRef.current?.style.setProperty("cursor", "none")
     setDraggedTask({
       draggableId: String(event.active.id),
       task: event.active.data?.current?.task,
@@ -166,6 +171,7 @@ function App() {
   }
 
   const handleDragCancel = () => {
+    rootRef.current?.style.setProperty("cursor", "default")
     setDraggedTask({ draggableId: null, task: null })
   }
 
@@ -177,8 +183,35 @@ function App() {
 
   const sensors = useSensors(mouseSensor)
 
+  function snapToGrid(args) {
+    const gridX = 50
+    const gridY = 100
+    const { transform, over, activeNodeRect } = args
+    const containerX = containerRef.current?.getBoundingClientRect().left || 0
+    const containerY = containerRef.current?.getBoundingClientRect().top || 0
+    const activeX = activeNodeRect?.left || 0
+    const activeY = activeNodeRect?.top || 0
+    const activeHeight = activeNodeRect?.height || 0
+
+    //create snap to grid modifier that is relative to viewport
+
+    if (over) {
+      return {
+        ...transform,
+        x: Math.round(transform.x / gridX) * gridX + containerX,
+        y:
+          Math.round(transform.y / gridY) * gridY +
+          containerY -
+          activeY +
+          activeHeight / 4 -
+          100,
+      }
+    } else {
+      return transform
+    }
+  }
   return (
-    <>
+    <div ref={rootRef}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={theme}>
           <Stack width="100vw" height="100vh">
@@ -189,11 +222,13 @@ function App() {
               onDragEnd={handleDragEnd}
               onDragCancel={handleDragCancel}
               autoScroll={{ layoutShiftCompensation: false }}
-              modifiers={[snapCenterToCursor]}
+              modifiers={[snapToGrid]}
             >
               <TaskSlider />
               <TimelineToolbar />
-              <DataGrid draggedTask={draggedTask} />
+              <Box ref={containerRef}>
+                <Timeline />
+              </Box>
             </DndContext>
             <Snackbar
               open={toastState.open}
@@ -205,7 +240,7 @@ function App() {
           </Stack>
         </ThemeProvider>
       </LocalizationProvider>
-    </>
+    </div>
   )
 }
 
