@@ -16,11 +16,13 @@ export function HeadCell({
   return (
     <Stack
       sx={{
-        width: cellWidth,
+        minWidth: cellWidth,
+        minHeight: 50,
         bgcolor: "#D9D9D9",
         boxSizing: "border-box",
         borderBottom: "1px solid black",
         userSelect: "none",
+        left: 225,
       }}
     >
       <Stack
@@ -37,11 +39,21 @@ export function HeadCell({
           pl: 1,
         }}
       >
-        {columnIndex == 1 ||
-        topData[columnIndex] !== topData[columnIndex - 1] ? (
-          <Typography variant="body2" position="absolute">
-            {topData[columnIndex]}
-          </Typography>
+        {topData[columnIndex] !== topData[columnIndex - 1] &&
+        columnIndex != 1 ? (
+          <Stack position="relative">
+            <Typography
+              variant="body2"
+              bottom="100%"
+              position="absolute"
+              sx={{
+                transform: "translateY(50%)",
+              }}
+              noWrap
+            >
+              {topData[columnIndex]}
+            </Typography>
+          </Stack>
         ) : null}
       </Stack>
       <Stack

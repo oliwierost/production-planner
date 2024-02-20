@@ -2,7 +2,7 @@ import { View } from "../../../types/view"
 import { DraggedTask } from "../../App"
 import { useAppSelector } from "../../hooks"
 import { DataCell, HeadCell, SideCell } from "../Cell"
-import { CornerCell } from "../Cell/CornerCell"
+import { CornerCell } from "../TableGrid/CornerCell"
 
 interface CellProps {
   colIndex: number

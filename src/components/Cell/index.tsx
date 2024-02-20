@@ -1,4 +1,4 @@
 export { DataCell } from "./DataCell"
-export { HeadCell } from "./HeadCell"
-export { SideCell } from "./SideCell"
-export { CornerCell } from "./CornerCell"
+export { HeadCell } from "../TableGrid/HeadCell"
+export { SideCell } from "../TableGrid/SideCell"
+export { CornerCell } from "../TableGrid/CornerCell"

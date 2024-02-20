@@ -38,6 +38,7 @@ import { setToastClose, setToastOpen } from "./slices/toast"
 import { setMonthView } from "./slices/view"
 import { TimelineToolbar } from "./components/TimelineToolbar"
 import { syncDeadlinesStart } from "./slices/deadlines"
+import { TableGrid } from "./components/TableGrid"
 
 export interface DraggedTask {
   draggableId: string | null
@@ -193,7 +194,7 @@ function App() {
             >
               <TaskSlider />
               <TimelineToolbar />
-              <DataGrid draggedTask={draggedTask} />
+              <TableGrid />
             </DndContext>
             <Snackbar
               open={toastState.open}
