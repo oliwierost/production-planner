@@ -11,7 +11,7 @@ import {
   MouseSensor,
 } from "@dnd-kit/core"
 import { Toolbar } from "./components/Toolbar"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { snapCenterToCursor } from "@dnd-kit/modifiers"
 import { DataGrid } from "./components/DataGrid"
 import { ThemeProvider } from "@mui/material/styles"
@@ -39,6 +39,7 @@ import { setMonthView } from "./slices/view"
 import { TimelineToolbar } from "./components/TimelineToolbar"
 import { syncDeadlinesStart } from "./slices/deadlines"
 import { TableGrid } from "./components/TableGrid"
+import { set } from "firebase/database"
 
 export interface DraggedTask {
   draggableId: string | null
@@ -46,6 +47,10 @@ export interface DraggedTask {
 }
 
 function App() {
+  const [containerBoundingRect, setContainerBoundingRect] = useState({
+    left: 0,
+    top: 0,
+  })
   const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [draggedTask, setDraggedTask] = useState<DraggedTask>({
     draggableId: null,
@@ -178,6 +183,30 @@ function App() {
 
   const sensors = useSensors(mouseSensor)
 
+  function snapToGrid(args) {
+    const gridX = 100
+    const gridY = 50
+    const { transform, over, activeNodeRect } = args
+    const activeY = activeNodeRect?.top || 0
+    const activeHeight = activeNodeRect?.height || 0
+
+    //create snap to grid modifier that is relative to viewport
+    console.log("over", over)
+    if (over) {
+      return {
+        ...transform,
+        x: Math.round(transform.x / gridX) * gridX,
+        y:
+          Math.round(transform.y / gridY) * gridY +
+          containerBoundingRect.top -
+          activeY -
+          gridY * 2,
+      }
+    } else {
+      return transform
+    }
+  }
+
   return (
     <>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -185,16 +214,15 @@ function App() {
           <Stack width="100vw" height="100vh">
             <Toolbar />
             <DndContext
-              sensors={sensors}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onDragCancel={handleDragCancel}
               autoScroll={{ layoutShiftCompensation: false }}
-              modifiers={[snapCenterToCursor]}
+              modifiers={[snapToGrid]}
             >
               <TaskSlider />
               <TimelineToolbar />
-              <TableGrid />
+              <TableGrid setContainerBoundingRect={setContainerBoundingRect} />
             </DndContext>
             <Snackbar
               open={toastState.open}
