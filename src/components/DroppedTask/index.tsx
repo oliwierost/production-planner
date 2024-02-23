@@ -70,7 +70,7 @@ export function DroppedTask({
             rowId: rowId as string,
             colId,
             cellSpan,
-          })
+          }),
         )
         setIsGridUpdated(true)
         handleClose()
@@ -86,7 +86,7 @@ export function DroppedTask({
             facilityId: rowId as string,
             colId,
             cellSpan,
-          })
+          }),
         )
         setIsGridUpdated(true)
         handleClose()
@@ -103,11 +103,9 @@ export function DroppedTask({
         <Stack
           onContextMenu={(e) => handleRightClick(e)}
           key={task.id}
-          width={width ? width : cellWidth * task.duration}
+          width={200}
           height="2rem"
           justifyContent="center"
-          position="absolute"
-          top="50%"
           left={left}
           sx={{
             zIndex: 20,

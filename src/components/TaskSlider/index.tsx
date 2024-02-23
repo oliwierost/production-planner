@@ -3,11 +3,13 @@ import { Task } from "../Task"
 import { useRef } from "react"
 import { Draggable } from "../Draggable"
 import { useAppSelector } from "../../hooks"
+import { DroppedTask } from "../DroppedTask"
 
 export function TaskSlider() {
   const outerRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
   const tasksState = useAppSelector((state) => state.tasks)
+  const dragState = useAppSelector((state) => state.drag)
   const taskArr = Object.entries(tasksState.tasks)
     .filter(([, task]) => !task.dropped)
     .sort((a, b) => {
@@ -51,7 +53,11 @@ export function TaskSlider() {
           {taskArr.map(([id, task], idx) => (
             <Stack direction="row" key={id} spacing={2}>
               <Draggable id={id} data={{ task, source: null, state: null }}>
-                <Task task={task} />
+                {dragState.over && dragState.draggedTask == task.id ? (
+                  <DroppedTask task={task} cellWidth={100} />
+                ) : (
+                  <Task task={task} />
+                )}
               </Draggable>
               {idx !== taskArr.length - 1 && (
                 <Divider

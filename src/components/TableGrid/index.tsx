@@ -8,21 +8,42 @@ import { HeadCell } from "./HeadCell"
 import { CornerCell } from "./CornerCell"
 import { Droppable } from "../Droppable"
 
-export function TableGrid({ setContainerBoundingRect }) {
+export function TableGrid({ setContainer }) {
   const [sortedFacilities, setSortedFacilities] = useState<Facility[]>([])
   const facilities = useAppSelector((state) => state.facilities.facilities)
   const [view, setView] = useState(generateMonthView(1000))
-  const containerRef = useRef(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const scrollableRef = useRef<HTMLDivElement | null>(null)
 
-  useEffect(() => {
-    if (containerRef.current) {
-      const boundingRect = containerRef.current.getBoundingClientRect()
-      setContainerBoundingRect({
-        left: boundingRect.left,
-        top: boundingRect.top,
+  const handleScroll = () => {
+    const container = containerRef.current
+    const scrollable = scrollableRef.current
+
+    if (container && scrollable) {
+      setContainer({
+        left: container.offsetLeft,
+        top: container.offsetTop,
+        scrollX: scrollable.scrollLeft,
+        scrollY: scrollable.scrollTop,
       })
     }
-  }, [setContainerBoundingRect])
+  }
+
+  useEffect(() => {
+    handleScroll() // Trigger the function initially
+
+    const scrollable = scrollableRef.current
+
+    if (scrollable) {
+      scrollable.addEventListener("scroll", handleScroll)
+    }
+
+    return () => {
+      if (scrollable) {
+        scrollable.removeEventListener("scroll", handleScroll)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const sortedFacilities = Object.values(facilities).sort((a, b) => {
@@ -37,7 +58,12 @@ export function TableGrid({ setContainerBoundingRect }) {
     setSortedFacilities(sortedFacilities)
   }, [facilities])
   return (
-    <Stack maxWidth="100vw" overflow="scroll" position="relative">
+    <Stack
+      maxWidth="100vw"
+      overflow="scroll"
+      position="relative"
+      ref={scrollableRef}
+    >
       <Box position="fixed" zIndex={999}>
         <CornerCell />
       </Box>
@@ -62,7 +88,6 @@ export function TableGrid({ setContainerBoundingRect }) {
           <SideCell key={facility.id} facility={facility} />
         ))}
       </Stack>
-
       <Box position="absolute" top="50px" left="225px" ref={containerRef}>
         <Droppable id="timeline">
           {sortedFacilities.map((_, idx) => (
