@@ -45,6 +45,14 @@ function App() {
   const handleDragEnd = (event: DragEndEvent) => {
     dispatch(setDragOver(false))
     dispatch(setDraggedTask(null))
+    console.log(event)
+    if (event.over) {
+      const { id } = event.over
+      const task = event.active.data.current
+      if (id) {
+        dispatch(syncTasksStart({ id, task }))
+      }
+    }
   }
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -72,6 +80,7 @@ function App() {
     const activeY = activeNodeRect?.top || 0
 
     if (over) {
+      console.log(transform)
       return {
         ...transform,
         x:
@@ -84,20 +93,9 @@ function App() {
           container.left -
           container.scrollX,
         y:
-          Math.round(
-            (transform.y +
-              activeY -
-              container.top +
-              container.scrollY +
-              gridY) /
-              gridY,
-          ) *
+          Math.round((transform.y + activeY - container.top + gridY) / gridY) *
             gridY -
-          activeY +
-          container.top +
-          14 -
-          container.scrollY -
-          gridY / 2,
+          container.top,
       }
     } else {
       return transform
