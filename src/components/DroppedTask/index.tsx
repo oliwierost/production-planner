@@ -104,12 +104,11 @@ export function DroppedTask({
           onContextMenu={(e) => handleRightClick(e)}
           key={task.id}
           width={200}
-          height="2rem"
+          height="30px"
           justifyContent="center"
           left={left}
           sx={{
             zIndex: 20,
-            transform: "translateY(-50%)",
             boxSizing: "border-box",
             bgcolor: task.bgcolor,
             color: "background.default",
