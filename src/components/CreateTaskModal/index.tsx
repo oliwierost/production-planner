@@ -17,6 +17,7 @@ import { Task, addTaskStart, updateTaskStart } from "../../slices/tasks"
 import { useEffect, useState } from "react"
 import { setDragDisabled } from "../../slices/drag"
 import { taskModalSchema } from "../../../validationSchema"
+import { DateField } from "../DateField"
 
 interface CreateTaskModalProps {
   open: boolean
@@ -29,6 +30,7 @@ interface FormData {
   description: string
   duration: number
   bgcolor: string
+  startTime?: number
 }
 
 const colorOptions = [
@@ -61,6 +63,7 @@ const initialValues = {
   description: "",
   duration: 1,
   bgcolor: "",
+  startTime: undefined,
 }
 
 export function CreateTaskModal({
@@ -221,6 +224,39 @@ export function CreateTaskModal({
                           onChange={(e) => handleInputChange(e, setFieldValue)}
                           name="duration"
                           disabled={taskId && task.dropped ? true : false}
+                        />
+                      </Stack>
+                    </Stack>
+                    <Stack
+                      direction="row"
+                      justifyContent="flex-start "
+                      spacing={5}
+                      alignItems="center"
+                    >
+                      <Typography variant="body1" width={100}>
+                        Start*
+                      </Typography>
+                      <Stack direction="row" alignItems="center">
+                        <Box
+                          position="absolute"
+                          sx={{
+                            transform: "translateX(-30px)",
+                          }}
+                        >
+                          {errors.startTime && touched.startTime ? (
+                            <Tooltip title="Data jest wymagana" arrow>
+                              <PriorityHighIcon
+                                color="error"
+                                fontSize="large"
+                              />
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                        <DateField
+                          placeholder="Wybierz datę"
+                          value={values.startTime}
+                          setFieldValue={setFieldValue}
+                          name="startTime"
                         />
                       </Stack>
                     </Stack>
