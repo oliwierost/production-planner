@@ -199,12 +199,7 @@ function App() {
       return {
         ...transform,
         x: Math.round(transform.x / gridX) * gridX + containerX,
-        y:
-          Math.round(transform.y / gridY) * gridY +
-          containerY -
-          activeY +
-          activeHeight / 4 -
-          100,
+        y: Math.round(transform.y / gridY) * gridY + containerY - activeY - 100,
       }
     } else {
       return transform
@@ -221,7 +216,9 @@ function App() {
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onDragCancel={handleDragCancel}
-              autoScroll={{ layoutShiftCompensation: false }}
+              autoScroll={{
+                enabled: false,
+              }}
               modifiers={[snapToGrid]}
             >
               <TaskSlider />

@@ -11,6 +11,7 @@ export function Timeline() {
             minHeight="100px"
             width="100%"
             borderBottom="1px solid black"
+            boxSizing="border-box"
             justifyContent="flex-end"
           >
             <Box minHeight={idx == 0 ? "50px" : "100px"}>
