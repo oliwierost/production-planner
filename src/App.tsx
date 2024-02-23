@@ -22,8 +22,15 @@ export interface DraggedTask {
   task: Task | null
 }
 
+export interface Container {
+  left: number
+  top: number
+  scrollX: number
+  scrollY: number
+}
+
 function App() {
-  const [container, setContainer] = useState({
+  const [container, setContainer] = useState<Container>({
     left: 0,
     top: 0,
     scrollX: 0,
