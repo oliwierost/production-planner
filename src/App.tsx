@@ -29,7 +29,6 @@ function App() {
     scrollX: 0,
     scrollY: 0,
   })
-
   const dispatch = useAppDispatch()
 
   useEffect(() => {
@@ -46,13 +45,6 @@ function App() {
     dispatch(setDragOver(false))
     dispatch(setDraggedTask(null))
     console.log(event)
-    if (event.over) {
-      const { id } = event.over
-      const task = event.active.data.current
-      if (id) {
-        dispatch(syncTasksStart({ id, task }))
-      }
-    }
   }
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -80,8 +72,7 @@ function App() {
     const activeY = activeNodeRect?.top || 0
 
     if (over) {
-      console.log(transform)
-      return {
+      const newTransform = {
         ...transform,
         x:
           Math.round(
@@ -95,8 +86,10 @@ function App() {
         y:
           Math.round((transform.y + activeY - container.top + gridY) / gridY) *
             gridY -
-          container.top,
+          container.top +
+          gridY,
       }
+      return newTransform
     } else {
       return transform
     }

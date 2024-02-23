@@ -54,7 +54,7 @@ export function TaskSlider() {
             <Stack direction="row" key={id} spacing={2}>
               <Draggable id={id} data={{ task, source: null, state: null }}>
                 {dragState.over && dragState.draggedTask == task.id ? (
-                  <DroppedTask task={task} cellWidth={100} />
+                  <DroppedTask task={task} width={100 * task.duration} />
                 ) : (
                   <Task task={task} />
                 )}

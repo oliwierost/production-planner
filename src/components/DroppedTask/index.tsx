@@ -103,7 +103,7 @@ export function DroppedTask({
         <Stack
           onContextMenu={(e) => handleRightClick(e)}
           key={task.id}
-          width={200}
+          width={width}
           height="30px"
           justifyContent="center"
           left={left}
