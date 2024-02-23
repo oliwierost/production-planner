@@ -63,7 +63,7 @@ function App() {
     dispatch(setDraggedTask(null))
   }
 
-  const handleDragMove = (event) => {
+  const handleDragMove = (event: DragEndEvent) => {
     if (event.over) {
       dispatch(setDragOver(true))
     } else {

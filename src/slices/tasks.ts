@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { PartialUpdate } from "./partial-update.t"
 
 // Define the Task interface
 export interface Task {
@@ -59,7 +60,10 @@ export const tasksSlice = createSlice({
     removeTask: (state, action: PayloadAction<string>) => {
       delete state.tasks[action.payload]
     },
-    updateTask: (state, action: PayloadAction<{ id: string; data: any }>) => {
+    updateTask: (
+      state,
+      action: PayloadAction<{ id: string; data: PartialUpdate<Task> }>,
+    ) => {
       const { id, data } = action.payload
       const task = state.tasks[id]
       if (task) {
@@ -117,10 +121,15 @@ export const tasksSlice = createSlice({
     addTaskStart(state, action: PayloadAction<Task>) {
       state.loading = true
       state.error = null
+      console.debug("addTaskStart", action.payload)
     },
-    updateTaskStart(state, action: PayloadAction<{ id: string; data: any }>) {
+    updateTaskStart(
+      state,
+      action: PayloadAction<{ id: string; data: PartialUpdate<Task> }>,
+    ) {
       state.loading = true
       state.error = null
+      console.debug("updateTaskStart", action.payload)
     },
     moveTaskStart(
       state,
@@ -135,6 +144,7 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
+      console.debug("moveTaskStart", action.payload)
     },
     deleteTaskStart(
       state,
@@ -147,6 +157,7 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
+      console.debug("deleteTaskStart", action.payload)
     },
     setTaskDroppedStart(
       state,
@@ -160,6 +171,7 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
+      console.debug("setTaskDroppedStart", action.payload)
     },
     syncTasksStart(state /*action: PayloadAction<GridType>*/) {
       state.loading = true

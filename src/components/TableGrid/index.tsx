@@ -78,6 +78,7 @@ export function TableGrid({ setContainer }: TableGridProps) {
     })
     setSortedFacilities(sortedFacilities)
   }, [facilities])
+
   return (
     <Stack
       maxWidth="100vw"
