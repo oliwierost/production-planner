@@ -8,7 +8,7 @@ import { theme } from "../theme"
 import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { initializeGridStart, syncGridStart } from "./slices/grid"
-import { Task, syncTasksStart } from "./slices/tasks"
+import { syncTasksStart } from "./slices/tasks"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import { syncFacilitiesStart } from "./slices/facilities"
 import { setToastClose } from "./slices/toast"
@@ -16,6 +16,7 @@ import { TimelineToolbar } from "./components/TimelineToolbar"
 import { syncDeadlinesStart } from "./slices/deadlines"
 import { TableGrid } from "./components/TableGrid"
 import { setDragOver, setDraggedTask } from "./slices/drag"
+import { Task } from "../types"
 
 export interface DraggedTask {
   draggableId: string | null

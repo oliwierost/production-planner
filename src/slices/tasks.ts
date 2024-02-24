@@ -1,17 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { PartialUpdate } from "./partial-update.t"
-
-// Define the Task interface
-export interface Task {
-  id: string
-  title: string
-  description: string
-  bgcolor: string // Background color
-  duration: number
-  dropped: boolean // Indicates if the task has been placed on the grid
-  facilityId?: string
-  startTime?: number
-}
+import { Task, PartialUpdate } from "../../types"
 
 // Define the state structure for tasks
 interface TasksState {

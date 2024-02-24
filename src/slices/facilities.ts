@@ -1,17 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-
-// Define the Facility interface
-export interface Facility {
-  id: string
-  index?: number
-  title: string
-  location: string
-  activity: string
-  description: string
-  bgcolor: string
-  tasks: string[] // Array of task IDs
-  manpower: number
-}
+import type { Facility } from "../../types"
 
 // Define the state structure for facilities
 interface FacilitiesState {

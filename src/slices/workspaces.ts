@@ -1,12 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-
-export interface Workspace {
-  id: string
-  title: string
-  description: string
-  projects: string[]
-  facilities: string[]
-}
+import type { PartialUpdate, Workspace } from "../../types"
 
 interface WorkspacesState {
   workspaces: {
@@ -31,9 +24,11 @@ export const workspacesSlice = createSlice({
       if (!workspace.projects) workspace.projects = []
       if (!workspace.facilities) workspace.facilities = []
       state.workspaces[workspace.id] = workspace
+      console.log("upsertWorkspace", action.payload)
     },
     removeWorkspace: (state, action: PayloadAction<string>) => {
       delete state.workspaces[action.payload]
+      console.log("removeWorkspace", action.payload)
     },
     addProjectToWorkspace: (
       state,
@@ -44,6 +39,7 @@ export const workspacesSlice = createSlice({
       if (workspace && !workspace.projects.includes(projectId)) {
         workspace.projects.push(projectId)
       }
+      console.log("addProjectToWorkspace", action.payload)
     },
     removeProjectFromWorkspace: (
       state,
@@ -54,6 +50,7 @@ export const workspacesSlice = createSlice({
       if (workspace) {
         workspace.projects = workspace.projects.filter((id) => id !== projectId)
       }
+      console.log("removeProjectFromWorkspace", action.payload)
     },
     addFacilityToWorkspace: (
       state,
@@ -64,6 +61,7 @@ export const workspacesSlice = createSlice({
       if (workspace && !workspace.facilities.includes(facilityId)) {
         workspace.facilities.push(facilityId)
       }
+      console.log("addFacilityToWorkspace", action.payload)
     },
     removeFacilityFromWorkspace: (
       state,
@@ -76,6 +74,7 @@ export const workspacesSlice = createSlice({
           (id) => id !== facilityId,
         )
       }
+      console.log("removeFacilityFromWorkspace", action.payload)
     },
     setWorkspaces: (state, action: PayloadAction<Workspace[]>) => {
       const workspaces = action.payload
@@ -85,33 +84,40 @@ export const workspacesSlice = createSlice({
       )
       state.loading = false
       state.error = null
+      console.log("setWorkspaces", action.payload)
     },
     fetchWorskpacesStart: (state) => {
       state.loading = true
       state.error = null
+      console.log("fetchWorskpacesStart")
     },
     workspaceOperationFailed: (state, action: PayloadAction<string>) => {
       state.loading = false
       state.error = action.payload
+      console.log("workspaceOperationFailed", action.payload)
     },
     updateWorkspacesStart: (state /*action: PayloadAction<Workspace>*/) => {
       state.loading = true
       state.error = null
+      console.log("updateWorkspacesStart")
     },
     addWorkspaceStart: (state, action: PayloadAction<Workspace>) => {
       state.loading = true
       state.error = null
+      console.log("addWorkspaceStart", action.payload)
     },
     deleteWorkspaceStart: (state, action: PayloadAction<Workspace>) => {
       state.loading = true
       state.error = null
+      console.log("deleteWorkspaceStart", action.payload)
     },
     updateWorkspaceStart: (
       state,
-      action: PayloadAction<{ id: string; data: any }>,
+      action: PayloadAction<{ id: string; data: PartialUpdate<Workspace> }>,
     ) => {
       state.loading = true
       state.error = null
+      console.log("updateWorkspaceStart", action.payload)
     },
   },
 })
