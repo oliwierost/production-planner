@@ -91,14 +91,13 @@ function App() {
             gridWidth -
           activeX +
           container.left -
-          container.scrollX,
+          container.scrollX +
+          gridWidth / 4,
         y:
-          Math.round(
-            (transform.y + activeY - container.top + gridHeight) / gridHeight,
-          ) *
-            gridHeight -
-          container.top +
-          gridHeight,
+          Math.round((transform.y - activeY + container.top) / gridHeight) *
+            gridHeight +
+          activeY -
+          container.top,
       }
       return newTransform
     } else {
