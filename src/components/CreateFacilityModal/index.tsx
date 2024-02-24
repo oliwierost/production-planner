@@ -12,14 +12,11 @@ import { Dropdown } from "../Dropdown"
 import { ColorField } from "../ColorField"
 import { NumberField } from "../NumberField"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import {
-  Facility,
-  addFacilityStart,
-  updateFacilityStart,
-} from "../../slices/facilities"
+import { addFacilityStart, updateFacilityStart } from "../../slices/facilities"
 import GroupsIcon from "@mui/icons-material/Groups"
 import { useEffect, useState } from "react"
 import { facilityModalSchema } from "../../../validationSchema"
+import type { Facility } from "../../../types"
 
 interface CreateFacilityModalProps {
   open: boolean

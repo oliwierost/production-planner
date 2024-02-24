@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { PartialUpdate } from "../../types"
 
 export interface Project {
   id: string
@@ -90,25 +91,30 @@ export const projectsSlice = createSlice({
     projectOperationFailed: (state, action: PayloadAction<string>) => {
       state.loading = false
       state.error = action.payload
+      console.log("projectOperationFailed", action.payload)
     },
     updateProjectsStart: (state, action: PayloadAction<Project>) => {
       state.loading = true
       state.error = null
+      console.log("updateProjectsStart", action.payload)
     },
     addProjectStart: (state, action: PayloadAction<Project>) => {
       state.loading = true
       state.error = null
+      console.log("addProjectStart", action.payload)
     },
     deleteProjectStart: (state, action: PayloadAction<string>) => {
       state.loading = true
       state.error = null
+      console.log("deleteProjectStart", action.payload)
     },
     updateProjectStart: (
       state,
-      action: PayloadAction<{ id: string; data: any }>,
+      action: PayloadAction<{ id: string; data: PartialUpdate<Project> }>,
     ) => {
       state.loading = true
       state.error = null
+      console.log("updateProjectStart", action.payload)
     },
   },
 })

@@ -17,10 +17,10 @@ import {
   updateDoc,
   writeBatch,
 } from "firebase/firestore"
+import type { PartialUpdate, Task } from "../../types"
 
 import {
   setTasks,
-  Task,
   removeTask,
   deleteTaskStart,
   syncTasksStart,
@@ -54,9 +54,9 @@ export const undropMultipleTasksInFirestore = async (
 
 export const updateTaskInFirestore = async (
   id: string,
-  updateData: { [key: string]: any },
+  data: PartialUpdate<Task>,
 ) => {
-  await updateDoc(doc(firestore, `tasks/${id}`), updateData)
+  await updateDoc(doc(firestore, `tasks/${id}`), data)
 }
 
 const deleteTaskFromFirestore = async (taskId: string, facilityId?: string) => {
@@ -84,7 +84,7 @@ export function* deleteTaskSaga(
     colId?: string
     cellSpan?: string
   }>,
-): Generator<any, void, any> {
+) {
   try {
     const { taskId, facilityId, colId, cellSpan } = action.payload
     if (facilityId && colId && cellSpan) {
@@ -111,7 +111,7 @@ export function* setTaskDroppedSaga(
     colId: string
     cellSpan: string
   }>,
-): Generator<any, void, any> {
+) {
   try {
     const { taskId, dropped, rowId, colId, cellSpan } = action.payload
     if (dropped) {
@@ -142,7 +142,7 @@ export function* moveTaskSaga(
     cellSpan: number
     taskId: string
   }>,
-): Generator<any, void, any> {
+) {
   const { sourceRowId, sourceColId, rowId, colId, cellSpan, taskId } =
     action.payload
   try {
@@ -169,8 +169,8 @@ export function* moveTaskSaga(
 }
 
 export function* updateTaskSaga(
-  action: PayloadAction<{ id: string; data: any }>,
-): Generator<any, void, any> {
+  action: PayloadAction<{ id: string; data: PartialUpdate<Task> }>,
+) {
   try {
     const { id, data } = action.payload
     yield call(updateTaskInFirestore, id, data)

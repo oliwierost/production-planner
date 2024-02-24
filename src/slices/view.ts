@@ -1,37 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { GridType } from "./grid"
-import { Task } from "redux-saga"
-
-// Define the Facility interface
-export interface View {
-  name: string
-  headerTopData: Array<string>
-  headerBottomData: Array<{
-    field: string
-    headerName: string
-    date: number
-    editable: boolean
-    sortable: boolean
-    width: number
-    minWidth: number
-  }>
-  cells?: {
-    [key: string]: {
-      state: string
-      source?: string
-      tasks: {
-        [key: string]: {
-          taskId: string
-          left?: number
-          width?: number
-          duration: number
-        }
-      }
-    }
-  }
-  cellWidth: number
-  isEditable?: boolean
-}
+import type { Grid, View } from "../../types"
 
 // Define the state structure for facilities
 interface ViewState {
@@ -80,7 +48,7 @@ export const viewSlice = createSlice({
   reducers: {
     setMonthView: (
       state,
-      action: PayloadAction<{ view: View; grid: GridType }>,
+      action: PayloadAction<{ view: View; grid: Grid }>,
     ) => {
       state.view = action.payload.view
       state.view.cells = action.payload.grid.cells
@@ -89,7 +57,7 @@ export const viewSlice = createSlice({
 
     setQuarterView: (
       state,
-      action: PayloadAction<{ view: View; grid: GridType }>,
+      action: PayloadAction<{ view: View; grid: Grid }>,
     ) => {
       const view = action.payload.view
       const cells = action.payload.grid.cells
@@ -148,10 +116,7 @@ export const viewSlice = createSlice({
 
       state.view = { ...view, cells: res, isEditable: false }
     },
-    setYearView: (
-      state,
-      action: PayloadAction<{ view: View; grid: GridType }>,
-    ) => {
+    setYearView: (state, action: PayloadAction<{ view: View; grid: Grid }>) => {
       const view = action.payload.view
       const cells = action.payload.grid.cells
       const cellWidth = view.cellWidth

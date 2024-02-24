@@ -4,7 +4,7 @@ import { useRef } from "react"
 import { Draggable } from "../Draggable"
 import { useAppSelector } from "../../hooks"
 import { DroppedTask } from "../DroppedTask"
-import { type Task as ITask } from "../../slices/tasks"
+import { type Task as ITask } from "../../../types"
 
 function sortedTasks(tasks: { [id: string]: ITask }): Array<[string, ITask]> {
   return Object.entries(tasks)
