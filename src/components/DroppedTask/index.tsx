@@ -106,7 +106,7 @@ export function DroppedTask({
   ]
 
   return (
-    <>
+    <Stack height="50px">
       {task ? (
         <Stack
           onContextMenu={(e) => handleRightClick(e)}
@@ -120,6 +120,7 @@ export function DroppedTask({
             boxSizing: "border-box",
             bgcolor: task.bgcolor,
             color: "background.default",
+            transform: "translateY(-10px)",
             borderRadius: 1,
             border: "1px solid black",
           }}
@@ -153,6 +154,6 @@ export function DroppedTask({
           />
         </Stack>
       ) : null}
-    </>
+    </Stack>
   )
 }
