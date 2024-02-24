@@ -15,6 +15,7 @@ import { Container } from "../../App"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setMonthView } from "../../slices/view"
 import { generateMonthView } from "../../generateView"
+import { getCoords } from "./getCoordsHelper"
 
 export interface TableGridProps {
   setContainer: Dispatch<SetStateAction<Container>>
@@ -32,7 +33,7 @@ export function TableGrid({ setContainer }: TableGridProps) {
     if (!viewState.loading && viewState.view === null) {
       console.log("generating monthly view")
       dispatch(
-        setMonthView({ view: generateMonthView(1000), grid: { cells: {} } }),
+        setMonthView({ view: generateMonthView(100), grid: { cells: {} } }),
       )
     }
   }, [viewState, dispatch])
@@ -42,6 +43,9 @@ export function TableGrid({ setContainer }: TableGridProps) {
       const container = containerRef.current
       const scrollable = scrollableRef.current
 
+      // scrollableRef.current && console.log(getCoords(scrollableRef.current))
+      containerRef.current && console.log(getCoords(containerRef.current))
+
       if (container && scrollable) {
         setContainer({
           left: container.offsetLeft,
@@ -49,7 +53,6 @@ export function TableGrid({ setContainer }: TableGridProps) {
           scrollX: scrollable.scrollLeft,
           scrollY: scrollable.scrollTop,
         })
-        console.log(container)
       }
     }
 

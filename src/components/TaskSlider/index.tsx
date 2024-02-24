@@ -58,7 +58,7 @@ export function TaskSlider() {
           {taskArr.map(([id, task], idx) => (
             <Stack direction="row" key={id} spacing={2}>
               <Draggable id={id} data={{ task, source: null, state: null }}>
-                {dragState.over && dragState.draggedTask == task.id ? (
+                {dragState.over && dragState.draggedTaskId == task.id ? (
                   <DroppedTask task={task} width={100 * task.duration} />
                 ) : (
                   <Task task={task} />

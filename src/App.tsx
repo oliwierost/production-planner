@@ -28,7 +28,6 @@ export interface Container {
   scrollX: number
   scrollY: number
 }
-
 function App() {
   const [container, setContainer] = useState<Container>({
     left: 0,
@@ -47,11 +46,13 @@ function App() {
   }, [dispatch])
 
   const toastState = useAppSelector((state) => state.toast)
+  const draggedTaskId = useAppSelector((state) => state.drag.draggedTaskId)
 
   const handleDragEnd = (event: DragEndEvent) => {
     dispatch(setDragOver(false))
-    dispatch(setDraggedTask(null))
     console.log(event)
+    console.log(draggedTaskId) // use later to set the position of the task
+    dispatch(setDraggedTask(null))
   }
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -72,11 +73,12 @@ function App() {
   }
 
   function snapToGrid(args) {
-    const gridX = 100
-    const gridY = 50
+    const gridWidth = 100
+    const gridHeight = 50
     const { transform, over, activeNodeRect } = args
     const activeX = activeNodeRect?.left || 0
     const activeY = activeNodeRect?.top || 0
+    console.log(container)
 
     if (over) {
       const newTransform = {
@@ -84,17 +86,19 @@ function App() {
         x:
           Math.round(
             (transform.x + activeX - container.left + container.scrollX) /
-              gridX,
+              gridWidth,
           ) *
-            gridX -
+            gridWidth -
           activeX +
           container.left -
           container.scrollX,
         y:
-          Math.round((transform.y + activeY - container.top + gridY) / gridY) *
-            gridY -
+          Math.round(
+            (transform.y + activeY - container.top + gridHeight) / gridHeight,
+          ) *
+            gridHeight -
           container.top +
-          gridY,
+          gridHeight,
       }
       return newTransform
     } else {

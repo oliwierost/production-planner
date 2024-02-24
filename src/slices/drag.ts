@@ -3,13 +3,13 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 interface DragState {
   disabled: boolean
   over: boolean
-  draggedTask?: string | null
+  draggedTaskId?: string | null
 }
 
 const initialState: DragState = {
   disabled: false,
   over: false,
-  draggedTask: null,
+  draggedTaskId: null,
 }
 
 export const dragSlice = createSlice({
@@ -23,7 +23,7 @@ export const dragSlice = createSlice({
       state.over = action.payload
     },
     setDraggedTask: (state, action: PayloadAction<string | null>) => {
-      state.draggedTask = action.payload
+      state.draggedTaskId = action.payload
     },
   },
 })
