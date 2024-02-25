@@ -7,7 +7,7 @@ import {
   Modifier,
 } from "@dnd-kit/core"
 import { Toolbar } from "./components/Toolbar"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ThemeProvider } from "@mui/material/styles"
 import { theme } from "../theme"
 import { LocalizationProvider } from "@mui/x-date-pickers"
@@ -41,6 +41,7 @@ function App() {
     scrollX: 0,
     scrollY: 0,
   })
+  const rootRef = useRef<HTMLDivElement>(null)
   const dispatch = useAppDispatch()
 
   useEffect(() => {
@@ -57,25 +58,32 @@ function App() {
   const facilities = useAppSelector((state) => state.facilities.facilities)
 
   const handleDragEnd = (event: DragEndEvent) => {
+    rootRef.current?.style.setProperty("cursor", "default")
     dispatch(setDragOver(false))
+
     const activeX = draggedTaskRect?.left || 0
     const activeY = draggedTaskRect?.top || 0
+
     const droppableX = event.over?.rect.left || 0
     const droppableY = event.over?.rect.top || 0
+
     const deltaX = event.delta.x
     const deltaY = event.delta.y
 
     const rowIdx = Math.round((activeX - droppableX + deltaX) / 100)
     const colIdx = Math.round((activeY - droppableY + deltaY - 21) / 50)
+
     const rowVal = viewState.view?.headerBottomData[rowIdx].headerName
     const colVal = Object.values(facilities)[colIdx].title
   }
 
   const handleDragStart = (event: DragStartEvent) => {
+    rootRef.current?.style.setProperty("cursor", "none")
     dispatch(setDraggedTask(String(event.active.id)))
   }
 
   const handleDragCancel = () => {
+    rootRef.current?.style.setProperty("cursor", "default")
     dispatch(setDragOver(false))
     dispatch(setDraggedTask(null))
   }
@@ -107,7 +115,7 @@ function App() {
   }
 
   return (
-    <>
+    <div ref={rootRef}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={theme}>
           <Stack width="100vw" height="100vh">
@@ -134,7 +142,7 @@ function App() {
           </Stack>
         </ThemeProvider>
       </LocalizationProvider>
-    </>
+    </div>
   )
 }
 

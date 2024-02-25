@@ -36,14 +36,13 @@ export const getTransform = ({
       ...transform,
       x:
         Math.round(
-          (transform.x + activeX - container.left - container.scrollX) /
+          (transform.x + activeX - container.left + container.scrollX) /
             gridWidth,
         ) *
           gridWidth -
         activeX +
-        container.left +
-        container.scrollX +
-        gridWidth / 4,
+        container.left -
+        container.scrollX,
       y:
         Math.round((transform.y + container.top) / gridHeight) * gridHeight +
         activeY -
