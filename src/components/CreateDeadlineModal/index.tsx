@@ -24,14 +24,14 @@ interface FormData {
   id: string
   title: string
   description: string
-  date: Date
+  date: number
 }
 
 const initialValues = {
   id: "",
   title: "",
   description: "",
-  date: new Date(),
+  date: new Date().getTime(),
 }
 
 export function CreateDeadlineModal({
@@ -54,11 +54,10 @@ export function CreateDeadlineModal({
     const { date, ...rest } = values
     const quarterDate = new Date(2024, 1, 1, 0, 0)
     const yearDate = new Date(2024, 1, 1, 0, 0)
-    const timestamp = date.getTime()
-    while (timestamp >= quarterDate.getTime() + 7 * 24 * 60 * 60 * 1000) {
+    while (date >= quarterDate.getTime() + 7 * 24 * 60 * 60 * 1000) {
       quarterDate.setDate(quarterDate.getDate() + 7)
     }
-    while (timestamp >= yearDate.getTime() + 30 * 24 * 60 * 60 * 1000) {
+    while (date >= yearDate.getTime() + 30 * 24 * 60 * 60 * 1000) {
       yearDate.setMonth(yearDate.getMonth() + 1)
     }
     const weekTimestamp = quarterDate.getTime()
@@ -71,7 +70,7 @@ export function CreateDeadlineModal({
           ...rest,
           id,
           timestamp: {
-            day: timestamp,
+            day: date,
             week: weekTimestamp,
             month: monthTimestamp,
           },

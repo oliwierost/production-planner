@@ -1,16 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-
-// Define the Task interface
-export interface Deadline {
-  id: string
-  title: string
-  description: string
-  timestamp: {
-    day: number
-    week: number
-    month: number
-  }
-}
+import type { Deadline } from "../../types"
 
 // Define the state structure for tasks
 interface DeadlinesState {
@@ -36,13 +25,16 @@ export const deadlinesSlice = createSlice({
     addDeadline: (state, action: PayloadAction<Deadline>) => {
       const deadline = action.payload
       state.deadlines[deadline.id] = deadline
+      console.log("addDeadline", action.payload)
     },
     removeDeadline: (state, action: PayloadAction<string>) => {
       delete state.deadlines[action.payload]
+      console.log("removeDeadline", action.payload)
     },
     updateDeadline: (state, action: PayloadAction<Deadline>) => {
       const deadline = action.payload
       state.deadlines[deadline.id] = deadline
+      console.log("updateDeadline", action.payload)
     },
     setDeadlines: (
       state,
@@ -50,6 +42,7 @@ export const deadlinesSlice = createSlice({
     ) => {
       state.deadlines = action.payload
       state.loading = false
+      console.log("setDeadlines", action.payload)
     },
     addDeadlineStart: (
       state,
@@ -66,10 +59,12 @@ export const deadlinesSlice = createSlice({
     ) => {
       state.loading = true
       state.error = null
+      console.log("addDeadlineStart", action.payload)
     },
     removeDeadlineStart: (state, action: PayloadAction<string>) => {
       state.loading = true
       state.error = null
+      console.log("removeDeadlineStart", action.payload)
     },
     updateDeadlineStart: (
       state,
@@ -86,14 +81,17 @@ export const deadlinesSlice = createSlice({
     ) => {
       state.loading = true
       state.error = null
+      console.log("updateDeadlineStart", action.payload)
     },
     setDeadlinesStart: (state, action: PayloadAction<Deadline[]>) => {
       state.loading = true
       state.error = null
+      console.log("setDeadlinesStart", action.payload)
     },
     syncDeadlinesStart: (state) => {
       state.loading = true
       state.error = null
+      console.log("syncDeadlinesStart")
     },
   },
 })

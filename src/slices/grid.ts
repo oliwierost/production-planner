@@ -1,27 +1,8 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
-
-export interface Cell {
-  state: string
-  tasks: {
-    [key: string]: {
-      taskId: string
-      left?: number
-      width?: number
-      duration: number
-    }
-  }
-  source: string
-}
-
-// TODO move to types, clean up types
-export interface GridType {
-  cells: {
-    [key: string]: Cell
-  }
-}
+import type { Grid, Cell } from "../../types"
 
 interface GridState {
-  grid: GridType | null
+  grid: Grid | null
   loading: boolean
   error: string | null
 }
@@ -143,7 +124,7 @@ const gridSlice = createSlice({
       state.error = null
     },
     // Triggered when the grid data is successfully fetched or updated
-    setGrid(state, action: PayloadAction<GridType>) {
+    setGrid(state, action: PayloadAction<Grid>) {
       state.grid = action.payload
       state.loading = false
     },
@@ -151,19 +132,23 @@ const gridSlice = createSlice({
     gridOperationFailed(state, action: PayloadAction<string>) {
       state.loading = false
       state.error = action.payload
+      console.log("gridOperationFailed", action.payload)
     },
     // Triggered to start the grid update process
-    updateGridStart(state, action: PayloadAction<GridType>) {
+    updateGridStart(state, action: PayloadAction<Grid>) {
       state.loading = true
       state.error = null
+      console.log("updateGridStart", action.payload)
     },
     initializeGridStart(state) {
       state.loading = true
       state.error = null
+      console.log("initializeGridStart", state)
     },
     syncGridStart(state) {
       state.loading = true
       state.error = null
+      console.log("syncGridStart")
     },
   },
 })

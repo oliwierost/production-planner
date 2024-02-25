@@ -1,10 +1,8 @@
 import EditIcon from "@mui/icons-material/Edit"
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 import { Stack, Typography } from "@mui/material"
-import {
-  Facility as FacilityType,
-  deleteFacilityStart,
-} from "../../slices/facilities"
+import { deleteFacilityStart } from "../../slices/facilities"
+import type { Facility as FacilityType } from "../../../types"
 import { ContextMenu } from "../ContextMenu"
 import { useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"

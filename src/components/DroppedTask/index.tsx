@@ -7,19 +7,18 @@ import { ContextMenu } from "../ContextMenu"
 import { useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
+import { setToastOpen } from "../../slices/toast"
 
 interface DroppedTaskProps {
   task: Task
-  cellWidth: number
-  left: number | undefined
-  width: number | undefined
-  rowId: string | number
-  colId: number
+  left?: number
+  width?: number
+  rowId?: string | number
+  colId?: number
 }
 
 export function DroppedTask({
   task,
-  cellWidth,
   left,
   width,
   rowId,
@@ -63,17 +62,26 @@ export function DroppedTask({
     {
       title: "Usuń z osi czasu",
       onClick: () => {
-        dispatch(
-          setTaskDroppedStart({
-            taskId: task.id,
-            dropped: false,
-            rowId: rowId as string,
-            colId,
-            cellSpan,
-          })
-        )
-        setIsGridUpdated(true)
-        handleClose()
+        if (colId) {
+          dispatch(
+            setTaskDroppedStart({
+              taskId: task.id,
+              dropped: false,
+              rowId: rowId as string,
+              colId,
+              cellSpan,
+            }),
+          )
+          setIsGridUpdated(true)
+          handleClose()
+        } else {
+          dispatch(
+            setToastOpen({
+              message: "Nie można usunąć zadania z osi czasu",
+              severity: "error",
+            }),
+          )
+        }
       },
       icon: <DeleteIcon fontSize="small" sx={{ color: "primary.dark" }} />,
     },
@@ -86,7 +94,7 @@ export function DroppedTask({
             facilityId: rowId as string,
             colId,
             cellSpan,
-          })
+          }),
         )
         setIsGridUpdated(true)
         handleClose()
@@ -103,15 +111,12 @@ export function DroppedTask({
         <Stack
           onContextMenu={(e) => handleRightClick(e)}
           key={task.id}
-          width={width ? width : cellWidth * task.duration}
-          height="2rem"
+          width={width}
+          height="30px"
           justifyContent="center"
-          position="absolute"
-          top="50%"
           left={left}
           sx={{
             zIndex: 20,
-            transform: "translateY(-50%)",
             boxSizing: "border-box",
             bgcolor: task.bgcolor,
             color: "background.default",

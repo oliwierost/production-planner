@@ -1,9 +1,11 @@
 import { useDraggable } from "@dnd-kit/core"
 import { useAppSelector } from "../../hooks"
+import { Task as TaskType } from "../../../types"
+
 interface DraggableProps {
   children: React.ReactNode
   id: string
-  data: any
+  data: { task: TaskType }
 }
 
 export function Draggable({ children, id, data }: DraggableProps) {

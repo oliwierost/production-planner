@@ -6,8 +6,10 @@ export interface Task {
   description: string
   bgcolor: string
   duration: number
-  requiredTasks: UUID[]
   dropped: boolean
   startDate?: string
   endDate?: string
+  prerequisites?: UUID[]  // Task IDs
+  facilityId?: string
+  startTime?: number
 }

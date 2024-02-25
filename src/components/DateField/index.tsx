@@ -1,15 +1,15 @@
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday"
+import dayjs from "dayjs"
 import { Stack } from "@mui/material"
 import { DatePicker } from "@mui/x-date-pickers"
 import { Dayjs } from "dayjs"
-import dayjs from "dayjs"
 import { useState } from "react"
 
 interface DateFieldProps {
   placeholder: string
-  value: Date
+  value: number | undefined
   name?: string
-  setFieldValue: (name: string, value: Date) => void
+  setFieldValue: (name: string, value: number | undefined) => void
 }
 
 export function DateField({ name, setFieldValue, value }: DateFieldProps) {
@@ -17,7 +17,7 @@ export function DateField({ name, setFieldValue, value }: DateFieldProps) {
   const handleChange = (date: Dayjs | null) => {
     if (date && name) {
       const actualDate = dayjs(date).startOf("day")
-      setFieldValue(name, actualDate.toDate())
+      setFieldValue(name, actualDate.toDate().getTime())
     }
   }
 

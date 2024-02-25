@@ -1,7 +1,6 @@
 import { all, call, cancelled, put, take, takeLatest } from "redux-saga/effects"
 import { PayloadAction } from "@reduxjs/toolkit"
 import {
-  GridType,
   initializeGrid,
   initializeGridStart,
   syncGridStart,
@@ -11,15 +10,14 @@ import { firestore } from "../../firebase.config"
 import { fetchGridStart, updateGridStart, setGrid } from "../slices/grid"
 import { eventChannel } from "redux-saga"
 import { setToastOpen } from "../slices/toast"
+import type { Grid } from "../../types"
 
-export const fetchGridFromFirestore = async (): Promise<GridType | null> => {
+export const fetchGridFromFirestore = async (): Promise<Grid | null> => {
   const snapshot = await getDoc(doc(firestore, "grid", "first-grid"))
-  return snapshot.exists() ? (snapshot.data() as GridType) : null
+  return snapshot.exists() ? (snapshot.data() as Grid) : null
 }
 
-export const updateGridInFirestore = async (
-  gridData: GridType,
-): Promise<void> => {
+export const updateGridInFirestore = async (gridData: Grid): Promise<void> => {
   const gridRef = doc(firestore, "grid", "first-grid")
   const gridSnapshot = await getDoc(gridRef)
   !gridSnapshot.exists()
@@ -29,7 +27,7 @@ export const updateGridInFirestore = async (
 
 function* fetchGridSaga() {
   try {
-    const gridData: GridType | null = yield call(fetchGridFromFirestore)
+    const gridData: Grid | null = yield call(fetchGridFromFirestore)
     if (gridData) {
       yield put(setGrid(gridData))
     } else {
@@ -40,7 +38,7 @@ function* fetchGridSaga() {
   }
 }
 
-function* updateGridSaga(action: PayloadAction<GridType>) {
+function* updateGridSaga(action: PayloadAction<Grid>) {
   try {
     yield call(updateGridInFirestore, action.payload)
   } catch (error) {
@@ -52,7 +50,7 @@ function* updateGridSaga(action: PayloadAction<GridType>) {
 
 function* initializeGridSaga() {
   try {
-    const gridData: GridType | null = yield call(fetchGridFromFirestore)
+    const gridData: Grid | null = yield call(fetchGridFromFirestore)
     // initialize empty grid if it doesn't exist
     if (!gridData) {
       yield put(initializeGrid())
@@ -70,8 +68,8 @@ export function* syncGridSaga() {
     const docRef = doc(firestore, "grid", "first-grid")
     const unsubscribe = onSnapshot(docRef, async () => {
       const snapshot = await getDoc(docRef)
-      const gridData: GridType | null = snapshot.exists()
-        ? (snapshot.data() as GridType)
+      const gridData: Grid | null = snapshot.exists()
+        ? (snapshot.data() as Grid)
         : null
       if (gridData) {
         emitter(gridData)
@@ -83,7 +81,7 @@ export function* syncGridSaga() {
 
   try {
     while (true) {
-      const gridData: GridType = yield take(channel)
+      const gridData: Grid = yield take(channel)
       yield put(setGrid(gridData))
     }
   } finally {

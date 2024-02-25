@@ -1,14 +1,13 @@
-import { Stack, Divider } from "@mui/material"
 import { Task } from "../Task"
+import { Stack, Divider } from "@mui/material"
 import { useRef } from "react"
 import { Draggable } from "../Draggable"
 import { useAppSelector } from "../../hooks"
+import { DroppedTask } from "../DroppedTask"
+import { type Task as ITask } from "../../../types"
 
-export function TaskSlider() {
-  const outerRef = useRef<HTMLDivElement>(null)
-  const innerRef = useRef<HTMLDivElement>(null)
-  const tasksState = useAppSelector((state) => state.tasks)
-  const taskArr = Object.entries(tasksState.tasks)
+function sortedTasks(tasks: { [id: string]: ITask }): Array<[string, ITask]> {
+  return Object.entries(tasks)
     .filter(([, task]) => !task.dropped)
     .sort((a, b) => {
       if (a[1].bgcolor < b[1].bgcolor) {
@@ -19,6 +18,14 @@ export function TaskSlider() {
       }
       return 0
     })
+}
+
+export function TaskSlider() {
+  const outerRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement>(null)
+  const tasksState = useAppSelector((state) => state.tasks)
+  const dragState = useAppSelector((state) => state.drag)
+  const taskArr = sortedTasks(tasksState.tasks)
 
   return (
     <Stack width="100%">
@@ -50,8 +57,12 @@ export function TaskSlider() {
         <Stack spacing={2} direction="row" ref={innerRef}>
           {taskArr.map(([id, task], idx) => (
             <Stack direction="row" key={id} spacing={2}>
-              <Draggable id={id} data={{ task, source: null, state: null }}>
-                <Task task={task} />
+              <Draggable id={id} data={{ task }}>
+                {dragState.over && dragState.draggedTaskId == task.id ? (
+                  <DroppedTask task={task} width={100 * task.duration} />
+                ) : (
+                  <Task task={task} />
+                )}
               </Draggable>
               {idx !== taskArr.length - 1 && (
                 <Divider

@@ -12,8 +12,8 @@ import {
   updateDoc,
 } from "firebase/firestore"
 import { setToastOpen } from "../slices/toast"
+import { Deadline, PartialUpdate } from "../../types"
 import {
-  Deadline,
   removeDeadline,
   setDeadlines,
   removeDeadlineStart,
@@ -28,7 +28,7 @@ const addDeadlineToFirestore = async (deadline: Deadline) => {
 
 const updateDeadlineInFirestore = async (
   id: string,
-  updateData: { [key: string]: any },
+  updateData: PartialUpdate<Deadline>,
 ) => {
   await updateDoc(doc(firestore, `tasks/${id}`), updateData)
 }
@@ -50,7 +50,7 @@ export function* deleteDeadlineSaga(
   action: PayloadAction<{
     deadlineId: string
   }>,
-): Generator<any, void, any> {
+) {
   try {
     const deadlineId = action.payload.deadlineId
 
@@ -65,8 +65,8 @@ export function* deleteDeadlineSaga(
 }
 
 export function* updateDeadlineSaga(
-  action: PayloadAction<{ id: string; data: any }>,
-): Generator<any, void, any> {
+  action: PayloadAction<{ id: string; data: PartialUpdate<Deadline> }>,
+) {
   try {
     const { id, data } = action.payload
     yield call(updateDeadlineInFirestore, id, data)

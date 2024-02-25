@@ -1,3 +1,5 @@
+import { View } from "../slices/view"
+
 export const getWeek = (date: Date): number => {
   const startOfYear = new Date(date.getFullYear(), 0, 1)
   const diff = date.getTime() - startOfYear.getTime()
@@ -14,21 +16,11 @@ export const getYear = (date: Date): number => {
   return date.getFullYear()
 }
 
-export const generateMonthView = (numberOfColumns: number) => {
+export const generateMonthView = (numberOfColumns: number): View => {
   const numOfCellsInViewport = 25
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
 
-  const headerBottomData = [
-    {
-      field: "stand",
-      headerName: "",
-      date: 0,
-      editable: false,
-      sortable: false,
-      width: 225,
-      minWidth: 225,
-    },
-  ]
+  const headerBottomData = []
 
   headerBottomData.push(
     ...Array.from({ length: numberOfColumns }, (_, i) => {
