@@ -1,6 +1,11 @@
 import { Alert, Snackbar, Stack } from "@mui/material"
 import { TaskSlider } from "./components/TaskSlider"
-import { DndContext, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
+import {
+  DndContext,
+  DragEndEvent,
+  DragStartEvent,
+  Modifier,
+} from "@dnd-kit/core"
 import { Toolbar } from "./components/Toolbar"
 import { useEffect, useState } from "react"
 import { ThemeProvider } from "@mui/material/styles"
@@ -16,6 +21,7 @@ import { TimelineToolbar } from "./components/TimelineToolbar"
 import { syncDeadlinesStart } from "./slices/deadlines"
 import { TableGrid } from "./components/TableGrid"
 import { setDragOver, setDraggedTask } from "./slices/drag"
+import { getTransform } from "./components/TableGrid/getTransformHelper"
 
 export interface DraggedTask {
   draggableId: string | null
@@ -46,13 +52,23 @@ function App() {
   }, [dispatch])
 
   const toastState = useAppSelector((state) => state.toast)
-  const draggedTaskId = useAppSelector((state) => state.drag.draggedTaskId)
+  const draggedTaskRect = useAppSelector((state) => state.drag.rect)
+  const viewState = useAppSelector((state) => state.view)
+  const facilities = useAppSelector((state) => state.facilities.facilities)
 
   const handleDragEnd = (event: DragEndEvent) => {
     dispatch(setDragOver(false))
-    console.log(event)
-    console.log(draggedTaskId) // use later to set the position of the task
-    dispatch(setDraggedTask(null))
+    const activeX = draggedTaskRect?.left || 0
+    const activeY = draggedTaskRect?.top || 0
+    const droppableX = event.over?.rect.left || 0
+    const droppableY = event.over?.rect.top || 0
+    const deltaX = event.delta.x
+    const deltaY = event.delta.y
+
+    const rowIdx = Math.round((activeX - droppableX + deltaX) / 100)
+    const colIdx = Math.round((activeY - droppableY + deltaY - 21) / 50)
+    const rowVal = viewState.view?.headerBottomData[rowIdx].headerName
+    const colVal = Object.values(facilities)[colIdx].title
   }
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -72,37 +88,22 @@ function App() {
     }
   }
 
-  function snapToGrid(args) {
+  const snapToGrid: Modifier = (args) => {
     const gridWidth = 100
     const gridHeight = 50
     const { transform, over, activeNodeRect } = args
     const activeX = activeNodeRect?.left || 0
     const activeY = activeNodeRect?.top || 0
-    console.log(container)
-
-    if (over) {
-      const newTransform = {
-        ...transform,
-        x:
-          Math.round(
-            (transform.x + activeX - container.left + container.scrollX) /
-              gridWidth,
-          ) *
-            gridWidth -
-          activeX +
-          container.left -
-          container.scrollX +
-          gridWidth / 4,
-        y:
-          Math.round((transform.y - activeY + container.top) / gridHeight) *
-            gridHeight +
-          activeY -
-          container.top,
-      }
-      return newTransform
-    } else {
-      return transform
-    }
+    const newTransform = getTransform({
+      transform,
+      activeX,
+      activeY,
+      gridWidth,
+      gridHeight,
+      container,
+      over,
+    })
+    return newTransform
   }
 
   return (
@@ -117,7 +118,7 @@ function App() {
               onDragEnd={handleDragEnd}
               onDragCancel={handleDragCancel}
               autoScroll={{ enabled: false }}
-              modifiers={[snapToGrid]}
+              modifiers={[(args) => snapToGrid(args)]}
             >
               <TaskSlider />
               <TimelineToolbar />

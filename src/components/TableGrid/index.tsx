@@ -111,22 +111,28 @@ export function TableGrid({ setContainer }: TableGridProps) {
               left: 0,
             }}
           >
-            {sortedFacilities.map((facility: Facility) => (
+            {Object.values(facilities).map((facility: Facility) => (
               <SideCell key={facility.id} facility={facility} />
             ))}
           </Stack>
           <Box position="absolute" top="50px" left="225px" ref={containerRef}>
-            <Droppable id="timeline">
-              {sortedFacilities.map((_, idx) => (
-                <Box
-                  key={idx}
-                  height="50px"
-                  borderBottom="1px solid black"
-                  width={viewState.view!.headerBottomData.length * 100}
-                  boxSizing="border-box"
-                />
-              ))}
-            </Droppable>
+            {sortedFacilities.map((_, idx) => (
+              <Stack
+                minHeight="50px"
+                key={idx}
+                borderBottom="1px solid black"
+                boxSizing={"border-box"}
+                justifyContent="flex-end"
+              >
+                <Droppable id={"timeline" + idx}>
+                  <Box minHeight={idx == 0 ? "25px" : "49px"}>
+                    <Box
+                      width={viewState.view!.headerBottomData.length * 100}
+                    />
+                  </Box>
+                </Droppable>
+              </Stack>
+            ))}
           </Box>
         </>
       ) : null}
