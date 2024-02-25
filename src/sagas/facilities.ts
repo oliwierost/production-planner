@@ -2,8 +2,8 @@ import { eventChannel } from "redux-saga"
 import { PayloadAction } from "@reduxjs/toolkit"
 import { call, put, take, cancelled, takeLatest, all } from "redux-saga/effects"
 import { firestore } from "../../firebase.config"
+import { Facility, PartialUpdate } from "../../types"
 import {
-  Facility,
   addFacilityStart,
   removeFacility,
   setFacilities,
@@ -47,9 +47,9 @@ export const assignTaskToFacilityInFirestore = async (
 
 export const updateFacilityInFirestore = async (
   id: string,
-  updateData: { [key: string]: any },
+  data: PartialUpdate<Facility>,
 ) => {
-  await updateDoc(doc(firestore, `facilities/${id}`), updateData)
+  await updateDoc(doc(firestore, `facilities/${id}`), data)
 }
 
 export const removeTaskFromFacilityInFirestore = async (
@@ -62,8 +62,8 @@ export const removeTaskFromFacilityInFirestore = async (
 }
 
 export function* updateFacilitySaga(
-  action: PayloadAction<{ id: string; data: any }>,
-): Generator<any, void, any> {
+  action: PayloadAction<{ id: string; data: PartialUpdate<Facility> }>,
+) {
   try {
     const { id, data } = action.payload
     yield call(updateFacilityInFirestore, id, data)
@@ -98,9 +98,7 @@ export function* addFacilitySaga(action: PayloadAction<Facility>) {
   }
 }
 
-export function* deleteFacilitySaga(
-  action: PayloadAction<Facility>,
-): Generator<any, void, any> {
+export function* deleteFacilitySaga(action: PayloadAction<Facility>) {
   try {
     const facilityId = action.payload.id
     const tasks = action.payload.tasks
