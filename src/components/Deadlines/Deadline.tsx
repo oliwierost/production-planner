@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Deadline as DeadlineType } from "../../slices/deadlines"
+import { Deadline as DeadlineType } from "../../../types"
 import { useAppSelector } from "../../hooks"
 import { Box, Typography } from "@mui/material"
 
@@ -36,7 +36,7 @@ export function Deadline({
       const daysDiff = Math.floor((day - month) / (1000 * 60 * 60 * 24))
       setLeft((cellWidth! / 30) * daysDiff)
     }
-  }, [view])
+  }, [view, cellWidth, day, week, month])
 
   if (timestamp === time) {
     return (

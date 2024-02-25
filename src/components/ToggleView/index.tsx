@@ -18,9 +18,7 @@ import { ViewTimeline } from "@mui/icons-material"
 import { Tooltip } from "@mui/material"
 import { setDragDisabled } from "../../slices/drag"
 
-interface ToggleViewProps {}
-
-export function ToggleView({}: ToggleViewProps) {
+export function ToggleView() {
   const dispatch = useAppDispatch()
   const gridState = useAppSelector((state) => state.grid)
   const viewState = useAppSelector((state) => state.view)

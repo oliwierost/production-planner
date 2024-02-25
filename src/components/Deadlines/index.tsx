@@ -12,7 +12,7 @@ export function Deadlines({ time, rowIndex, lastIndex }: DeadlinesProps) {
 
   return (
     <>
-      {Object.values(deadlines).map((deadline, idx) => {
+      {Object.values(deadlines).map((deadline) => {
         return (
           <Deadline
             key={deadline.id}

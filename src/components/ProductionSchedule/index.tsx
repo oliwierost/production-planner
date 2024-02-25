@@ -64,7 +64,7 @@ export function ProductionSchedule({ stands }: ProductionScheduleProps) {
     dateRange.forEach((date) => {
       const weekNumber = getISOWeek(date)
       const existingWeek = groupedData.find(
-        (group) => group.weekNumber === weekNumber
+        (group) => group.weekNumber === weekNumber,
       )
 
       if (existingWeek) {
@@ -111,9 +111,9 @@ export function ProductionSchedule({ stands }: ProductionScheduleProps) {
                   borderBottom: "1px solid black",
                 }}
               ></TableCell>
-            ))
+            )),
           )}
-        </TableRow>
+        </TableRow>,
       )
     }
     return emptyRows
@@ -286,12 +286,12 @@ export function ProductionSchedule({ stands }: ProductionScheduleProps) {
                     {hour}:00
                   </Stack>
                 </TableCell>
-              ))
+              )),
             )}
           </TableRow>
         </TableHead>
         <TableBody>
-          {stands.map((stand, idx) => (
+          {stands.map((stand) => (
             <TableRow key={stand.title}>
               <TableCell
                 style={{
@@ -324,7 +324,7 @@ export function ProductionSchedule({ stands }: ProductionScheduleProps) {
                   >
                     {/* Your content for each cell */}
                   </TableCell>
-                ))
+                )),
               )}
             </TableRow>
           ))}
