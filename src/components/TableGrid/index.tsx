@@ -27,6 +27,7 @@ export function TableGrid({ setContainer }: TableGridProps) {
   const facilities = useAppSelector((state) => state.facilities.facilities)
   const viewState = useAppSelector((state) => state.view)
   const tasks = useAppSelector((state) => state.tasks.tasks)
+  const drag = useAppSelector((state) => state.drag)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const scrollableRef = useRef<HTMLDivElement | null>(null)
   const dispatch = useAppDispatch()
@@ -100,7 +101,7 @@ export function TableGrid({ setContainer }: TableGridProps) {
       position="relative"
       ref={scrollableRef}
     >
-      <Box position="fixed" zIndex={999}>
+      <Box position="fixed" zIndex={2}>
         <CornerCell />
       </Box>
       {viewState.view !== null ? (
@@ -120,6 +121,8 @@ export function TableGrid({ setContainer }: TableGridProps) {
             sx={{
               position: "sticky",
               left: 0,
+              zIndex: 4,
+              width: "225px",
             }}
           >
             {Object.values(facilities).map((facility: Facility) => (
@@ -128,27 +131,42 @@ export function TableGrid({ setContainer }: TableGridProps) {
           </Stack>
           <Box position="absolute" top="50px" left="225px" ref={containerRef}>
             {sortedFacilities.map((_, idx) => (
-              <Stack
-                minHeight="50px"
-                key={idx}
+              <Box
+                height={50}
                 borderBottom="1px solid black"
+                width={viewState.view!.headerBottomData.length * 100}
                 boxSizing="border-box"
-                justifyContent="flex-end"
-              >
-                <Droppable id={"timeline" + idx}>
-                  <Box minHeight={idx == 0 ? "25px" : "49px"}>
-                    <Box
-                      width={viewState.view!.headerBottomData.length * 100}
-                    />
-                  </Box>
-                </Droppable>
-              </Stack>
+              />
             ))}
             {Object.values(tasks).map((task) => (
               <Box key={task.id}>
                 {task.startTime ? <TaskInTimeline task={task} /> : null}
               </Box>
             ))}
+            {drag.draggedTaskId ? (
+              <Stack
+                direction="row"
+                position="fixed"
+                height={sortedFacilities.length * 50 - 50}
+                pl="25px"
+                sx={{
+                  //target hover
+                  pointerEvents: "none",
+                  transform: `translateY(-${
+                    sortedFacilities.length * 50 - 25
+                  }px)})`,
+                }}
+                zIndex={1}
+              >
+                <Box height="100%">
+                  <Droppable id="timeline">
+                    <Box
+                      width={viewState.view!.headerBottomData.length * 100}
+                    />
+                  </Droppable>
+                </Box>
+              </Stack>
+            ) : null}
           </Box>
         </>
       ) : null}

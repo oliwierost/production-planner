@@ -8,18 +8,18 @@ interface DraggableProps {
 
 export function Draggable({ children, id, data }: DraggableProps) {
   const view = useAppSelector((state) => state.view.view)
-  const disabled = useAppSelector((state) => state.drag.disabled)
+  const drag = useAppSelector((state) => state.drag)
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
     data: data,
-    disabled: disabled,
+    disabled: drag.disabled,
   })
 
   const style = transform
     ? {
         position: "fixed",
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        zIndex: 999,
+        zIndex: 5,
         cursor: "none",
       }
     : undefined
@@ -30,7 +30,7 @@ export function Draggable({ children, id, data }: DraggableProps) {
         ref={setNodeRef}
         style={{
           all: "unset",
-          cursor: view?.isEditable ? "grab" : "initial",
+          cursor: drag.draggedTaskId ? "none" : "grab",
           ...style,
         }}
         {...listeners}

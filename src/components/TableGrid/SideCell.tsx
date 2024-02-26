@@ -14,6 +14,7 @@ export function SideCell({ facility }: SideCellProps) {
         boxSizing: "border-box",
         borderRight: "1px solid black",
         borderBottom: "1px solid black",
+        zIndex: 10,
       }}
     >
       <Facility facility={facility} />

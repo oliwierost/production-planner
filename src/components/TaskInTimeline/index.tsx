@@ -1,4 +1,4 @@
-import { Box } from "@mui/material"
+import { Box, Stack } from "@mui/material"
 import { Task } from "../../slices/tasks"
 import { Draggable } from "../Draggable"
 import { DroppedTask } from "../DroppedTask"
@@ -33,9 +33,9 @@ export function TaskInTimeline({ task }: TaskInTimelineProps) {
   return (
     <Box position="absolute" top={taskRect.top} left={taskRect.left}>
       <Draggable id={task.id} data={null}>
-        <Box maxWidth="1px">
+        <Stack maxWidth="50px" height="100%" m="auto">
           <DroppedTask task={task} key={task.id} taskRect={taskRect} />
-        </Box>
+        </Stack>
       </Draggable>
     </Box>
   )

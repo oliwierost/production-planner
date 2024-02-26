@@ -115,9 +115,7 @@ export function* dropTaskSaga(
   try {
     const { taskId, facilityId, startTime } = action.payload
     yield call(updateTaskInFirestore, taskId, { startTime, facilityId })
-    yield put(
-      setToastOpen({ message: "Zadanie przypisane", severity: "success" }),
-    )
+    yield put(dropTask({ taskId, facilityId, startTime }))
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }

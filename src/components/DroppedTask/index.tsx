@@ -76,7 +76,12 @@ export function DroppedTask({ task, taskRect }: DroppedTaskProps) {
   ]
 
   return (
-    <Stack height="50px" position="static" ref={taskRef}>
+    <Stack
+      height="50px"
+      position="static"
+      ref={taskRef}
+      justifyContent="center"
+    >
       {task ? (
         <Stack
           onContextMenu={(e) => handleRightClick(e)}
@@ -84,11 +89,10 @@ export function DroppedTask({ task, taskRect }: DroppedTaskProps) {
           height="30px"
           justifyContent="center"
           sx={{
-            zIndex: 20,
+            zIndex: 3,
             boxSizing: "border-box",
             bgcolor: task.bgcolor,
             color: "background.default",
-            transform: "translateY(10px)",
             borderRadius: 1,
             border: "1px solid black",
           }}
