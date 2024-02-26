@@ -15,7 +15,6 @@ import { Container } from "../../App"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setMonthView } from "../../slices/view"
 import { generateMonthView } from "../../generateView"
-import { getCoords } from "./getCoordsHelper"
 
 export interface TableGridProps {
   setContainer: Dispatch<SetStateAction<Container>>
@@ -39,20 +38,29 @@ export function TableGrid({ setContainer }: TableGridProps) {
   }, [viewState, dispatch])
 
   useEffect(() => {
-    const handleScroll = () => {
+    if (containerRef.current) {
       const container = containerRef.current
+      const boundingRect = container.getBoundingClientRect()
+      setContainer((prev) => ({
+        ...prev,
+        left: boundingRect.left,
+        top: boundingRect.top,
+      }))
+    }
+  }, [containerRef, setContainer])
+
+  useEffect(() => {
+    const handleScroll = () => {
       const scrollable = scrollableRef.current
 
       // scrollableRef.current && console.log(getCoords(scrollableRef.current))
-      containerRef.current && console.log(getCoords(containerRef.current))
 
-      if (container && scrollable) {
-        setContainer({
-          left: container.offsetLeft,
-          top: container.offsetTop,
+      if (scrollable) {
+        setContainer((prev) => ({
+          ...prev,
           scrollX: scrollable.scrollLeft,
           scrollY: scrollable.scrollTop,
-        })
+        }))
       }
     }
 

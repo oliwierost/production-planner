@@ -1,5 +1,5 @@
 import { Task } from "../Task"
-import { Stack, Divider } from "@mui/material"
+import { Stack, Divider, Box } from "@mui/material"
 import { useRef } from "react"
 import { Draggable } from "../Draggable"
 import { useAppSelector } from "../../hooks"
@@ -59,9 +59,17 @@ export function TaskSlider() {
             <Stack direction="row" key={id} spacing={2}>
               <Draggable id={id} data={{ task, source: null, state: null }}>
                 {dragState.over && dragState.draggedTaskId == task.id ? (
-                  <DroppedTask task={task} width={100 * task.duration} />
+                  <Box maxWidth="1px">
+                    <DroppedTask task={task} width={100 * task.duration} />
+                  </Box>
                 ) : (
-                  <Task task={task} />
+                  <Box
+                    maxWidth={
+                      dragState.draggedTaskId == task.id ? "1px" : "100%"
+                    }
+                  >
+                    <Task task={task} />
+                  </Box>
                 )}
               </Draggable>
               {idx !== taskArr.length - 1 && (
