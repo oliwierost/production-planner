@@ -15,6 +15,7 @@ import { Container } from "../../App"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setMonthView } from "../../slices/view"
 import { generateMonthView } from "../../generateView"
+import { DroppedTask } from "../DroppedTask"
 
 export interface TableGridProps {
   setContainer: Dispatch<SetStateAction<Container>>
@@ -24,6 +25,7 @@ export function TableGrid({ setContainer }: TableGridProps) {
   const [sortedFacilities, setSortedFacilities] = useState<Facility[]>([])
   const facilities = useAppSelector((state) => state.facilities.facilities)
   const viewState = useAppSelector((state) => state.view)
+  const tasks = useAppSelector((state) => state.tasks.tasks)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const scrollableRef = useRef<HTMLDivElement | null>(null)
   const dispatch = useAppDispatch()
@@ -47,7 +49,7 @@ export function TableGrid({ setContainer }: TableGridProps) {
         top: boundingRect.top,
       }))
     }
-  }, [containerRef, setContainer])
+  }, [containerRef.current, setContainer])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -140,6 +142,9 @@ export function TableGrid({ setContainer }: TableGridProps) {
                   </Box>
                 </Droppable>
               </Stack>
+            ))}
+            {Object.values(tasks).map((task) => (
+              <DroppedTask task={task} key={task.id} />
             ))}
           </Box>
         </>

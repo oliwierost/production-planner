@@ -4,7 +4,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 import { Stack, Typography } from "@mui/material"
 import { Task, deleteTaskStart, setTaskDroppedStart } from "../../slices/tasks"
 import { ContextMenu } from "../ContextMenu"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
 import { setToastOpen } from "../../slices/toast"
@@ -17,13 +17,8 @@ interface DroppedTaskProps {
   colId?: number
 }
 
-export function DroppedTask({
-  task,
-  left,
-  width,
-  rowId,
-  colId,
-}: DroppedTaskProps) {
+export function DroppedTask({ task }: DroppedTaskProps) {
+  const [taskRect, setTaskRect] = useState({ left: 0, top: 0, width: 0 })
   const [modalOpen, setModalOpen] = useState<string | null>(null)
   const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -52,53 +47,17 @@ export function DroppedTask({
   const contextMenuOptions = [
     {
       title: "Edytuj",
-      onClick: () => {
-        setModalOpen("updateTask")
-        handleClose()
-        dispatch(setDragDisabled(true))
-      },
+      onClick: () => {},
       icon: <EditIcon fontSize="small" sx={{ color: "primary.dark" }} />,
     },
     {
       title: "Usuń z osi czasu",
-      onClick: () => {
-        if (colId) {
-          dispatch(
-            setTaskDroppedStart({
-              taskId: task.id,
-              dropped: false,
-              rowId: rowId as string,
-              colId,
-              cellSpan,
-            }),
-          )
-          setIsGridUpdated(true)
-          handleClose()
-        } else {
-          dispatch(
-            setToastOpen({
-              message: "Nie można usunąć zadania z osi czasu",
-              severity: "error",
-            }),
-          )
-        }
-      },
+      onClick: () => {},
       icon: <DeleteIcon fontSize="small" sx={{ color: "primary.dark" }} />,
     },
     {
       title: "Usuń",
-      onClick: () => {
-        dispatch(
-          deleteTaskStart({
-            taskId: task.id,
-            facilityId: rowId as string,
-            colId,
-            cellSpan,
-          }),
-        )
-        setIsGridUpdated(true)
-        handleClose()
-      },
+      onClick: () => {},
       icon: (
         <DeleteForeverIcon fontSize="small" sx={{ color: "primary.dark" }} />
       ),
@@ -110,17 +69,15 @@ export function DroppedTask({
       {task ? (
         <Stack
           onContextMenu={(e) => handleRightClick(e)}
-          key={task.id}
-          width={width}
+          width={100}
           height="30px"
           justifyContent="center"
-          left={left}
           sx={{
             zIndex: 20,
             boxSizing: "border-box",
             bgcolor: task.bgcolor,
             color: "background.default",
-            transform: "translateY(-10px)",
+            transform: "translateY(10px)",
             borderRadius: 1,
             border: "1px solid black",
           }}

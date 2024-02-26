@@ -29,6 +29,7 @@ import {
   setTaskDropped,
   updateTaskStart,
   moveTaskStart,
+  dropTaskStart,
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
 import { removeCells, setCellsOccupied } from "../slices/grid"
@@ -36,6 +37,7 @@ import {
   assignTaskToFacilityInFirestore,
   removeTaskFromFacilityInFirestore,
 } from "./facilities"
+import { RootState } from "@reduxjs/toolkit/query"
 
 const addTaskToFirestore = async (task: Task) => {
   await setDoc(doc(firestore, `tasks/${task.id}`), task)
@@ -97,6 +99,24 @@ export function* deleteTaskSaga(
     yield put(removeTask(taskId))
     yield put(
       setToastOpen({ message: "Usunięto zadanie", severity: "success" }),
+    )
+  } catch (error) {
+    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
+  }
+}
+
+export function* dropTaskSaga(
+  action: PayloadAction<{
+    taskId: string
+    facilityId: string
+    startTime: string
+  }>,
+) {
+  try {
+    const { taskId, facilityId, startTime } = action.payload
+    yield call(updateTaskInFirestore, taskId, { startTime, facilityId })
+    yield put(
+      setToastOpen({ message: "Zadanie przypisane", severity: "success" }),
     )
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
@@ -226,6 +246,10 @@ function* watchSetTaskDropped() {
   yield takeLatest(setTaskDroppedStart.type, setTaskDroppedSaga)
 }
 
+function* watchDropTask() {
+  yield takeLatest(dropTaskStart.type, dropTaskSaga)
+}
+
 function* watchMoveTask() {
   yield takeLatest(moveTaskStart.type, moveTaskSaga)
 }
@@ -240,6 +264,7 @@ export default function* taskSagas() {
     watchDeleteTask(),
     watchSyncTasks(),
     watchSetTaskDropped(),
+    watchDropTask(),
     watchMoveTask(),
     watchUpdateTask(),
   ])

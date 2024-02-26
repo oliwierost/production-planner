@@ -70,6 +70,20 @@ export const tasksSlice = createSlice({
         state.tasks[id] = { ...task, ...data }
       }
     },
+    dropTask: (
+      state,
+      action: PayloadAction<{
+        taskId: string
+        facilityId: string
+        startTime: number
+      }>,
+    ) => {
+      const { taskId, facilityId, startTime } = action.payload
+      const task = state.tasks[taskId]
+      if (task) {
+        state.tasks[taskId] = { ...task, facilityId, startTime }
+      }
+    },
     moveTask: (
       state,
       action: PayloadAction<{
@@ -122,6 +136,17 @@ export const tasksSlice = createSlice({
       state.loading = true
       state.error = null
       console.debug("addTaskStart", action.payload)
+    },
+    dropTaskStart(
+      state,
+      action: PayloadAction<{
+        taskId: string
+        facilityId: string
+        startTime: string
+      }>,
+    ) {
+      state.loading = true
+      state.error = null
     },
     updateTaskStart(
       state,
@@ -188,6 +213,7 @@ export const {
   setTaskDropped,
   fetchTasksStart,
   updateTask,
+  dropTaskStart,
   setTasks,
   taskOperationFailed,
   updateTasksStart,
@@ -197,6 +223,7 @@ export const {
   updateTaskStart,
   setTaskDroppedStart,
   syncTasksStart,
+  dropTask,
 } = tasksSlice.actions
 
 // Export the reducer

@@ -13,7 +13,7 @@ import { theme } from "../theme"
 import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { initializeGridStart, syncGridStart } from "./slices/grid"
-import { Task, syncTasksStart } from "./slices/tasks"
+import { Task, dropTask, dropTaskStart, syncTasksStart } from "./slices/tasks"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import { syncFacilitiesStart } from "./slices/facilities"
 import { setToastClose } from "./slices/toast"
@@ -22,6 +22,7 @@ import { syncDeadlinesStart } from "./slices/deadlines"
 import { TableGrid } from "./components/TableGrid"
 import { setDragOver, setDraggedTask } from "./slices/drag"
 import { getTransform } from "./components/TableGrid/getTransformHelper"
+import { Timestamp } from "firebase/firestore"
 
 export interface DraggedTask {
   draggableId: string | null
@@ -64,17 +65,28 @@ function App() {
     const activeX = draggedTaskRect?.left || 0
     const activeY = draggedTaskRect?.top || 0
 
-    const droppableX = event.over?.rect.left || 0
-    const droppableY = event.over?.rect.top || 0
+    const droppableX = container.left || 0
+    const droppableY = container.top || 0
 
     const deltaX = event.delta.x
     const deltaY = event.delta.y
 
-    const rowIdx = Math.round((activeX - droppableX + deltaX) / 100)
-    const colIdx = Math.round((activeY - droppableY + deltaY - 21) / 50)
+    const x = activeX - droppableX + deltaX
+    const y = activeY - droppableY + deltaY - 1
 
-    const rowVal = viewState.view?.headerBottomData[rowIdx].headerName
-    const colVal = Object.values(facilities)[colIdx].title
+    const rowIdx = Math.floor(y / 50)
+    const colIdx = Math.floor(x / 100)
+
+    const rowVal = Object.values(facilities)[rowIdx]?.id
+    const colVal = viewState.view?.headerBottomData[colIdx].headerName!
+
+    dispatch(
+      dropTaskStart({
+        taskId: event.active.id as string,
+        facilityId: rowVal,
+        startTime: colVal,
+      }),
+    )
   }
 
   const handleDragStart = (event: DragStartEvent) => {
