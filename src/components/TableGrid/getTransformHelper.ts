@@ -13,6 +13,7 @@ export interface GetTransformHelper {
   }
   gridWidth: number
   gridHeight: number
+  isDropped: boolean
 }
 
 export interface Transform {
@@ -35,12 +36,13 @@ export const getTransform = ({
     const newTransform = {
       ...transform,
       x:
-        Math.round((transform.x - container.left + activeX) / gridWidth) *
+        Math.ceil((transform.x - container.left + activeX) / gridWidth) *
           gridWidth +
         container.left -
-        activeX,
+        activeX -
+        container.scrollX,
       y:
-        Math.round((transform.y - container.top + activeY) / gridHeight) *
+        Math.ceil((transform.y - container.top + activeY) / gridHeight) *
           gridHeight +
         container.top -
         activeY,

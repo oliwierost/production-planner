@@ -142,7 +142,7 @@ export const tasksSlice = createSlice({
       action: PayloadAction<{
         taskId: string
         facilityId: string
-        startTime: string
+        startTime: number
       }>,
     ) {
       state.loading = true

@@ -4,29 +4,26 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 import { Stack, Typography } from "@mui/material"
 import { Task, deleteTaskStart, setTaskDroppedStart } from "../../slices/tasks"
 import { ContextMenu } from "../ContextMenu"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { setDragDisabled } from "../../slices/drag"
+import { setDragDisabled, setRect } from "../../slices/drag"
 import { setToastOpen } from "../../slices/toast"
 
 interface DroppedTaskProps {
   task: Task
-  left?: number
-  width?: number
-  rowId?: string | number
-  colId?: number
+  taskRect: { left: number; top: number; width: number }
 }
 
-export function DroppedTask({ task }: DroppedTaskProps) {
-  const [taskRect, setTaskRect] = useState({ left: 0, top: 0, width: 0 })
+export function DroppedTask({ task, taskRect }: DroppedTaskProps) {
   const [modalOpen, setModalOpen] = useState<string | null>(null)
   const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
+  const draggedTaskId = useAppSelector((state) => state.drag.draggedTaskId)
+  const taskRef = useRef<HTMLDivElement>(null)
 
   const dispatch = useAppDispatch()
   const view = useAppSelector((state) => state.view.view)
-  const cellSpan = task.duration
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
@@ -38,6 +35,20 @@ export function DroppedTask({ task }: DroppedTaskProps) {
     }
   }
   const open = Boolean(anchorEl)
+
+  useEffect(() => {
+    if (taskRef.current && task.id === draggedTaskId) {
+      const taskRect = taskRef.current.getBoundingClientRect()
+      dispatch(
+        setRect({
+          top: taskRect.top,
+          left: taskRect.left,
+          width: taskRect.width,
+          height: taskRect.height,
+        }),
+      )
+    }
+  }, [draggedTaskId, task.id, dispatch])
 
   const handleClose = () => {
     setAnchorEl(null)
@@ -65,11 +76,11 @@ export function DroppedTask({ task }: DroppedTaskProps) {
   ]
 
   return (
-    <Stack height="50px">
+    <Stack height="50px" position="static" ref={taskRef}>
       {task ? (
         <Stack
           onContextMenu={(e) => handleRightClick(e)}
-          width={100}
+          width={taskRect.width}
           height="30px"
           justifyContent="center"
           sx={{

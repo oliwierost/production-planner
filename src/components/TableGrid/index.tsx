@@ -15,7 +15,8 @@ import { Container } from "../../App"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setMonthView } from "../../slices/view"
 import { generateMonthView } from "../../generateView"
-import { DroppedTask } from "../DroppedTask"
+
+import { TaskInTimeline } from "../TaskInTimeline"
 
 export interface TableGridProps {
   setContainer: Dispatch<SetStateAction<Container>>
@@ -131,7 +132,7 @@ export function TableGrid({ setContainer }: TableGridProps) {
                 minHeight="50px"
                 key={idx}
                 borderBottom="1px solid black"
-                boxSizing={"border-box"}
+                boxSizing="border-box"
                 justifyContent="flex-end"
               >
                 <Droppable id={"timeline" + idx}>
@@ -144,7 +145,9 @@ export function TableGrid({ setContainer }: TableGridProps) {
               </Stack>
             ))}
             {Object.values(tasks).map((task) => (
-              <DroppedTask task={task} key={task.id} />
+              <Box key={task.id}>
+                {task.startTime ? <TaskInTimeline task={task} /> : null}
+              </Box>
             ))}
           </Box>
         </>

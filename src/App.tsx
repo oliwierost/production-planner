@@ -22,7 +22,6 @@ import { syncDeadlinesStart } from "./slices/deadlines"
 import { TableGrid } from "./components/TableGrid"
 import { setDragOver, setDraggedTask } from "./slices/drag"
 import { getTransform } from "./components/TableGrid/getTransformHelper"
-import { Timestamp } from "firebase/firestore"
 
 export interface DraggedTask {
   draggableId: string | null
@@ -54,16 +53,18 @@ function App() {
   }, [dispatch])
 
   const toastState = useAppSelector((state) => state.toast)
-  const draggedTaskRect = useAppSelector((state) => state.drag.rect)
+  const drag = useAppSelector((state) => state.drag)
   const viewState = useAppSelector((state) => state.view)
   const facilities = useAppSelector((state) => state.facilities.facilities)
+  const tasks = useAppSelector((state) => state.tasks.tasks)
 
   const handleDragEnd = (event: DragEndEvent) => {
     rootRef.current?.style.setProperty("cursor", "default")
+    dispatch(setDraggedTask(null))
     dispatch(setDragOver(false))
 
-    const activeX = draggedTaskRect?.left || 0
-    const activeY = draggedTaskRect?.top || 0
+    const activeX = drag.rect?.left || 0
+    const activeY = drag.rect?.top || 0
 
     const droppableX = container.left || 0
     const droppableY = container.top || 0
@@ -71,14 +72,20 @@ function App() {
     const deltaX = event.delta.x
     const deltaY = event.delta.y
 
-    const x = activeX - droppableX + deltaX
-    const y = activeY - droppableY + deltaY - 1
+    const task = tasks[drag.draggedTaskId!]
+
+    const x = !task.startTime
+      ? -droppableX + deltaX + 100
+      : activeX - droppableX + deltaX
+    const y = !task.startTime
+      ? -droppableY + deltaY
+      : activeY - droppableY + deltaY
 
     const rowIdx = Math.floor(y / 50)
     const colIdx = Math.floor(x / 100)
 
     const rowVal = Object.values(facilities)[rowIdx]?.id
-    const colVal = viewState.view?.headerBottomData[colIdx].headerName!
+    const colVal = viewState.view?.headerBottomData[colIdx]?.date!
 
     dispatch(
       dropTaskStart({
@@ -114,6 +121,7 @@ function App() {
     const { transform, over, activeNodeRect } = args
     const activeX = activeNodeRect?.left || 0
     const activeY = activeNodeRect?.top || 0
+    const isDropped = tasks[drag.draggedTaskId!]?.startTime !== null
     const newTransform = getTransform({
       transform,
       activeX,
@@ -122,6 +130,7 @@ function App() {
       gridHeight,
       container,
       over,
+      isDropped,
     })
     return newTransform
   }

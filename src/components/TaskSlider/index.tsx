@@ -8,7 +8,7 @@ import { type Task as ITask } from "../../slices/tasks"
 
 function sortedTasks(tasks: { [id: string]: ITask }): Array<[string, ITask]> {
   return Object.entries(tasks)
-    .filter(([, task]) => !task.dropped)
+    .filter(([, task]) => !task.startTime)
     .sort((a, b) => {
       if (a[1].bgcolor < b[1].bgcolor) {
         return -1
@@ -60,7 +60,14 @@ export function TaskSlider() {
               <Draggable id={id} data={{ task, source: null, state: null }}>
                 {dragState.over && dragState.draggedTaskId == task.id ? (
                   <Box maxWidth="1px">
-                    <DroppedTask task={task} width={100 * task.duration} />
+                    <DroppedTask
+                      task={task}
+                      taskRect={{
+                        left: 0,
+                        top: 0,
+                        width: task.duration * 100,
+                      }}
+                    />
                   </Box>
                 ) : (
                   <Box

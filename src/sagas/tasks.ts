@@ -30,6 +30,7 @@ import {
   updateTaskStart,
   moveTaskStart,
   dropTaskStart,
+  dropTask,
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
 import { removeCells, setCellsOccupied } from "../slices/grid"
@@ -37,7 +38,6 @@ import {
   assignTaskToFacilityInFirestore,
   removeTaskFromFacilityInFirestore,
 } from "./facilities"
-import { RootState } from "@reduxjs/toolkit/query"
 
 const addTaskToFirestore = async (task: Task) => {
   await setDoc(doc(firestore, `tasks/${task.id}`), task)
@@ -109,7 +109,7 @@ export function* dropTaskSaga(
   action: PayloadAction<{
     taskId: string
     facilityId: string
-    startTime: string
+    startTime: number
   }>,
 ) {
   try {
