@@ -16,6 +16,7 @@ import {
 } from "../slices/facilities"
 import {
   arrayRemove,
+  arrayUnion,
   collection,
   deleteDoc,
   doc,
@@ -25,11 +26,9 @@ import {
   updateDoc,
   writeBatch,
 } from "firebase/firestore"
-
 import {
   setTasks,
   Task,
-  removeTask,
   deleteTaskStart,
   syncTasksStart,
   addTaskStart,
@@ -39,7 +38,7 @@ import {
   fetchTasksStart,
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
-import { removeCells, setCellsOccupied } from "../slices/grid"
+import { GridType, removeCells, setCellsOccupied } from "../slices/grid"
 import {
   assignTaskToFacilityInFirestore,
   removeTaskFromFacilityInFirestore,
@@ -58,6 +57,61 @@ export const undropMultipleTasksInFirestore = async (
     const docRef = doc(firestore, `tasks/${taskId}`)
     batch.update(docRef, { dropped: false })
   }
+  await batch.commit()
+}
+
+export const setTaskDroppedInFirestore = async (
+  taskId: string,
+  dropped: boolean,
+  facilityId: string,
+  colId: string,
+  gridState: GridType,
+) => {
+  const batch = writeBatch(firestore)
+  const facilityRef = doc(firestore, `facilities/${facilityId}`)
+  const taskRef = doc(firestore, `tasks/${taskId}`)
+  const gridRef = doc(firestore, `grid/first-grid`)
+  if (dropped) {
+    batch.update(facilityRef, { tasks: arrayUnion(taskId) })
+  } else {
+    batch.update(facilityRef, { tasks: arrayRemove(taskId) })
+  }
+  batch.update(taskRef, {
+    dropped,
+    facilityId: facilityId,
+    startTime: Number(colId),
+  })
+  batch.update(gridRef, {
+    cells: gridState.cells,
+  })
+  await batch.commit()
+}
+
+export const moveTaskInFirestore = async (
+  taskId: string,
+  sourceFacilityId: string,
+  facilityId: string,
+  colId: string,
+  gridState: GridType,
+) => {
+  const batch = writeBatch(firestore)
+  const taskRef = doc(firestore, `tasks/${taskId}`)
+  const facilityRef = doc(firestore, `facilities/${facilityId}`)
+  const sourceFacilityRef = doc(firestore, `facilities/${sourceFacilityId}`)
+  const gridRef = doc(firestore, `grid/first-grid`)
+  batch.update(taskRef, {
+    facilityId,
+    startTime: Number(colId),
+  })
+  if (sourceFacilityId !== facilityId) {
+    batch.update(facilityRef, { tasks: arrayUnion(taskId) })
+    batch.update(sourceFacilityRef, {
+      tasks: arrayRemove(taskId),
+    })
+  }
+  batch.update(gridRef, {
+    cells: gridState.cells,
+  })
   await batch.commit()
 }
 
@@ -148,18 +202,15 @@ export function* setTaskDroppedSaga(
       yield put(removeCells({ rowId, colId, cellSpan: Number(cellSpan) }))
       yield put(removeTaskFromFacility({ facilityId: rowId, taskId }))
     }
-    if (dropped) {
-      yield call(assignTaskToFacilityInFirestore, rowId, taskId)
-    } else {
-      yield call(removeTaskFromFacilityInFirestore, rowId, taskId)
-    }
-    yield call(updateTaskInFirestore, taskId, {
+    const gridState: GridType = yield select((state) => state.grid.grid)
+    yield call(
+      setTaskDroppedInFirestore,
+      taskId,
       dropped,
-      facilityId: rowId,
-      startTime: Number(colId),
-    })
-    const gridState = yield select((state) => state.grid.grid)
-    yield call(updateGridInFirestore, gridState)
+      rowId,
+      colId,
+      gridState,
+    )
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
@@ -194,16 +245,15 @@ export function* moveTaskSaga(
       yield put(removeTaskFromFacility({ facilityId: sourceRowId, taskId }))
       yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
     }
-    yield call(updateTaskInFirestore, taskId, {
-      facilityId: rowId,
-      startTime: Number(colId),
-    })
-    if (sourceRowId !== rowId) {
-      yield call(assignTaskToFacilityInFirestore, rowId, taskId)
-      yield call(removeTaskFromFacilityInFirestore, sourceRowId, taskId)
-    }
     const gridState = yield select((state) => state.grid.grid)
-    yield call(updateGridInFirestore, gridState)
+    yield call(
+      moveTaskInFirestore,
+      taskId,
+      sourceRowId,
+      rowId,
+      colId,
+      gridState,
+    )
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
@@ -229,7 +279,6 @@ export function* syncTasksSaga() {
     const unsubscribe = onSnapshot(colRef, async () => {
       const snapshot = await getDocs(collection(firestore, "tasks"))
       const tasks = {} as { [key: string]: Task }
-      console.log("syncing tasks...")
       snapshot.forEach(
         (doc) => (tasks[doc.id] = { id: doc.id, ...doc.data() } as Task),
       )

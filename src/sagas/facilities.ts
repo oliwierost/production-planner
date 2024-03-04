@@ -171,8 +171,6 @@ export function* syncFacilitiesSaga() {
       const prevFacilities: { [key: string]: Facility } = yield select(
         (state) => state.facilities.facilities,
       )
-      console.log(hashObject(facilities))
-      console.log(hashObject(prevFacilities))
       if (hashObject(facilities) !== hashObject(prevFacilities)) {
         console.log("Facilities updated")
         yield put(setFacilities(facilities))

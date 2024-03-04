@@ -7,6 +7,7 @@ import { useAppSelector } from "../../hooks"
 
 import { Task as TaskType } from "../../slices/tasks"
 import { Deadlines } from "../Deadlines"
+import { useState } from "react"
 
 interface DataCellProps {
   draggedTask: {
