@@ -91,10 +91,8 @@ export function* deleteTaskSaga(
       yield put(
         removeCells({ rowId: facilityId, colId, cellSpan: Number(cellSpan) }),
       )
-      yield put(removeTaskFromFacility({ facilityId, taskId }))
     }
     yield call(deleteTaskFromFirestore, taskId, facilityId)
-    yield put(removeTask(taskId))
     yield put(
       setToastOpen({ message: "Usunięto zadanie", severity: "success" }),
     )
@@ -118,14 +116,11 @@ export function* setTaskDroppedSaga(
       yield put(
         setCellsOccupied({ rowId, colId, taskId, cellSpan: Number(cellSpan) }),
       )
-      yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
       yield call(assignTaskToFacilityInFirestore, rowId, taskId)
     } else {
       yield put(removeCells({ rowId, colId, cellSpan: Number(cellSpan) }))
-      yield put(removeTaskFromFacility({ facilityId: rowId, taskId }))
       yield call(removeTaskFromFacilityInFirestore, rowId, taskId)
     }
-    yield put(setTaskDropped({ id: taskId, dropped }))
     yield call(updateTaskInFirestore, taskId, { dropped })
     // no need to set the toast here as the toast is displayed on successful grid update
   } catch (error) {
@@ -157,8 +152,6 @@ export function* moveTaskSaga(
       setCellsOccupied({ rowId, colId, taskId, cellSpan: Number(cellSpan) }),
     )
     if (sourceRowId !== rowId) {
-      yield put(removeTaskFromFacility({ facilityId: sourceRowId, taskId }))
-      yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
       yield call(assignTaskToFacilityInFirestore, rowId, taskId)
       yield call(removeTaskFromFacilityInFirestore, sourceRowId, taskId)
     }

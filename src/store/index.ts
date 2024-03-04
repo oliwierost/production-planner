@@ -14,6 +14,7 @@ import gridSagas from "../sagas/grid"
 import tasksSagas from "../sagas/tasks"
 import facilitiesSagas from "../sagas/facilities"
 import deadlineSagas from "../sagas/deadlines"
+import syncSaga from "../sagas/sync"
 
 const sagaMiddleware = createSagaMiddleware()
 
@@ -32,7 +33,13 @@ export const store = configureStore({
 })
 
 function* rootSaga() {
-  yield all([gridSagas(), tasksSagas(), facilitiesSagas(), deadlineSagas()])
+  yield all([
+    gridSagas(),
+    tasksSagas(),
+    facilitiesSagas(),
+    deadlineSagas(),
+    syncSaga(),
+  ])
 }
 
 sagaMiddleware.run(rootSaga)

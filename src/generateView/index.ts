@@ -15,7 +15,7 @@ export const getYear = (date: Date): number => {
 }
 
 export const generateMonthView = (numberOfColumns: number) => {
-  const numOfCellsInViewport = 25
+  const numOfCellsInViewport = 12
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
 
   const headerBottomData = [
@@ -62,7 +62,7 @@ export const generateMonthView = (numberOfColumns: number) => {
 }
 
 export const generateQuarterYearView = (numberOfColumns: number) => {
-  const numOfCellsInViewport = 13 // maximum is 12
+  const numOfCellsInViewport = 12 // maximum is 12
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
   const headerBottomData = [
     {

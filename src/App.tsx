@@ -19,25 +19,14 @@ import { theme } from "../theme"
 import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { generateMonthView } from "./generateView"
-
-import {
-  initializeGridStart,
-  syncGridStart,
-  updateGridStart,
-} from "./slices/grid"
-
-import {
-  Task,
-  moveTaskStart,
-  setTaskDroppedStart,
-  syncTasksStart,
-} from "./slices/tasks"
+import { updateGridStart } from "./slices/grid"
+import { Task, moveTaskStart, setTaskDroppedStart } from "./slices/tasks"
 import { useAppDispatch, useAppSelector } from "./hooks"
-import { syncFacilitiesStart } from "./slices/facilities"
 import { setToastClose, setToastOpen } from "./slices/toast"
 import { setMonthView } from "./slices/view"
 import { TimelineToolbar } from "./components/TimelineToolbar"
-import { syncDeadlinesStart } from "./slices/deadlines"
+import { useRenderCount } from "@uidotdev/usehooks"
+import { syncDataStart } from "./slices/sync"
 
 export interface DraggedTask {
   draggableId: string | null
@@ -45,20 +34,18 @@ export interface DraggedTask {
 }
 
 function App() {
+  const renderCount = useRenderCount()
   const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [draggedTask, setDraggedTask] = useState<DraggedTask>({
     draggableId: null,
     task: null,
   })
   const dispatch = useAppDispatch()
+  const monthView = generateMonthView(100)
 
   useEffect(() => {
-    dispatch(syncTasksStart())
-    dispatch(syncFacilitiesStart())
-    dispatch(syncGridStart())
-    dispatch(syncDeadlinesStart())
-    dispatch(initializeGridStart())
-  }, [dispatch])
+    dispatch(syncDataStart())
+  }, [])
 
   const toastState = useAppSelector((state) => state.toast)
   const gridState = useAppSelector((state) => state.grid)
@@ -66,9 +53,7 @@ function App() {
 
   useEffect(() => {
     if (cellStateMap) {
-      dispatch(
-        setMonthView({ view: generateMonthView(1000), grid: cellStateMap }),
-      )
+      dispatch(setMonthView({ view: monthView, grid: cellStateMap }))
     }
   }, [dispatch, cellStateMap])
 
@@ -179,6 +164,7 @@ function App() {
 
   return (
     <>
+      {renderCount}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={theme}>
           <Stack width="100vw" height="100vh">

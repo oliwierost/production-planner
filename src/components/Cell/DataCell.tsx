@@ -37,13 +37,13 @@ export function DataCell({
     task: TaskType,
     left: number | undefined,
     width: number | undefined,
-    idx: number
+    idx: number,
   ) => {
-    if (cell?.state == "occupied-start" && draggedTask.task?.id !== task.id) {
+    if (cell?.state == "occupied-start" && draggedTask.task?.id !== task?.id) {
       return (
         <Draggable
           id={cellKey}
-          key={cellKey + task.id + idx}
+          key={cellKey + task?.id + idx}
           data={{
             task,
             sourceId: cellKey,
@@ -61,12 +61,12 @@ export function DataCell({
       )
     } else if (
       cell?.state == "occupied-start" &&
-      draggedTask.task?.id === task.id
+      draggedTask.task?.id === task?.id
     ) {
       return (
         <Draggable
           id={cellKey}
-          key={cellKey + task.id + idx}
+          key={cellKey + task?.id + idx}
           data={{
             task,
             sourceId: cellKey,
@@ -77,7 +77,6 @@ export function DataCell({
       )
     }
   }
-
   return (
     <Stack
       alignItems="center"

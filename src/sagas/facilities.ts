@@ -81,7 +81,6 @@ export function* updateFacilitySaga(
 export function* addFacilitySaga(action: PayloadAction<Facility>) {
   try {
     yield call(addFacilityToFirestore, action.payload)
-    yield put(upsertFacility(action.payload))
     yield put(
       setToastOpen({
         message: "Facility added successfully",
@@ -104,21 +103,8 @@ export function* deleteFacilitySaga(
   try {
     const facilityId = action.payload.id
     const tasks = action.payload.tasks
-
     yield put(removeFacilityFromGrid({ facilityId }))
-
-    const undropTaskPromises = tasks.map((taskId) => {
-      put(
-        setTaskDropped({
-          id: taskId,
-          dropped: false,
-        }),
-      )
-    })
-    yield all(undropTaskPromises)
     yield call(undropMultipleTasksInFirestore, tasks)
-
-    yield put(removeFacility(facilityId))
     yield call(deleteFacilityFromFirestore, facilityId)
     yield put(
       setToastOpen({
