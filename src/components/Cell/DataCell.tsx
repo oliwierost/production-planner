@@ -26,12 +26,14 @@ export function DataCell({
   const time = new Date(date).getTime()
   const cellKey = `${rowId}-${time}`
   const tasks = useAppSelector((state) => state.tasks.tasks)
-  const cells = useAppSelector((state) => state.view.view?.cells)
+  const cell = useAppSelector((state) => state.view.view?.cells?.[cellKey])
   const facilities = useAppSelector((state) => state.facilities.facilities)
   const rowIndex = facilities[rowId]?.index
   const lastIndex = Object.keys(facilities).length - 1
-  const cell = cells?.[cellKey]
-  const tasksInCell = cell?.tasks
+  const tasksInRow = facilities[rowId]?.tasks
+  const tasksInCell = tasksInRow.filter((taskId) => {
+    return time == tasks[taskId]?.startTime
+  })
 
   const renderTask = (
     task: TaskType,
@@ -96,11 +98,9 @@ export function DataCell({
       <Droppable id={cellKey}>
         <>
           {tasksInCell
-            ? Object.values(tasksInCell).map((taskInCell, idx) => {
-                const task = tasks[taskInCell.taskId]
-                const left = taskInCell.left
-                const width = taskInCell.width
-                return renderTask(task, left, width, idx)
+            ? tasksInCell.map((taskInCell, idx) => {
+                const task = tasks[taskInCell]
+                return renderTask(task, 0, task.duration * cellWidth, idx)
               })
             : null}
         </>

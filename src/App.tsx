@@ -35,7 +35,6 @@ export interface DraggedTask {
 
 function App() {
   const renderCount = useRenderCount()
-  const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [draggedTask, setDraggedTask] = useState<DraggedTask>({
     draggableId: null,
     task: null,
@@ -56,13 +55,6 @@ function App() {
       dispatch(setMonthView({ view: monthView, grid: cellStateMap }))
     }
   }, [dispatch, cellStateMap])
-
-  useEffect(() => {
-    if (isGridUpdated && gridState.grid) {
-      dispatch(updateGridStart(gridState.grid))
-      setIsGridUpdated(false)
-    }
-  }, [isGridUpdated, dispatch, gridState.grid])
 
   const checkCanDrop = (over: Over, active: Active) => {
     const overId = over.id
@@ -105,7 +97,6 @@ function App() {
         cellSpan,
       }),
     )
-    setIsGridUpdated(true)
   }
 
   const handleDragEndBetweenCells = (over: Over, active: Active) => {
@@ -125,7 +116,6 @@ function App() {
         sourceColId: Number(sourceColId),
       }),
     )
-    setIsGridUpdated(true)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
