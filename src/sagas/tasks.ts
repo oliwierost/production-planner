@@ -143,9 +143,14 @@ export function* setTaskDroppedSaga(
       yield put(
         setCellsOccupied({ rowId, colId, taskId, cellSpan: Number(cellSpan) }),
       )
-      yield call(assignTaskToFacilityInFirestore, rowId, taskId)
+      yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
     } else {
       yield put(removeCells({ rowId, colId, cellSpan: Number(cellSpan) }))
+      yield put(removeTaskFromFacility({ facilityId: rowId, taskId }))
+    }
+    if (dropped) {
+      yield call(assignTaskToFacilityInFirestore, rowId, taskId)
+    } else {
       yield call(removeTaskFromFacilityInFirestore, rowId, taskId)
     }
     yield call(updateTaskInFirestore, taskId, {
@@ -180,17 +185,23 @@ export function* moveTaskSaga(
         cellSpan,
       }),
     )
+    yield put(removeTaskFromFacility({ facilityId: sourceRowId, taskId }))
     yield put(
       setCellsOccupied({ rowId, colId, taskId, cellSpan: Number(cellSpan) }),
     )
+    yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
     if (sourceRowId !== rowId) {
-      yield call(assignTaskToFacilityInFirestore, rowId, taskId)
-      yield call(removeTaskFromFacilityInFirestore, sourceRowId, taskId)
+      yield put(removeTaskFromFacility({ facilityId: sourceRowId, taskId }))
+      yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
     }
     yield call(updateTaskInFirestore, taskId, {
       facilityId: rowId,
       startTime: Number(colId),
     })
+    if (sourceRowId !== rowId) {
+      yield call(assignTaskToFacilityInFirestore, rowId, taskId)
+      yield call(removeTaskFromFacilityInFirestore, sourceRowId, taskId)
+    }
     const gridState = yield select((state) => state.grid.grid)
     yield call(updateGridInFirestore, gridState)
   } catch (error) {
@@ -218,6 +229,7 @@ export function* syncTasksSaga() {
     const unsubscribe = onSnapshot(colRef, async () => {
       const snapshot = await getDocs(collection(firestore, "tasks"))
       const tasks = {} as { [key: string]: Task }
+      console.log("syncing tasks...")
       snapshot.forEach(
         (doc) => (tasks[doc.id] = { id: doc.id, ...doc.data() } as Task),
       )

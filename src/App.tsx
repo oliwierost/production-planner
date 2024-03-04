@@ -19,7 +19,7 @@ import { theme } from "../theme"
 import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { generateMonthView } from "./generateView"
-import { updateGridStart } from "./slices/grid"
+
 import { Task, moveTaskStart, setTaskDroppedStart } from "./slices/tasks"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import { setToastClose, setToastOpen } from "./slices/toast"
