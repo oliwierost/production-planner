@@ -1,6 +1,14 @@
 import { eventChannel } from "redux-saga"
 import { PayloadAction } from "@reduxjs/toolkit"
-import { call, put, take, cancelled, takeLatest, all } from "redux-saga/effects"
+import {
+  call,
+  put,
+  take,
+  cancelled,
+  takeLatest,
+  all,
+  select,
+} from "redux-saga/effects"
 import { firestore } from "../../firebase.config"
 import {
   assignTaskToFacility,
@@ -26,9 +34,9 @@ import {
   syncTasksStart,
   addTaskStart,
   setTaskDroppedStart,
-  setTaskDropped,
   updateTaskStart,
   moveTaskStart,
+  fetchTasksStart,
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
 import { removeCells, setCellsOccupied } from "../slices/grid"
@@ -36,6 +44,7 @@ import {
   assignTaskToFacilityInFirestore,
   removeTaskFromFacilityInFirestore,
 } from "./facilities"
+import { updateGridInFirestore } from "./grid"
 
 const addTaskToFirestore = async (task: Task) => {
   await setDoc(doc(firestore, `tasks/${task.id}`), task)
@@ -68,12 +77,30 @@ const deleteTaskFromFirestore = async (taskId: string, facilityId?: string) => {
   }
 }
 
+const fetchTasks = async () => {
+  const tasks: { [id: string]: Task } = {}
+  const querySnapshot = await getDocs(collection(firestore, "tasks"))
+  querySnapshot.forEach((doc) => {
+    tasks[doc.id] = doc.data() as Task
+  })
+  return tasks
+}
+
+export function* fetchTasksSaga() {
+  try {
+    const tasks: { [key: string]: Task } = yield call(fetchTasks)
+    yield put(setTasks(tasks))
+  } catch (error) {
+    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
+  }
+}
+
 export function* addTaskSaga(action: PayloadAction<Task>) {
   try {
     yield call(addTaskToFirestore, action.payload)
     yield put(setToastOpen({ message: "Dodano zadanie", severity: "success" }))
   } catch (error) {
-    yield put(setToastOpen({ message: "Wystąpił błądś", severity: "error" }))
+    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
 }
 
@@ -121,8 +148,13 @@ export function* setTaskDroppedSaga(
       yield put(removeCells({ rowId, colId, cellSpan: Number(cellSpan) }))
       yield call(removeTaskFromFacilityInFirestore, rowId, taskId)
     }
-    yield call(updateTaskInFirestore, taskId, { dropped })
-    // no need to set the toast here as the toast is displayed on successful grid update
+    yield call(updateTaskInFirestore, taskId, {
+      dropped,
+      facilityId: rowId,
+      startTime: Number(colId),
+    })
+    const gridState = yield select((state) => state.grid.grid)
+    yield call(updateGridInFirestore, gridState)
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
@@ -155,7 +187,12 @@ export function* moveTaskSaga(
       yield call(assignTaskToFacilityInFirestore, rowId, taskId)
       yield call(removeTaskFromFacilityInFirestore, sourceRowId, taskId)
     }
-    // yield call(updateTaskInFirestore, taskId, { rowId, colId, cellSpan })
+    yield call(updateTaskInFirestore, taskId, {
+      facilityId: rowId,
+      startTime: Number(colId),
+    })
+    const gridState = yield select((state) => state.grid.grid)
+    yield call(updateGridInFirestore, gridState)
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
@@ -223,6 +260,10 @@ function* watchMoveTask() {
   yield takeLatest(moveTaskStart.type, moveTaskSaga)
 }
 
+function* watchFetchTasks() {
+  yield takeLatest(fetchTasksStart.type, fetchTasksSaga)
+}
+
 function* watchSyncTasks() {
   yield takeLatest(syncTasksStart.type, syncTasksSaga)
 }
@@ -234,6 +275,7 @@ export default function* taskSagas() {
     watchSyncTasks(),
     watchSetTaskDropped(),
     watchMoveTask(),
+    watchFetchTasks(),
     watchUpdateTask(),
   ])
 }

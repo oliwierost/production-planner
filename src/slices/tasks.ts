@@ -8,8 +8,8 @@ export interface Task {
   bgcolor: string // Background color
   duration: number
   dropped: boolean // Indicates if the task has been placed on the grid
-  facilityId?: string
-  startTime?: number
+  facilityId: string | null
+  startTime: number | null
 }
 
 // Define the state structure for tasks

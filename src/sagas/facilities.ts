@@ -61,6 +61,29 @@ export const removeTaskFromFacilityInFirestore = async (
   })
 }
 
+const fetchFacilities = async () => {
+  const tasks: { [id: string]: Facility } = {}
+  const querySnapshot = await getDocs(collection(firestore, "facilities"))
+  querySnapshot.forEach((doc) => {
+    tasks[doc.id] = doc.data() as Facility
+  })
+  return tasks
+}
+
+export function* fetchFacilitiesSaga() {
+  try {
+    const facilities: { [key: string]: Facility } = yield call(fetchFacilities)
+    yield put(setFacilities(facilities))
+  } catch (error) {
+    yield put(
+      setToastOpen({
+        message: "Error fetching facilities",
+        severity: "error",
+      }),
+    )
+  }
+}
+
 export function* updateFacilitySaga(
   action: PayloadAction<{ id: string; data: any }>,
 ): Generator<any, void, any> {
@@ -157,6 +180,10 @@ function* watchUpdateFacility() {
   yield takeLatest(updateFacilityStart.type, updateFacilitySaga)
 }
 
+function* watchFetchFacility() {
+  yield takeLatest(syncFacilitiesStart.type, fetchFacilitiesSaga)
+}
+
 function* watchSyncFacilities() {
   yield takeLatest(syncFacilitiesStart.type, syncFacilitiesSaga)
 }
@@ -166,6 +193,7 @@ export default function* facilitiesSagas() {
     watchAddFacility(),
     watchDeleteFacility(),
     watchSyncFacilities(),
+    watchFetchFacility(),
     watchUpdateFacility(),
   ])
 }

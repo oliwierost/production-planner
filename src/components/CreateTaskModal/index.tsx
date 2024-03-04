@@ -17,6 +17,8 @@ import { Task, addTaskStart, updateTaskStart } from "../../slices/tasks"
 import { useEffect, useState } from "react"
 import { setDragDisabled } from "../../slices/drag"
 import { taskModalSchema } from "../../../validationSchema"
+import { DateField } from "../DateField"
+import { Dropdown } from "../Dropdown"
 
 interface CreateTaskModalProps {
   open: boolean
@@ -28,6 +30,8 @@ interface FormData {
   title: string
   description: string
   duration: number
+  startTime: number | null
+  facilityId: string | null
   bgcolor: string
 }
 
@@ -60,6 +64,8 @@ const initialValues = {
   dropped: false,
   description: "",
   duration: 1,
+  startTime: null,
+  facilityId: null,
   bgcolor: "",
 }
 
@@ -70,6 +76,11 @@ export function CreateTaskModal({
 }: CreateTaskModalProps) {
   const [task, setTask] = useState<Task>(initialValues)
   const tasks = useAppSelector((state) => state.tasks.tasks)
+  const facilities = useAppSelector((state) => state.facilities.facilities)
+  const facilitiesOptions = Object.values(facilities).map((facility) => ({
+    label: facility.title,
+    value: facility.id,
+  }))
   const dispatch = useAppDispatch()
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -221,6 +232,35 @@ export function CreateTaskModal({
                           onChange={(e) => handleInputChange(e, setFieldValue)}
                           name="duration"
                           disabled={taskId && task.dropped ? true : false}
+                        />
+                      </Stack>
+                    </Stack>
+                    <Stack direction="row" spacing={5} alignItems="center">
+                      <Typography variant="body1" width={100}>
+                        Data rozpoczęcia*
+                      </Typography>
+                      <Stack direction="row" alignItems="center">
+                        <DateField
+                          placeholder="Data rozpoczęcia"
+                          value={
+                            values.startTime ? new Date(values.startTime) : null
+                          }
+                          setFieldValue={setFieldValue}
+                          name="startTime"
+                        />
+                      </Stack>
+                    </Stack>
+                    <Stack direction="row" spacing={5} alignItems="center">
+                      <Typography variant="body1" width={100}>
+                        Stanowisko
+                      </Typography>
+                      <Stack direction="row" alignItems="center">
+                        <Dropdown
+                          placeholder="Stanowisko"
+                          value={facilities[values.facilityId!]?.title || ""}
+                          setFieldValue={setFieldValue}
+                          name="facilityId"
+                          options={facilitiesOptions}
                         />
                       </Stack>
                     </Stack>
