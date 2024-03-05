@@ -24,7 +24,6 @@ import {
   updateDoc,
 } from "firebase/firestore"
 import { setToastOpen } from "../slices/toast"
-import { setTaskDropped } from "../slices/tasks"
 import { removeFacilityFromGrid } from "../slices/grid"
 import { undropMultipleTasksInFirestore } from "./tasks"
 

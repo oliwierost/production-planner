@@ -37,8 +37,8 @@ export const DataCell = memo(
     const lastIndex = 8
     const tasksInRow = facility.tasks
     const tasksInCell = tasksInRow.filter((taskId) => {
-      const task = useAppSelector((state) => state.tasks.tasks[taskId], isEqual)
-      return time == task.startTime
+      const task = tasks[taskId]
+      return time == task?.startTime
     })
 
     const renderTask = (
