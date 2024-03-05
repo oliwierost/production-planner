@@ -70,7 +70,7 @@ export function DroppedTask({
             rowId: rowId as string,
             colId,
             cellSpan,
-          })
+          }),
         )
         setIsGridUpdated(true)
         handleClose()
@@ -86,7 +86,7 @@ export function DroppedTask({
             facilityId: rowId as string,
             colId,
             cellSpan,
-          })
+          }),
         )
         setIsGridUpdated(true)
         handleClose()
