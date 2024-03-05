@@ -1,13 +1,19 @@
 import { eventChannel } from "redux-saga"
 import { PayloadAction } from "@reduxjs/toolkit"
-import { call, put, take, cancelled, takeLatest, all } from "redux-saga/effects"
+import {
+  call,
+  put,
+  take,
+  cancelled,
+  takeLatest,
+  all,
+  select,
+} from "redux-saga/effects"
 import { firestore } from "../../firebase.config"
 import {
   Facility,
   addFacilityStart,
-  removeFacility,
   setFacilities,
-  upsertFacility,
   deleteFacilityStart,
   syncFacilitiesStart,
   updateFacilityStart,
@@ -24,9 +30,13 @@ import {
   updateDoc,
 } from "firebase/firestore"
 import { setToastOpen } from "../slices/toast"
-import { setTaskDropped } from "../slices/tasks"
 import { removeFacilityFromGrid } from "../slices/grid"
 import { undropMultipleTasksInFirestore } from "./tasks"
+import CryptoJS from "crypto-js"
+//create object hashing helper function using crypto-js
+const hashObject = (obj: object) => {
+  return CryptoJS.SHA256(JSON.stringify(obj)).toString()
+}
 
 export const addFacilityToFirestore = async (facility: Facility) => {
   await setDoc(doc(firestore, `facilities/${facility.id}`), facility)
@@ -158,7 +168,13 @@ export function* syncFacilitiesSaga() {
   try {
     while (true) {
       const facilities: { [key: string]: Facility } = yield take(channel)
-      yield put(setFacilities(facilities))
+      const prevFacilities: { [key: string]: Facility } = yield select(
+        (state) => state.facilities.facilities,
+      )
+      if (hashObject(facilities) !== hashObject(prevFacilities)) {
+        console.log("Facilities updated")
+        yield put(setFacilities(facilities))
+      }
     }
   } finally {
     const isCancelled: boolean = yield cancelled()
