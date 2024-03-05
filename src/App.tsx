@@ -19,7 +19,6 @@ import { theme } from "../theme"
 import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { generateMonthView } from "./generateView"
-
 import { Task, moveTaskStart, setTaskDroppedStart } from "./slices/tasks"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import { setToastClose, setToastOpen } from "./slices/toast"
@@ -34,7 +33,6 @@ export interface DraggedTask {
 }
 
 function App() {
-  const renderCount = useRenderCount()
   const [draggedTask, setDraggedTask] = useState<DraggedTask>({
     draggableId: null,
     task: null,
@@ -154,7 +152,6 @@ function App() {
 
   return (
     <>
-      {renderCount}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={theme}>
           <Stack width="100vw" height="100vh">
