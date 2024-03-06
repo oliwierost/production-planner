@@ -5,7 +5,7 @@ interface DraggableProps {
   children: React.ReactNode
   id: string
   data: any
-  setActiveDrag: React.Dispatch<React.SetStateAction<Active | null>>
+  setActiveDrag?: React.Dispatch<React.SetStateAction<Active | null>>
 }
 
 export function Draggable({
@@ -25,7 +25,7 @@ export function Draggable({
   )
 
   useEffect(() => {
-    if (active) {
+    if (active && setActiveDrag) {
       setActiveDrag(active)
     }
   }, [active, setActiveDrag])
