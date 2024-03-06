@@ -1,11 +1,15 @@
-import { Facility as FacilityType } from "../../slices/facilities";
-import { Facility } from "../Facility";
+import { useAppSelector } from "../../hooks"
+import { Facility as FacilityType } from "../../slices/facilities"
+import { Facility } from "../Facility"
 
 interface SideCellProps {
-  facility: FacilityType;
+  rowId: string | number
 }
 
-export function SideCell({ facility }: SideCellProps) {
+export function SideCell({ rowId }: SideCellProps) {
+  const facilitiesState = useAppSelector((state) => state.facilities)
+  const facilities = facilitiesState.facilities
+  const facility = facilities[rowId]
   return (
     <div
       style={{
@@ -17,5 +21,5 @@ export function SideCell({ facility }: SideCellProps) {
     >
       <Facility facility={facility} />
     </div>
-  );
+  )
 }

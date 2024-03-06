@@ -1,4 +1,12 @@
-import { all, call, cancelled, put, take, takeLatest } from "redux-saga/effects"
+import {
+  all,
+  call,
+  cancelled,
+  put,
+  select,
+  take,
+  takeLatest,
+} from "redux-saga/effects"
 import { PayloadAction } from "@reduxjs/toolkit"
 import {
   GridType,
@@ -11,6 +19,7 @@ import { firestore } from "../../firebase.config"
 import { fetchGridStart, updateGridStart, setGrid } from "../slices/grid"
 import { eventChannel } from "redux-saga"
 import { setToastOpen } from "../slices/toast"
+import { hashObject } from "./facilities"
 
 export const fetchGridFromFirestore = async (): Promise<GridType | null> => {
   const snapshot = await getDoc(doc(firestore, "grid", "first-grid"))
@@ -84,7 +93,10 @@ export function* syncGridSaga() {
   try {
     while (true) {
       const gridData: GridType = yield take(channel)
-      yield put(setGrid(gridData))
+      const prevGridData: GridType = yield select((state) => state.grid.grid)
+      if (hashObject(gridData) !== hashObject(prevGridData)) {
+        yield put(setGrid(gridData))
+      }
     }
   } finally {
     const isCancelled: boolean = yield cancelled()

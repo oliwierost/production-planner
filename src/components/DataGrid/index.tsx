@@ -1,19 +1,14 @@
 import { useEffect, useState } from "react"
 import { DataGridPro, useGridApiRef } from "@mui/x-data-grid-pro"
 import { Cell } from "../Cell/Cell"
-import { DraggedTask } from "../../App"
 import { useAppSelector } from "../../hooks"
 import { Facility } from "../../slices/facilities"
 
-interface DataGridProps {
-  draggedTask: DraggedTask
-}
-
-export function DataGrid({ draggedTask }: DataGridProps) {
+export function DataGrid() {
   const [, setCellWidth] = useState<number>(100)
   const [sortedFacilities, setSortedFacilities] = useState<Facility[]>([])
   const apiRef = useGridApiRef()
-
+  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
   const facilitiesState = useAppSelector((state) => state.facilities)
   const viewState = useAppSelector((state) => state.view)
   const facilities = facilitiesState.facilities
@@ -41,13 +36,13 @@ export function DataGrid({ draggedTask }: DataGridProps) {
       // Zoom in
       if (event.deltaY < 0) {
         setCellWidth((cellWidth) =>
-          cellWidth >= maxCellWidth ? cellWidth : cellWidth + 2
+          cellWidth >= maxCellWidth ? cellWidth : cellWidth + 2,
         )
       }
       // Zoom out
       if (event.deltaY > 0) {
         setCellWidth((cellWidth) =>
-          cellWidth <= minCellWidth ? cellWidth : cellWidth - 2
+          cellWidth <= minCellWidth ? cellWidth : cellWidth - 2,
         )
       }
     }
@@ -102,7 +97,6 @@ export function DataGrid({ draggedTask }: DataGridProps) {
       }}
       slotProps={{
         cell: {
-          draggedTask: draggedTask,
           view: view,
         },
       }}

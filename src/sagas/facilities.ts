@@ -34,7 +34,7 @@ import { removeFacilityFromGrid } from "../slices/grid"
 import { undropMultipleTasksInFirestore } from "./tasks"
 import CryptoJS from "crypto-js"
 //create object hashing helper function using crypto-js
-const hashObject = (obj: object) => {
+export const hashObject = (obj: object) => {
   return CryptoJS.SHA256(JSON.stringify(obj)).toString()
 }
 
@@ -168,11 +168,10 @@ export function* syncFacilitiesSaga() {
   try {
     while (true) {
       const facilities: { [key: string]: Facility } = yield take(channel)
-      const prevFacilities: { [key: string]: Facility } = yield select(
+      let prevFacilities: { [key: string]: Facility } = yield select(
         (state) => state.facilities.facilities,
       )
       if (hashObject(facilities) !== hashObject(prevFacilities)) {
-        console.log("Facilities updated")
         yield put(setFacilities(facilities))
       }
     }

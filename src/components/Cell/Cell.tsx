@@ -1,30 +1,17 @@
 import { View } from "../../../types/view"
-import { DraggedTask } from "../../App"
-import { useAppSelector } from "../../hooks"
 import { DataCell, HeadCell, SideCell } from "../Cell"
 import { CornerCell } from "../Cell/CornerCell"
 
 interface CellProps {
   colIndex: number
   rowId: string | number
-  draggedTask: DraggedTask
+
   view: View
   column: any
   width: number
 }
 
-export function Cell({
-  colIndex,
-  draggedTask,
-  view,
-  column,
-  width,
-  rowId,
-}: CellProps) {
-  const facilitiesState = useAppSelector((state) => state.facilities)
-  const facilities = facilitiesState.facilities
-  const facility = facilities[rowId]
-
+export function Cell({ colIndex, view, column, width, rowId }: CellProps) {
   if (rowId == 0 && colIndex == 0) {
     return <CornerCell />
   } else if (rowId == 0 && colIndex != 0) {
@@ -37,15 +24,8 @@ export function Cell({
       />
     )
   } else if (rowId != 0 && colIndex == 0) {
-    return <SideCell facility={facility} />
+    return <SideCell rowId={rowId} />
   } else {
-    return (
-      <DataCell
-        rowId={rowId}
-        draggedTask={draggedTask}
-        cellWidth={width}
-        date={column.date}
-      />
-    )
+    return <DataCell rowId={rowId} cellWidth={width} date={column.date} />
   }
 }

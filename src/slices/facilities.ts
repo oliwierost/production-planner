@@ -70,13 +70,6 @@ export const facilitiesSlice = createSlice({
     setFacilities(state, action: PayloadAction<{ [id: string]: Facility }>) {
       //add index property to each facility by bgcolor order
       const facilities = action.payload
-      const facilitiesArray = Object.values(facilities)
-      facilitiesArray.sort((a, b) => {
-        return a.bgcolor.localeCompare(b.bgcolor)
-      })
-      facilitiesArray.forEach((facility, index) => {
-        facility.index = index
-      })
       state.facilities = facilities
       state.loading = false
       state.error = null

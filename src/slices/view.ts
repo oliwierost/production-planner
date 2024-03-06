@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { GridType } from "./grid"
-import { Task } from "redux-saga"
 
 // Define the Facility interface
 export interface View {

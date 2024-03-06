@@ -1,19 +1,34 @@
-import { useDraggable } from "@dnd-kit/core"
+import { Active, useDraggable } from "@dnd-kit/core"
 import { useAppSelector } from "../../hooks"
+import { useEffect } from "react"
 interface DraggableProps {
   children: React.ReactNode
   id: string
   data: any
+  setActiveDrag: React.Dispatch<React.SetStateAction<Active | null>>
 }
 
-export function Draggable({ children, id, data }: DraggableProps) {
+export function Draggable({
+  children,
+  id,
+  data,
+  setActiveDrag,
+}: DraggableProps) {
   const view = useAppSelector((state) => state.view.view)
   const disabled = useAppSelector((state) => state.drag.disabled)
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: id,
-    data: data,
-    disabled: disabled,
-  })
+  const { attributes, listeners, setNodeRef, transform, active } = useDraggable(
+    {
+      id: id,
+      data: data,
+      disabled: disabled,
+    },
+  )
+
+  useEffect(() => {
+    if (active) {
+      setActiveDrag(active)
+    }
+  }, [active, setActiveDrag])
 
   const style = transform
     ? {

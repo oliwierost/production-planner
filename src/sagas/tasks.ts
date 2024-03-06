@@ -39,11 +39,7 @@ import {
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
 import { GridType, removeCells, setCellsOccupied } from "../slices/grid"
-import {
-  assignTaskToFacilityInFirestore,
-  removeTaskFromFacilityInFirestore,
-} from "./facilities"
-import { updateGridInFirestore } from "./grid"
+import { setDraggedTask } from "../slices/drag"
 
 const addTaskToFirestore = async (task: Task) => {
   await setDoc(doc(firestore, `tasks/${task.id}`), task)
@@ -193,6 +189,7 @@ export function* setTaskDroppedSaga(
 ): Generator<any, void, any> {
   try {
     const { taskId, dropped, rowId, colId, cellSpan } = action.payload
+    yield put(setDraggedTask({ draggableId: null, task: null }))
     if (dropped) {
       yield put(
         setCellsOccupied({ rowId, colId, taskId, cellSpan: Number(cellSpan) }),
@@ -229,6 +226,7 @@ export function* moveTaskSaga(
   const { sourceRowId, sourceColId, rowId, colId, cellSpan, taskId } =
     action.payload
   try {
+    yield put(setDraggedTask({ draggableId: null, task: null }))
     yield put(
       removeCells({
         rowId: sourceRowId,
@@ -245,7 +243,9 @@ export function* moveTaskSaga(
       yield put(removeTaskFromFacility({ facilityId: sourceRowId, taskId }))
       yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
     }
+
     const gridState = yield select((state) => state.grid.grid)
+
     yield call(
       moveTaskInFirestore,
       taskId,

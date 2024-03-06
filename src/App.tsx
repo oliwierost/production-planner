@@ -24,19 +24,11 @@ import { useAppDispatch, useAppSelector } from "./hooks"
 import { setToastClose, setToastOpen } from "./slices/toast"
 import { setMonthView } from "./slices/view"
 import { TimelineToolbar } from "./components/TimelineToolbar"
-import { useRenderCount } from "@uidotdev/usehooks"
-import { syncDataStart } from "./slices/sync"
 
-export interface DraggedTask {
-  draggableId: string | null
-  task: Task | null
-}
+import { syncDataStart } from "./slices/sync"
+import { setDraggedTask } from "./slices/drag"
 
 function App() {
-  const [draggedTask, setDraggedTask] = useState<DraggedTask>({
-    draggableId: null,
-    task: null,
-  })
   const dispatch = useAppDispatch()
   const monthView = generateMonthView(100)
 
@@ -128,18 +120,6 @@ function App() {
         handleDragEndBetweenCells(event.over, event.active)
       }
     }
-    setDraggedTask({ draggableId: null, task: null })
-  }
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setDraggedTask({
-      draggableId: String(event.active.id),
-      task: event.active.data?.current?.task,
-    })
-  }
-
-  const handleDragCancel = () => {
-    setDraggedTask({ draggableId: null, task: null })
   }
 
   const mouseSensor = useSensor(MouseSensor, {
@@ -158,15 +138,13 @@ function App() {
             <Toolbar />
             <DndContext
               sensors={sensors}
-              onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
-              onDragCancel={handleDragCancel}
               autoScroll={{ layoutShiftCompensation: false }}
               modifiers={[snapCenterToCursor]}
             >
               <TaskSlider />
               <TimelineToolbar />
-              <DataGrid draggedTask={draggedTask} />
+              <DataGrid />
             </DndContext>
             <Snackbar
               open={toastState.open}
