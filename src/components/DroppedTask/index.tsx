@@ -138,7 +138,10 @@ export function DroppedTask({
             setIsGridUpdated={setIsGridUpdated}
             open={open}
             cursorPosition={cursorPosition}
-            onClose={handleClose}
+            onClose={() => {
+              handleClose()
+              dispatch(setDragDisabled(false))
+            }}
             item={task}
           />
         </Stack>
