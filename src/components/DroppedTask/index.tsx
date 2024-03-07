@@ -65,11 +65,10 @@ export function DroppedTask({
       onClick: () => {
         dispatch(
           setTaskDroppedStart({
-            taskId: task.id,
+            task: task,
             dropped: false,
             rowId: rowId as string,
             colId,
-            cellSpan,
           }),
         )
         setIsGridUpdated(true)
@@ -106,12 +105,8 @@ export function DroppedTask({
           width={width ? width : cellWidth * task.duration}
           height="2rem"
           justifyContent="center"
-          position="absolute"
-          top="50%"
           left={left}
           sx={{
-            zIndex: 20,
-            transform: "translateY(-50%)",
             boxSizing: "border-box",
             bgcolor: task.bgcolor,
             color: "background.default",

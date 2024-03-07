@@ -36,9 +36,16 @@ import {
   updateTaskStart,
   moveTaskStart,
   fetchTasksStart,
+  setTaskDragged,
+  setTaskDraggedStart,
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
-import { GridType, removeCells, setCellsOccupied } from "../slices/grid"
+import {
+  GridType,
+  removeCells,
+  setCellsOccupied,
+  setTaskDraggedInCell,
+} from "../slices/grid"
 import { setDraggedTask } from "../slices/drag"
 
 const addTaskToFirestore = async (task: Task) => {
@@ -166,7 +173,7 @@ export function* deleteTaskSaga(
     const { taskId, facilityId, colId, cellSpan } = action.payload
     if (facilityId && colId && cellSpan) {
       yield put(
-        removeCells({ rowId: facilityId, colId, cellSpan: Number(cellSpan) }),
+        removeCells({ rowId: facilityId, colId, duration: Number(cellSpan) }),
       )
     }
     yield call(deleteTaskFromFirestore, taskId, facilityId)
@@ -180,29 +187,27 @@ export function* deleteTaskSaga(
 
 export function* setTaskDroppedSaga(
   action: PayloadAction<{
-    taskId: string
     dropped: boolean
     rowId: string
     colId: string
-    cellSpan: string
+    task: Task
   }>,
 ): Generator<any, void, any> {
   try {
-    const { taskId, dropped, rowId, colId, cellSpan } = action.payload
+    const { dropped, rowId, colId, task } = action.payload
+    const { id: taskId, duration } = task
     yield put(setDraggedTask({ draggableId: null, task: null }))
     if (dropped) {
-      yield put(
-        setCellsOccupied({ rowId, colId, taskId, cellSpan: Number(cellSpan) }),
-      )
+      yield put(setCellsOccupied({ rowId, colId, task }))
       yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
     } else {
-      yield put(removeCells({ rowId, colId, cellSpan: Number(cellSpan) }))
+      yield put(removeCells({ rowId, colId, duration }))
       yield put(removeTaskFromFacility({ facilityId: rowId, taskId }))
     }
     const gridState: GridType = yield select((state) => state.grid.grid)
     yield call(
       setTaskDroppedInFirestore,
-      taskId,
+      task.id,
       dropped,
       rowId,
       colId,
@@ -219,25 +224,22 @@ export function* moveTaskSaga(
     sourceColId: string
     rowId: string
     colId: string
-    cellSpan: number
-    taskId: string
+    task: Task
   }>,
 ): Generator<any, void, any> {
-  const { sourceRowId, sourceColId, rowId, colId, cellSpan, taskId } =
-    action.payload
+  const { sourceRowId, sourceColId, rowId, colId, task } = action.payload
+  const { duration, id: taskId } = task
   try {
     yield put(setDraggedTask({ draggableId: null, task: null }))
     yield put(
       removeCells({
         rowId: sourceRowId,
         colId: sourceColId,
-        cellSpan,
+        duration: duration,
       }),
     )
     yield put(removeTaskFromFacility({ facilityId: sourceRowId, taskId }))
-    yield put(
-      setCellsOccupied({ rowId, colId, taskId, cellSpan: Number(cellSpan) }),
-    )
+    yield put(setCellsOccupied({ rowId, colId, task }))
     yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
     if (sourceRowId !== rowId) {
       yield put(removeTaskFromFacility({ facilityId: sourceRowId, taskId }))
@@ -245,7 +247,6 @@ export function* moveTaskSaga(
     }
 
     const gridState = yield select((state) => state.grid.grid)
-
     yield call(
       moveTaskInFirestore,
       taskId,
@@ -257,6 +258,14 @@ export function* moveTaskSaga(
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
+}
+
+export function* setTaskDraggedSaga(
+  action: PayloadAction<{ task: Task; cellId: string; dragged: boolean }>,
+): Generator<any, void, any> {
+  const { task, cellId, dragged } = action.payload
+  yield put(setTaskDraggedInCell({ cellId, task, dragged }))
+  yield put(setTaskDragged({ task, dragged }))
 }
 
 export function* updateTaskSaga(
@@ -325,6 +334,10 @@ function* watchFetchTasks() {
   yield takeLatest(fetchTasksStart.type, fetchTasksSaga)
 }
 
+function* watchSetTaskDragged() {
+  yield takeLatest(setTaskDraggedStart.type, setTaskDraggedSaga)
+}
+
 function* watchSyncTasks() {
   yield takeLatest(syncTasksStart.type, syncTasksSaga)
 }
@@ -337,6 +350,7 @@ export default function* taskSagas() {
     watchSetTaskDropped(),
     watchMoveTask(),
     watchFetchTasks(),
+    watchSetTaskDragged(),
     watchUpdateTask(),
   ])
 }

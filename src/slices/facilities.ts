@@ -18,6 +18,7 @@ interface FacilitiesState {
   facilities: {
     [id: string]: Facility
   }
+  total: number
   loading: boolean
   error: string | null
 }
@@ -25,6 +26,7 @@ interface FacilitiesState {
 // Initial state for the facilities slice
 const initialState: FacilitiesState = {
   facilities: {},
+  total: 0,
   loading: false,
   error: null,
 }
@@ -69,8 +71,19 @@ export const facilitiesSlice = createSlice({
     },
     setFacilities(state, action: PayloadAction<{ [id: string]: Facility }>) {
       //add index property to each facility by bgcolor order
+
       const facilities = action.payload
-      state.facilities = facilities
+      //sort facilities by bgcolor and add index property then convert to object
+      const facilitiesArray = Object.values(facilities)
+      const sortedFacilities = facilitiesArray
+        .sort((a, b) => a.bgcolor.localeCompare(b.bgcolor))
+        .map((facility, index) => ({ ...facility, index }))
+        .reduce((acc, facility) => {
+          acc[facility.id] = facility
+          return acc
+        }, {} as { [id: string]: Facility })
+      state.facilities = sortedFacilities
+      state.total = facilitiesArray.length - 1
       state.loading = false
       state.error = null
     },

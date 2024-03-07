@@ -1,13 +1,13 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
+import { Task } from "./tasks"
 
 export interface Cell {
   state: string
   tasks: {
     [key: string]: {
-      taskId: string
+      task: Task
       left?: number
       width?: number
-      duration: number
     }
   }
   source: string
@@ -58,14 +58,13 @@ const gridSlice = createSlice({
       action: PayloadAction<{
         rowId: string
         colId: string
-        taskId: string
-        cellSpan: number
+        task: Task
       }>,
     ) => {
-      const { rowId, colId, taskId, cellSpan } = action.payload
+      const { rowId, colId, task } = action.payload
+      const { id: taskId, duration } = task
       const colTime = Number(colId)
       const originalDate = new Date(colTime)
-      const duration = cellSpan
 
       const cellId = `${rowId}-${colTime}`
       if (!state.grid) {
@@ -75,7 +74,7 @@ const gridSlice = createSlice({
       }
       state.grid.cells[cellId] = {
         state: "occupied-start",
-        tasks: { [taskId]: { taskId, duration } },
+        tasks: { [taskId]: { task: { ...task, dragged: false } } },
         source: cellId,
       }
       if (duration > 1) {
@@ -85,7 +84,7 @@ const gridSlice = createSlice({
           const nextDateTime = nextDate.getTime()
           state.grid.cells[`${rowId}-${nextDateTime}`] = {
             state: "occupied",
-            tasks: { [taskId]: { taskId, duration } },
+            tasks: { [taskId]: { task: { ...task, dragged: false } } },
             source: cellId,
           }
         }
@@ -94,7 +93,7 @@ const gridSlice = createSlice({
         const lastDateTime = lastDate.getTime()
         state.grid.cells[`${rowId}-${lastDateTime}`] = {
           state: "occupied-end",
-          tasks: { [taskId]: { taskId, duration } },
+          tasks: { [taskId]: { task: { ...task, dragged: false } } },
           source: cellId,
         }
       }
@@ -120,17 +119,32 @@ const gridSlice = createSlice({
         }
       })
     },
+    setTaskDraggedInCell: (
+      state,
+      action: PayloadAction<{
+        cellId: string
+        task: Task
+        dragged: boolean
+      }>,
+    ) => {
+      const { cellId, task, dragged } = action.payload
+      const cell = state.grid?.cells[cellId]
+      if (cell) {
+        cell.tasks[task.id].task.dragged = dragged
+      }
+    },
+
     removeCells: (
       state,
-      action: PayloadAction<{ rowId: string; colId: string; cellSpan: number }>,
+      action: PayloadAction<{ rowId: string; colId: string; duration: number }>,
     ) => {
-      const { rowId, colId, cellSpan } = action.payload
+      const { rowId, colId, duration } = action.payload
       if (!state.grid) {
         return
       }
       const colTime = Number(colId)
       const originalDate = new Date(colTime)
-      for (let i = 0; i <= cellSpan - 1; i++) {
+      for (let i = 0; i <= duration - 1; i++) {
         const nextDate = new Date(originalDate)
         nextDate.setDate(originalDate.getDate() + i)
         const nextDateTime = nextDate.getTime()
@@ -181,6 +195,7 @@ export const {
   initializeGridStart,
   removeFacilityFromGrid,
   syncGridStart,
+  setTaskDraggedInCell,
 } = gridSlice.actions
 
 // Default export the reducer

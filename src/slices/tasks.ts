@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { select } from "redux-saga/effects"
 
 // Define the Task interface
 export interface Task {
@@ -10,6 +11,7 @@ export interface Task {
   dropped: boolean // Indicates if the task has been placed on the grid
   facilityId: string | null
   startTime: number | null
+  dragged?: boolean
 }
 
 // Define the state structure for tasks
@@ -85,6 +87,18 @@ export const tasksSlice = createSlice({
         }
       }
     },
+    setTaskDragged: (
+      state,
+      action: PayloadAction<{
+        task: Task
+        dragged: boolean
+      }>,
+    ) => {
+      const { task, dragged } = action.payload
+      if (task) {
+        state.tasks[task.id].dragged = dragged
+      }
+    },
     // You can add more actions here as needed, for example, to mark a task as dropped
     setTaskDropped: (
       state,
@@ -122,6 +136,17 @@ export const tasksSlice = createSlice({
       state.loading = true
       state.error = null
     },
+    setTaskDraggedStart(
+      state,
+      action: PayloadAction<{
+        task: Task
+        dragged: boolean
+        cellId: string
+      }>,
+    ) {
+      state.loading = true
+      state.error = null
+    },
     moveTaskStart(
       state,
       action: PayloadAction<{
@@ -129,8 +154,7 @@ export const tasksSlice = createSlice({
         sourceColId: number
         rowId: string
         colId: string
-        cellSpan: number
-        taskId: string
+        task: Task
       }>,
     ) {
       state.loading = true
@@ -151,11 +175,10 @@ export const tasksSlice = createSlice({
     setTaskDroppedStart(
       state,
       action: PayloadAction<{
-        taskId: string
         dropped: boolean
         rowId: string
         colId: number
-        cellSpan: number
+        task: Task
       }>,
     ) {
       state.loading = true
@@ -185,6 +208,8 @@ export const {
   updateTaskStart,
   setTaskDroppedStart,
   syncTasksStart,
+  setTaskDragged,
+  setTaskDraggedStart,
 } = tasksSlice.actions
 
 // Export the reducer

@@ -95,6 +95,7 @@ export function* syncGridSaga() {
       const gridData: GridType = yield take(channel)
       const prevGridData: GridType = yield select((state) => state.grid.grid)
       if (hashObject(gridData) !== hashObject(prevGridData)) {
+        console.log("Syncing grid data")
         yield put(setGrid(gridData))
       }
     }

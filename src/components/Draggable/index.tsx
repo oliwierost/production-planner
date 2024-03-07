@@ -1,41 +1,26 @@
 import { Active, useDraggable } from "@dnd-kit/core"
-import { useAppSelector } from "../../hooks"
+import { useAppDispatch, useAppSelector } from "../../hooks"
 import { useEffect } from "react"
+import { setTaskDragged, setTaskDraggedStart } from "../../slices/tasks"
 interface DraggableProps {
   children: React.ReactNode
   id: string
   data: any
-  setActiveDrag?: React.Dispatch<React.SetStateAction<Active | null>>
 }
 
-export function Draggable({
-  children,
-  id,
-  data,
-  setActiveDrag,
-}: DraggableProps) {
+export function Draggable({ children, id, data }: DraggableProps) {
   const view = useAppSelector((state) => state.view.view)
   const disabled = useAppSelector((state) => state.drag.disabled)
-  const { attributes, listeners, setNodeRef, transform, active } = useDraggable(
-    {
-      id: id,
-      data: data,
-      disabled: disabled,
-    },
-  )
 
-  useEffect(() => {
-    if (active && setActiveDrag) {
-      setActiveDrag(active)
-    }
-  }, [active, setActiveDrag])
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    id: id,
+    data: data,
+    disabled: disabled,
+  })
 
   const style = transform
     ? {
-        position: "fixed",
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        zIndex: 999,
-        cursor: "none",
       }
     : undefined
 
@@ -46,6 +31,8 @@ export function Draggable({
         style={{
           all: "unset",
           cursor: view?.isEditable ? "grab" : "initial",
+          zIndex: 999,
+          position: "fixed",
           ...style,
         }}
         {...listeners}

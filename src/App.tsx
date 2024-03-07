@@ -11,7 +11,7 @@ import {
   MouseSensor,
 } from "@dnd-kit/core"
 import { Toolbar } from "./components/Toolbar"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { snapCenterToCursor } from "@dnd-kit/modifiers"
 import { DataGrid } from "./components/DataGrid"
 import { ThemeProvider } from "@mui/material/styles"
@@ -19,14 +19,17 @@ import { theme } from "../theme"
 import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { generateMonthView } from "./generateView"
-import { Task, moveTaskStart, setTaskDroppedStart } from "./slices/tasks"
+import {
+  moveTaskStart,
+  setTaskDraggedStart,
+  setTaskDroppedStart,
+} from "./slices/tasks"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import { setToastClose, setToastOpen } from "./slices/toast"
 import { setMonthView } from "./slices/view"
 import { TimelineToolbar } from "./components/TimelineToolbar"
 
 import { syncDataStart } from "./slices/sync"
-import { setDraggedTask } from "./slices/drag"
 
 function App() {
   const dispatch = useAppDispatch()
@@ -76,15 +79,13 @@ function App() {
   const handleDragEndFromSlider = (over: Over, active: Active) => {
     const cellId = over?.id as string
     const task = active.data.current?.task
-    const cellSpan = task.duration
     const [rowId, colId] = cellId.split("-")
     dispatch(
       setTaskDroppedStart({
-        taskId: task.id,
         dropped: true,
         rowId,
         colId: Number(colId),
-        cellSpan,
+        task,
       }),
     )
   }
@@ -92,18 +93,16 @@ function App() {
   const handleDragEndBetweenCells = (over: Over, active: Active) => {
     const startCellId = over.id as string
     const task = active.data.current?.task
-    const cellSpan = task.duration
     const [rowId, colId] = startCellId.split("-")
     const sourceId = active.id as string
     const [sourceRowId, sourceColId] = sourceId.split("-")
     dispatch(
       moveTaskStart({
-        taskId: task.id,
         rowId,
         colId: colId,
-        cellSpan,
         sourceRowId,
         sourceColId: Number(sourceColId),
+        task,
       }),
     )
   }
@@ -113,13 +112,33 @@ function App() {
       return
     }
     const canDrop = checkCanDrop(event.over, event.active)
-    if (event.active.id !== event.over.id && canDrop) {
+    if (canDrop) {
       if (event.active.data?.current?.source === null) {
         handleDragEndFromSlider(event.over, event.active)
       } else {
         handleDragEndBetweenCells(event.over, event.active)
       }
     }
+  }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    dispatch(
+      setTaskDraggedStart({
+        task: event.active.data.current?.task,
+        dragged: true,
+        cellId: event.active.id as string,
+      }),
+    )
+  }
+
+  const handleDragCancel = (event: DragStartEvent) => {
+    dispatch(
+      setTaskDraggedStart({
+        task: event.active.data.current?.task,
+        dragged: false,
+        cellId: event.active.id as string,
+      }),
+    )
   }
 
   const mouseSensor = useSensor(MouseSensor, {
@@ -139,8 +158,9 @@ function App() {
             <DndContext
               sensors={sensors}
               onDragEnd={handleDragEnd}
-              autoScroll={{ layoutShiftCompensation: false }}
-              modifiers={[snapCenterToCursor]}
+              onDragStart={handleDragStart}
+              onDragCancel={handleDragCancel}
+              autoScroll={{ enabled: false }}
             >
               <TaskSlider />
               <TimelineToolbar />
