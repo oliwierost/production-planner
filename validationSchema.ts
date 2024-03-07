@@ -20,6 +20,11 @@ const deadlineSchema = {
   date: Yup.date().required("Data jest wymagana"),
 }
 
+const workspaceSchema = {
+  title: Yup.string().required("Nazwa jest wymagana"),
+}
+
 export const taskModalSchema = Yup.object().shape(taskSchema)
 export const facilityModalSchema = Yup.object().shape(facilitySchema)
 export const deadlineModalSchema = Yup.object().shape(deadlineSchema)
+export const workspaceModalSchema = Yup.object().shape(workspaceSchema)

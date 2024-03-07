@@ -9,6 +9,7 @@ import { CreateGroupModal } from "../CreateGroupModal"
 import AddHomeWork from "@mui/icons-material/AddHomeWork"
 import AddTaskIcon from "@mui/icons-material/AddTask"
 import AddAlarmIcon from "@mui/icons-material/AddAlarm"
+import { CreateWorkspaceModal } from "../CreateWorkspaceModal"
 
 export function Toolbar() {
   const [modalopen, setModalOpen] = useState<string | null>(null)
@@ -23,6 +24,22 @@ export function Toolbar() {
       borderTop="1px solid #000000"
     >
       <ToggleButtonGroup>
+        <Tooltip title="Dodaj zakład" arrow>
+          <ToggleButton
+            value="workspace"
+            onClick={() => setModalOpen("workspace")}
+            sx={{
+              px: 1,
+              py: 0.5,
+              border: "none",
+              "&:focus": {
+                outline: "none",
+              },
+            }}
+          >
+            <AddTaskIcon />
+          </ToggleButton>
+        </Tooltip>
         <Tooltip title="Dodaj produkt" arrow>
           <ToggleButton
             value="facility"
@@ -87,6 +104,10 @@ export function Toolbar() {
       />
       <CreateDeadlineModal
         open={modalopen === "deadline"}
+        setOpen={setModalOpen}
+      />
+      <CreateWorkspaceModal
+        open={modalopen === "workspace"}
         setOpen={setModalOpen}
       />
       <CreateGroupModal open={modalopen === "group"} setOpen={setModalOpen} />

@@ -9,12 +9,14 @@ import toastReducer from "../slices/toast" // Adjust the import path as necessar
 import viewReducer from "../slices/view" // Adjust the import path as necessary
 import dragReducer from "../slices/drag" // Adjust the import path as necessary
 import deadlinesReducer from "../slices/deadlines" // Adjust the import path as necessary
+import workspacesReducer from "../slices/workspaces" // Adjust the import path as necessary
 
 import gridSagas from "../sagas/grid"
 import tasksSagas from "../sagas/tasks"
 import facilitiesSagas from "../sagas/facilities"
 import deadlineSagas from "../sagas/deadlines"
 import syncSaga from "../sagas/sync"
+import workspacesSagas from "../sagas/workspaces"
 
 const sagaMiddleware = createSagaMiddleware()
 
@@ -27,6 +29,7 @@ export const store = configureStore({
     toast: toastReducer,
     drag: dragReducer,
     deadlines: deadlinesReducer,
+    workspaces: workspacesReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ thunk: false }).concat(sagaMiddleware),
@@ -38,6 +41,7 @@ function* rootSaga() {
     tasksSagas(),
     facilitiesSagas(),
     deadlineSagas(),
+    workspacesSagas(),
     syncSaga(),
   ])
 }
