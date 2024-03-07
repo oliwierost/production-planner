@@ -60,7 +60,7 @@ export const undropMultipleTasksInFirestore = async (
   const batch = writeBatch(firestore)
   for (const taskId of taskIds) {
     const docRef = doc(firestore, `tasks/${taskId}`)
-    batch.update(docRef, { dropped: false })
+    batch.update(docRef, { startTime: null })
   }
   await batch.commit()
 }

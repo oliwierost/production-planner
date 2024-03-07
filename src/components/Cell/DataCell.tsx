@@ -1,20 +1,17 @@
 import { Draggable } from "../Draggable"
 import { Droppable } from "../Droppable"
-import { Task } from "../Task"
 import { DroppedTask } from "../DroppedTask"
-import { Box, Stack } from "@mui/material"
+import { Stack } from "@mui/material"
 import { useAppSelector } from "../../hooks"
 import { Task as TaskType } from "../../slices/tasks"
 import { Deadlines } from "../Deadlines"
-import { useRenderCount } from "@uidotdev/usehooks"
-import { memo, useEffect, useState } from "react"
+import { memo } from "react"
 import { isEqual } from "lodash"
-import { Active } from "@dnd-kit/core"
 import { Cell } from "../../slices/grid"
 
 interface DataCellProps {
   cellWidth: number
-  rowId: string
+  rowId: string | number
   date: string
 }
 
