@@ -33,9 +33,22 @@ import { setToastOpen } from "../slices/toast"
 import { removeFacilityFromGrid } from "../slices/grid"
 import { undropMultipleTasksInFirestore } from "./tasks"
 import CryptoJS from "crypto-js"
-//create object hashing helper function using crypto-js
+
+function stableStringify(obj: object) {
+  const allKeys: string[] = []
+  JSON.stringify(obj, (key, value) => {
+    if (typeof value === "object" && value !== null) {
+      allKeys.push(key)
+    }
+    return value
+  })
+  allKeys.sort()
+  return JSON.stringify(obj, allKeys)
+}
+
 export const hashObject = (obj: object) => {
-  return CryptoJS.SHA256(JSON.stringify(obj)).toString()
+  const stableString = stableStringify(obj)
+  return CryptoJS.MD5(stableString).toString()
 }
 
 export const addFacilityToFirestore = async (facility: Facility) => {

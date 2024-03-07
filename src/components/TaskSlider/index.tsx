@@ -1,15 +1,12 @@
 import { Stack, Divider } from "@mui/material"
 import { Task } from "../Task"
-import { useRef } from "react"
 import { Draggable } from "../Draggable"
 import { useAppSelector } from "../../hooks"
 
 export function TaskSlider() {
-  const outerRef = useRef<HTMLDivElement>(null)
-  const innerRef = useRef<HTMLDivElement>(null)
-  const tasksState = useAppSelector((state) => state.tasks)
-  const taskArr = Object.entries(tasksState.tasks)
-    .filter(([, task]) => !task.startTime && !task.facilityId)
+  const tasks = useAppSelector((state) => state.tasks.tasks)
+  const taskArr = Object.entries(tasks)
+    .filter(([, task]) => !task.startTime)
     .sort((a, b) => {
       if (a[1].bgcolor < b[1].bgcolor) {
         return -1
@@ -23,7 +20,6 @@ export function TaskSlider() {
   return (
     <Stack width="100%">
       <Stack
-        ref={outerRef}
         direction="row"
         px={2}
         py={1}
@@ -47,7 +43,7 @@ export function TaskSlider() {
           },
         }}
       >
-        <Stack spacing={2} direction="row" ref={innerRef}>
+        <Stack spacing={2} direction="row">
           {taskArr.map(([id, task], idx) => (
             <Stack direction="row" key={id} spacing={2}>
               <Draggable id={id} data={{ task, source: null, state: null }}>

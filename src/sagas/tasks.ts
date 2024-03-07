@@ -38,6 +38,7 @@ import {
   fetchTasksStart,
   setTaskDragged,
   setTaskDraggedStart,
+  updateTask,
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
 import {
@@ -47,6 +48,7 @@ import {
   setTaskDraggedInCell,
 } from "../slices/grid"
 import { setDraggedTask } from "../slices/drag"
+import { hashObject } from "./facilities"
 
 const addTaskToFirestore = async (task: Task) => {
   await setDoc(doc(firestore, `tasks/${task.id}`), task)
@@ -200,9 +202,21 @@ export function* setTaskDroppedSaga(
     if (dropped) {
       yield put(setCellsOccupied({ rowId, colId, task }))
       yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
+      yield put(
+        updateTask({
+          id: taskId,
+          data: { dropped, facilityId: rowId, startTime: Number(colId) },
+        }),
+      )
     } else {
       yield put(removeCells({ rowId, colId, duration }))
       yield put(removeTaskFromFacility({ facilityId: rowId, taskId }))
+      yield put(
+        updateTask({
+          id: taskId,
+          data: { dropped, facilityId: null, startTime: null },
+        }),
+      )
     }
     const gridState: GridType = yield select((state) => state.grid.grid)
     yield call(
@@ -241,6 +255,12 @@ export function* moveTaskSaga(
     yield put(removeTaskFromFacility({ facilityId: sourceRowId, taskId }))
     yield put(setCellsOccupied({ rowId, colId, task }))
     yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
+    yield put(
+      updateTask({
+        id: taskId,
+        data: { facilityId: rowId, startTime: Number(colId) },
+      }),
+    )
     if (sourceRowId !== rowId) {
       yield put(removeTaskFromFacility({ facilityId: sourceRowId, taskId }))
       yield put(assignTaskToFacility({ facilityId: rowId, taskId }))
@@ -300,7 +320,18 @@ export function* syncTasksSaga() {
   try {
     while (true) {
       const tasks: { [key: string]: Task } = yield take(channel)
-      yield put(setTasks(tasks))
+      const prevTasks: { [key: string]: Task } = yield select(
+        (state) => state.tasks.tasks,
+      )
+      let prevTasksCopy: { [key: string]: Task } = JSON.parse(
+        JSON.stringify(prevTasks),
+      )
+      Object.values(prevTasksCopy).forEach((task) => {
+        delete prevTasksCopy[task.id].dragged
+      })
+      if (hashObject(prevTasksCopy) !== hashObject(tasks)) {
+        yield put(setTasks(tasks))
+      }
     }
   } finally {
     const isCancelled: boolean = yield cancelled()
