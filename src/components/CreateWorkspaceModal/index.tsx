@@ -49,7 +49,7 @@ export function CreateWorkspaceModal({
     resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     try {
-      const id = doc(collection(firestore, "workspaces")).id
+      const id = doc(collection(firestore, "users/first-user/workspaces")).id
       dispatch(
         upsertWorkspaceStart({
           ...values,

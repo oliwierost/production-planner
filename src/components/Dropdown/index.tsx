@@ -38,6 +38,7 @@ export function Dropdown({
   return (
     <Stack height={45} width="fit-content" direction="row">
       <Select
+        defaultValue={""}
         value={value}
         onChange={(e) => handleChange(e)}
         open={open}
@@ -100,7 +101,7 @@ export function Dropdown({
         sx={{
           cursor: "pointer",
           bgcolor: "#D9D9D9",
-          borderRight: "1px solid black",
+          borderRight: variant == "form" ? "1px solid black" : "none",
           borderTop: variant == "form" ? "1px solid black" : "none",
           borderBottom: variant == "form" ? "1px solid black" : "none",
         }}

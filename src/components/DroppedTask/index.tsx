@@ -32,6 +32,9 @@ export function DroppedTask({
 
   const dispatch = useAppDispatch()
   const view = useAppSelector((state) => state.view.view)
+  const selectedProject = useAppSelector(
+    (state) => state.projects.selectedProject,
+  )
   const cellSpan = task.duration
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -108,7 +111,8 @@ export function DroppedTask({
           left={left}
           sx={{
             boxSizing: "border-box",
-            bgcolor: task.bgcolor,
+            bgcolor:
+              selectedProject == task.projectId ? task.bgcolor : "grey.400",
             color: "background.default",
             borderRadius: 1,
             border: "1px solid black",

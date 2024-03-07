@@ -21,15 +21,26 @@ import { eventChannel } from "redux-saga"
 import { setToastOpen } from "../slices/toast"
 import { hashObject } from "./facilities"
 
-export const fetchGridFromFirestore = async (): Promise<GridType | null> => {
-  const snapshot = await getDoc(doc(firestore, "grid", "first-grid"))
+export const fetchGridFromFirestore = async (
+  selectedWorkspaceId: string,
+): Promise<GridType | null> => {
+  const snapshot = await getDoc(
+    doc(
+      firestore,
+      `users/first-user/workspaces/${selectedWorkspaceId}/grid/first-grid`,
+    ),
+  )
   return snapshot.exists() ? (snapshot.data() as GridType) : null
 }
 
 export const updateGridInFirestore = async (
   gridData: GridType,
+  selectedWorkspaceId: string,
 ): Promise<void> => {
-  const gridRef = doc(firestore, "grid", "first-grid")
+  const gridRef = doc(
+    firestore,
+    `users/first-user/workspaces/${selectedWorkspaceId}/grid/first-grid`,
+  )
   const gridSnapshot = await getDoc(gridRef)
   !gridSnapshot.exists()
     ? await setDoc(gridRef, gridData)
@@ -38,7 +49,13 @@ export const updateGridInFirestore = async (
 
 function* fetchGridSaga() {
   try {
-    const gridData: GridType | null = yield call(fetchGridFromFirestore)
+    const selectedWorkspaceId: string = yield select(
+      (state) => state.workspaces.selectedWorkspace,
+    )
+    const gridData: GridType | null = yield call(
+      fetchGridFromFirestore,
+      selectedWorkspaceId,
+    )
     if (gridData) {
       yield put(setGrid(gridData))
     } else {
@@ -51,7 +68,10 @@ function* fetchGridSaga() {
 
 function* updateGridSaga(action: PayloadAction<GridType>) {
   try {
-    yield call(updateGridInFirestore, action.payload)
+    const selectedWorkspaceId: string = yield select(
+      (state) => state.workspaces.selectedWorkspace,
+    )
+    yield call(updateGridInFirestore, action.payload, selectedWorkspaceId)
   } catch (error) {
     yield put(
       setToastOpen({ message: "Grid update failed", severity: "error" }),
@@ -61,13 +81,22 @@ function* updateGridSaga(action: PayloadAction<GridType>) {
 
 function* initializeGridSaga() {
   try {
-    const gridData: GridType | null = yield call(fetchGridFromFirestore)
-    // initialize empty grid if it doesn't exist
+    const selectedWorkspaceId: string = yield select(
+      (state) => state.workspaces.selectedWorkspace,
+    )
+    const gridData: GridType | null = yield call(
+      fetchGridFromFirestore,
+      selectedWorkspaceId,
+    )
     if (!gridData) {
       yield put(initializeGrid())
-      yield call(updateGridInFirestore, {
-        cells: {},
-      })
+      yield call(
+        updateGridInFirestore,
+        {
+          cells: {},
+        },
+        selectedWorkspaceId,
+      )
     }
   } catch (error) {
     console.error("Error initializing grid data:", error)
@@ -75,8 +104,15 @@ function* initializeGridSaga() {
 }
 
 export function* syncGridSaga() {
+  const selectedWorkspaceId: string = yield select(
+    (state) => state.workspaces.selectedWorkspace,
+  )
+
   const channel = eventChannel((emitter) => {
-    const docRef = doc(firestore, "grid", "first-grid")
+    const docRef = doc(
+      firestore,
+      `users/first-user/workspaces/${selectedWorkspaceId}/grid/first-grid`,
+    )
     const unsubscribe = onSnapshot(docRef, async () => {
       const snapshot = await getDoc(docRef)
       const gridData: GridType | null = snapshot.exists()
@@ -95,7 +131,6 @@ export function* syncGridSaga() {
       const gridData: GridType = yield take(channel)
       const prevGridData: GridType = yield select((state) => state.grid.grid)
       if (hashObject(gridData) !== hashObject(prevGridData)) {
-        console.log("Syncing grid data")
         yield put(setGrid(gridData))
       }
     }

@@ -13,24 +13,35 @@ import { CreateLocationModal } from "../CreateLocationModal"
 import { CreateFacilityModal } from "../CreateFacilityModal"
 import { CreateDeadlineModal } from "../CreateDeadlineModal"
 import { CreateGroupModal } from "../CreateGroupModal"
-import AddHomeWork from "@mui/icons-material/AddHomeWork"
-import AddTaskIcon from "@mui/icons-material/AddTask"
-import AddAlarmIcon from "@mui/icons-material/AddAlarm"
+import AccessTimeFilledIcon from "@mui/icons-material/AccessTimeFilled"
+import HomeWorkIcon from "@mui/icons-material/HomeWork"
 import WorkspacesIcon from "@mui/icons-material/Workspaces"
+import AccountTreeIcon from "@mui/icons-material/AccountTree"
+import AssignmentIcon from "@mui/icons-material/Assignment"
 import { CreateWorkspaceModal } from "../CreateWorkspaceModal"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Dropdown } from "../Dropdown"
 import { setSelectedWorkspace } from "../../slices/workspaces"
+import { setSelectedProject } from "../../slices/projects"
+import { CreateProjectModal } from "../CreateProjectModal"
 
 export function Toolbar() {
   const [modalOpen, setModalOpen] = useState<string | null>(null)
   const workspacesState = useAppSelector((state) => state.workspaces)
+  const projectsState = useAppSelector((state) => state.projects)
   const { workspaces, selectedWorkspace } = workspacesState
+  const { projects, selectedProject } = projectsState
 
   const workspaceOptions = Object.values(workspaces).map((workspace) => ({
     label: workspace?.title,
     value: workspace?.id,
   }))
+
+  const projectOptions = Object.values(projects).map((project) => ({
+    label: project?.title,
+    value: project?.id,
+  }))
+
   const dispatch = useAppDispatch()
   const renderModal = () => {
     switch (modalOpen) {
@@ -48,6 +59,8 @@ export function Toolbar() {
         return <CreateGroupModal setOpen={setModalOpen} open={true} />
       case "workspace":
         return <CreateWorkspaceModal setOpen={setModalOpen} open={true} />
+      case "project":
+        return <CreateProjectModal setOpen={setModalOpen} open={true} />
       default:
         return null
     }
@@ -58,11 +71,22 @@ export function Toolbar() {
     dispatch(setSelectedWorkspace(value))
   }
 
+  const handleProjectChange = (event: SelectChangeEvent<string>) => {
+    const value = event.target.value as string
+    dispatch(setSelectedProject(value))
+  }
+
   useEffect(() => {
     if (workspaces && !selectedWorkspace) {
       dispatch(setSelectedWorkspace(Object.keys(workspaces)[0]))
     }
   }, [workspaces])
+
+  useEffect(() => {
+    if (projects && selectedWorkspace) {
+      dispatch(setSelectedProject(Object.keys(projects)[0]))
+    }
+  }, [projects, selectedWorkspace])
 
   return (
     <Stack
@@ -90,6 +114,22 @@ export function Toolbar() {
             <WorkspacesIcon />
           </ToggleButton>
         </Tooltip>
+        <Tooltip title="Dodaj projekt" arrow>
+          <ToggleButton
+            value="project"
+            onClick={() => setModalOpen("project")}
+            sx={{
+              px: 1,
+              py: 0.5,
+              border: "none",
+              "&:focus": {
+                outline: "none",
+              },
+            }}
+          >
+            <AccountTreeIcon />
+          </ToggleButton>
+        </Tooltip>
         <Tooltip title="Dodaj produkt" arrow>
           <ToggleButton
             value="facility"
@@ -103,7 +143,7 @@ export function Toolbar() {
               },
             }}
           >
-            <AddTaskIcon />
+            <AssignmentIcon />
           </ToggleButton>
         </Tooltip>
         <Tooltip title="Dodaj stanowisko" arrow>
@@ -119,7 +159,7 @@ export function Toolbar() {
               },
             }}
           >
-            <AddHomeWork />
+            <HomeWorkIcon />
           </ToggleButton>
         </Tooltip>
         <Tooltip title="Dodaj deadline" arrow>
@@ -135,18 +175,26 @@ export function Toolbar() {
               },
             }}
           >
-            <AddAlarmIcon />
+            <AccessTimeFilledIcon />
           </ToggleButton>
         </Tooltip>
       </ToggleButtonGroup>
       <Stack direction="row">
         <Dropdown
           variant="toolbar"
+          placeholder="Wybierz projekt"
+          options={projectOptions ?? []}
+          onChange={handleProjectChange}
+          value={selectedProject && selectedWorkspace ? selectedProject : ""}
+          width={250}
+        />
+        <Dropdown
+          variant="toolbar"
           placeholder="Wybierz zakład"
           options={workspaceOptions}
           onChange={handleWorkspaceChange}
           value={selectedWorkspace || ""}
-          width={200}
+          width={250}
         />
       </Stack>
       <Box position="absolute">{renderModal()}</Box>

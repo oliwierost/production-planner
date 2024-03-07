@@ -92,6 +92,9 @@ export function CreateFacilityModal({
   const [facility, setFacility] = useState<Facility>(initialValues)
   const dispatch = useAppDispatch()
   const facilities = useAppSelector((state) => state.facilities.facilities)
+  const selectedWorkspace = useAppSelector(
+    (state) => state.workspaces.selectedWorkspace,
+  )
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: FormikHelpers<FormData>["setFieldValue"],
@@ -113,7 +116,12 @@ export function CreateFacilityModal({
   ) => {
     try {
       if (!facilityId) {
-        const id = doc(collection(firestore, "facilities")).id
+        const id = doc(
+          collection(
+            firestore,
+            `users/first-user/workspaces/${selectedWorkspace}/faciltiies`,
+          ),
+        ).id
         dispatch(
           addFacilityStart({
             ...values,

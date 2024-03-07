@@ -6,13 +6,9 @@ import {
   DragEndEvent,
   DragStartEvent,
   Over,
-  useSensor,
-  useSensors,
-  MouseSensor,
 } from "@dnd-kit/core"
 import { Toolbar } from "./components/Toolbar"
 import { useEffect } from "react"
-import { snapCenterToCursor } from "@dnd-kit/modifiers"
 import { DataGrid } from "./components/DataGrid"
 import { ThemeProvider } from "@mui/material/styles"
 import { theme } from "../theme"
@@ -23,21 +19,42 @@ import {
   moveTaskStart,
   setTaskDraggedStart,
   setTaskDroppedStart,
+  syncTasksStart,
 } from "./slices/tasks"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import { setToastClose, setToastOpen } from "./slices/toast"
 import { setMonthView } from "./slices/view"
 import { TimelineToolbar } from "./components/TimelineToolbar"
-
-import { syncDataStart } from "./slices/sync"
+import { syncFacilitiesStart } from "./slices/facilities"
+import { initializeGridStart, syncGridStart } from "./slices/grid"
+import { syncDeadlinesStart } from "./slices/deadlines"
+import { syncWorkspacesStart } from "./slices/workspaces"
+import { syncProjectsStart } from "./slices/projects"
 
 function App() {
   const dispatch = useAppDispatch()
   const monthView = generateMonthView(100)
 
+  const selectedWorkspace = useAppSelector(
+    (state) => state.workspaces.selectedWorkspace,
+  )
+  const selectedProject = useAppSelector(
+    (state) => state.projects.selectedProject,
+  )
+
   useEffect(() => {
-    dispatch(syncDataStart())
-  }, [])
+    if (!selectedWorkspace && !selectedProject) {
+      dispatch(syncWorkspacesStart())
+    } else if (selectedWorkspace && !selectedProject) {
+      dispatch(syncProjectsStart())
+    } else if (selectedWorkspace && selectedProject) {
+      dispatch(syncTasksStart())
+      dispatch(syncFacilitiesStart())
+      dispatch(syncGridStart())
+      dispatch(syncDeadlinesStart())
+      dispatch(initializeGridStart())
+    }
+  }, [selectedWorkspace, selectedProject])
 
   const toastState = useAppSelector((state) => state.toast)
   const gridState = useAppSelector((state) => state.grid)
@@ -109,6 +126,13 @@ function App() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     if (!event.over) {
+      dispatch(
+        setTaskDraggedStart({
+          task: event.active.data.current?.task,
+          dragged: false,
+          cellId: event.active.id as string,
+        }),
+      )
       return
     }
     const canDrop = checkCanDrop(event.over, event.active)
@@ -140,12 +164,6 @@ function App() {
       }),
     )
   }
-
-  const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: {
-      distance: 1,
-    },
-  })
 
   return (
     <>

@@ -28,7 +28,10 @@ import { eventChannel } from "redux-saga"
 import { hashObject } from "./facilities"
 
 const addWorkspaceToFirestore = async (workspace: Workspace) => {
-  await setDoc(doc(firestore, `workspaces/${workspace.id}`), workspace)
+  await setDoc(
+    doc(firestore, `users/first-user/workspaces/${workspace.id}`),
+    workspace,
+  )
 }
 
 export function* upsertWorkspaceSaga(
@@ -46,9 +49,9 @@ export function* upsertWorkspaceSaga(
 
 export function* syncWorkspacesSaga() {
   const channel = eventChannel((emitter) => {
-    const colRef = collection(firestore, "workspaces")
+    const colRef = collection(firestore, "users/first-user/workspaces")
     const unsubscribe = onSnapshot(colRef, async () => {
-      const snapshot = await getDocs(collection(firestore, "workspaces"))
+      const snapshot = await getDocs(colRef)
       const workspaces = {} as { [key: string]: Workspace }
       snapshot.forEach(
         (doc) =>

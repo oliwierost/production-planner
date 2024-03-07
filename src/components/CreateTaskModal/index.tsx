@@ -67,6 +67,7 @@ const initialValues = {
   startTime: null,
   facilityId: null,
   bgcolor: "",
+  projectId: "",
 }
 
 export function CreateTaskModal({
@@ -76,6 +77,12 @@ export function CreateTaskModal({
 }: CreateTaskModalProps) {
   const [task, setTask] = useState<Task>(initialValues)
   const tasks = useAppSelector((state) => state.tasks.tasks)
+  const selectedProject = useAppSelector(
+    (state) => state.projects.selectedProject,
+  )
+  const selectedWorkspace = useAppSelector(
+    (state) => state.workspaces.selectedWorkspace,
+  )
   const facilities = useAppSelector((state) => state.facilities.facilities)
   const facilitiesOptions = Object.values(facilities).map((facility) => ({
     label: facility.title,
@@ -103,14 +110,25 @@ export function CreateTaskModal({
   ) => {
     try {
       if (!taskId) {
-        const id = doc(collection(firestore, "tasks")).id
-        dispatch(
-          addTaskStart({
-            ...values,
-            dropped: false,
-            id,
-          }),
-        )
+        const id = doc(
+          collection(
+            firestore,
+            `users/first-user/workspaces/${selectedWorkspace}/tasks`,
+          ),
+        ).id
+        if (selectedProject && selectedWorkspace) {
+          dispatch(
+            addTaskStart({
+              task: {
+                ...values,
+                dropped: false,
+                projectId: selectedProject,
+                id,
+              },
+              workspaceId: selectedWorkspace,
+            }),
+          )
+        }
       } else {
         dispatch(updateTaskStart({ id: task.id, data: values }))
       }
@@ -242,9 +260,7 @@ export function CreateTaskModal({
                       <Stack direction="row" alignItems="center">
                         <DateField
                           placeholder="Data rozpoczęcia"
-                          value={
-                            values.startTime ? new Date(values.startTime) : null
-                          }
+                          value={values.startTime}
                           setFieldValue={setFieldValue}
                           name="startTime"
                         />

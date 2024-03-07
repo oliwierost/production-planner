@@ -1,20 +1,26 @@
-import { Active, useDraggable } from "@dnd-kit/core"
-import { useAppDispatch, useAppSelector } from "../../hooks"
-import { useEffect } from "react"
-import { setTaskDragged, setTaskDraggedStart } from "../../slices/tasks"
+import { useDraggable } from "@dnd-kit/core"
+import { useAppSelector } from "../../hooks"
+import { Task } from "../../slices/tasks"
 interface DraggableProps {
   children: React.ReactNode
   id: string
-  data: any
+  data: {
+    sourceId: string | null
+    task: Task
+  }
 }
 
 export function Draggable({ children, id, data }: DraggableProps) {
   const view = useAppSelector((state) => state.view.view)
   const disabled = useAppSelector((state) => state.drag.disabled)
+  const selectedProject = useAppSelector(
+    (state) => state.projects.selectedProject,
+  )
+
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
     data: data,
-    disabled: disabled,
+    disabled: disabled || data.task.projectId !== selectedProject,
   })
 
   const style = transform
@@ -29,9 +35,12 @@ export function Draggable({ children, id, data }: DraggableProps) {
         ref={setNodeRef}
         style={{
           all: "unset",
-          cursor: view?.isEditable ? "grab" : "initial",
+          cursor:
+            data.task.projectId === selectedProject && view?.isEditable
+              ? "grab"
+              : "default",
           zIndex: 999,
-          position: "fixed",
+          position: transform ? "fixed" : "initial",
           ...style,
         }}
         {...listeners}

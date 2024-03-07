@@ -7,9 +7,9 @@ import { useState } from "react"
 
 interface DateFieldProps {
   placeholder: string
-  value: Date
+  value: number | null
   name?: string
-  setFieldValue: (name: string, value: Date) => void
+  setFieldValue: (name: string, value: number) => void
 }
 
 export function DateField({ name, setFieldValue, value }: DateFieldProps) {
@@ -17,7 +17,7 @@ export function DateField({ name, setFieldValue, value }: DateFieldProps) {
   const handleChange = (date: Dayjs | null) => {
     if (date && name) {
       const actualDate = dayjs(date).startOf("day")
-      setFieldValue(name, actualDate.toDate())
+      setFieldValue(name, Number(actualDate))
     }
   }
 

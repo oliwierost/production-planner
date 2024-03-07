@@ -17,7 +17,7 @@ const facilitySchema = {
 
 const deadlineSchema = {
   title: Yup.string().required("Nazwa jest wymagana"),
-  date: Yup.date().required("Data jest wymagana"),
+  date: Yup.number().required("Data jest wymagana"),
 }
 
 const workspaceSchema = {

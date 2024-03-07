@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { select } from "redux-saga/effects"
 
 // Define the Task interface
 export interface Task {
@@ -12,6 +11,7 @@ export interface Task {
   facilityId: string | null
   startTime: number | null
   dragged?: boolean
+  projectId: string
 }
 
 // Define the state structure for tasks
@@ -128,13 +128,18 @@ export const tasksSlice = createSlice({
       state.loading = true
       state.error = null
     },
-    addTaskStart(state, action: PayloadAction<Task>) {
+    addTaskStart(
+      state,
+      action: PayloadAction<{ task: Task; workspaceId: string }>,
+    ) {
       state.loading = true
       state.error = null
+      console.info("addTaskStart", action.payload)
     },
     updateTaskStart(state, action: PayloadAction<{ id: string; data: any }>) {
       state.loading = true
       state.error = null
+      console.info("updateTaskStart", action.payload)
     },
     setTaskDraggedStart(
       state,
@@ -146,6 +151,7 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
+      console.info("setTaskDraggedStart", action.payload)
     },
     moveTaskStart(
       state,
@@ -159,6 +165,7 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
+      console.info("moveTaskStart", action.payload)
     },
     deleteTaskStart(
       state,
@@ -171,6 +178,7 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
+      console.info("deleteTaskStart", action.payload)
     },
     setTaskDroppedStart(
       state,
@@ -183,6 +191,7 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
+      console.info("setTaskDroppedStart", action.payload)
     },
     syncTasksStart(state /*action: PayloadAction<GridType>*/) {
       state.loading = true

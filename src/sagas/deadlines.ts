@@ -1,6 +1,14 @@
 import { eventChannel } from "redux-saga"
 import { PayloadAction } from "@reduxjs/toolkit"
-import { call, put, take, cancelled, takeLatest, all } from "redux-saga/effects"
+import {
+  call,
+  put,
+  take,
+  cancelled,
+  takeLatest,
+  all,
+  select,
+} from "redux-saga/effects"
 import { firestore } from "../../firebase.config"
 import {
   collection,
@@ -22,24 +30,62 @@ import {
   addDeadlineStart,
 } from "../slices/deadlines"
 
-const addDeadlineToFirestore = async (deadline: Deadline) => {
-  await setDoc(doc(firestore, `deadlines/${deadline.id}`), deadline)
+const addDeadlineToFirestore = async (
+  deadline: Deadline,
+  workspaceId: string,
+  projectId: string,
+) => {
+  await setDoc(
+    doc(
+      firestore,
+      `users/first-user/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadline.id}`,
+    ),
+    deadline,
+  )
 }
 
 const updateDeadlineInFirestore = async (
-  id: string,
+  deadlineId: string,
+  workspaceId: string,
+  projectId: string,
   updateData: { [key: string]: any },
 ) => {
-  await updateDoc(doc(firestore, `tasks/${id}`), updateData)
+  await updateDoc(
+    doc(
+      firestore,
+      `users/first-user/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadlineId}`,
+    ),
+    updateData,
+  )
 }
 
-const deleteDeadlineFromFirestore = async (deadlineId: string) => {
-  await deleteDoc(doc(firestore, `deadlines/${deadlineId}`))
+const deleteDeadlineFromFirestore = async (
+  deadlineId: string,
+  workspaceId: string,
+  projectId: string,
+) => {
+  await deleteDoc(
+    doc(
+      firestore,
+      `users/first-user/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadlineId}`,
+    ),
+  )
 }
 
 export function* addDeadlineSaga(action: PayloadAction<Deadline>) {
   try {
-    yield call(addDeadlineToFirestore, action.payload)
+    const selectedWorkspace: string = yield select(
+      (state) => state.workspaces.selectedWorkspace,
+    )
+    const selectedProject: string = yield select(
+      (state) => state.projects.selectedProject,
+    )
+    yield call(
+      addDeadlineToFirestore,
+      action.payload,
+      selectedWorkspace,
+      selectedProject,
+    )
     yield put(setToastOpen({ message: "Dodano deadline", severity: "success" }))
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
@@ -53,8 +99,18 @@ export function* deleteDeadlineSaga(
 ): Generator<any, void, any> {
   try {
     const deadlineId = action.payload.deadlineId
-
-    yield call(deleteDeadlineFromFirestore, deadlineId)
+    const selectedWorkspace: string = yield select(
+      (state) => state.workspaces.selectedWorkspace,
+    )
+    const selectedProject: string = yield select(
+      (state) => state.projects.selectedProject,
+    )
+    yield call(
+      deleteDeadlineFromFirestore,
+      deadlineId,
+      selectedWorkspace,
+      selectedProject,
+    )
     yield put(removeDeadline(deadlineId))
     yield put(
       setToastOpen({ message: "Usunięto deadline", severity: "success" }),
@@ -69,7 +125,19 @@ export function* updateDeadlineSaga(
 ): Generator<any, void, any> {
   try {
     const { id, data } = action.payload
-    yield call(updateDeadlineInFirestore, id, data)
+    const selectedWorkspace: string = yield select(
+      (state) => state.workspaces.selectedWorkspace,
+    )
+    const selectedProject: string = yield select(
+      (state) => state.projects.selectedProject,
+    )
+    yield call(
+      updateDeadlineInFirestore,
+      id,
+      selectedWorkspace,
+      selectedProject,
+      data,
+    )
     yield put(
       setToastOpen({ message: "Zaktualizowano deadline", severity: "success" }),
     )
@@ -79,17 +147,26 @@ export function* updateDeadlineSaga(
 }
 
 export function* syncDeadlinesSaga() {
+  const selectedWorkspace: string = yield select(
+    (state) => state.workspaces.selectedWorkspace,
+  )
+  const selectedProject: string = yield select(
+    (state) => state.projects.selectedProject,
+  )
   const channel = eventChannel((emitter) => {
-    const colRef = collection(firestore, "deadlines")
+    const colRef = collection(
+      firestore,
+      `users/first-user/workspaces/${selectedWorkspace}/projects/${selectedProject}/deadlines`,
+    )
     const unsubscribe = onSnapshot(colRef, async () => {
-      const snapshot = await getDocs(collection(firestore, "deadlines"))
+      const snapshot = await getDocs(colRef)
       const deadlines = {} as { [key: string]: Deadline }
       snapshot.forEach(
         (doc) =>
           (deadlines[doc.id] = {
             id: doc.id,
             ...doc.data(),
-          } as unknown as Deadline),
+          } as Deadline),
       )
       emitter(deadlines)
     })

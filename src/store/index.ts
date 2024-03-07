@@ -10,13 +10,14 @@ import viewReducer from "../slices/view" // Adjust the import path as necessary
 import dragReducer from "../slices/drag" // Adjust the import path as necessary
 import deadlinesReducer from "../slices/deadlines" // Adjust the import path as necessary
 import workspacesReducer from "../slices/workspaces" // Adjust the import path as necessary
+import projectsReducer from "../slices/projects" // Adjust the import path as necessary
 
 import gridSagas from "../sagas/grid"
 import tasksSagas from "../sagas/tasks"
 import facilitiesSagas from "../sagas/facilities"
 import deadlineSagas from "../sagas/deadlines"
-import syncSaga from "../sagas/sync"
 import workspacesSagas from "../sagas/workspaces"
+import projectsSagas from "../sagas/projects"
 
 const sagaMiddleware = createSagaMiddleware()
 
@@ -30,6 +31,7 @@ export const store = configureStore({
     drag: dragReducer,
     deadlines: deadlinesReducer,
     workspaces: workspacesReducer,
+    projects: projectsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ thunk: false }).concat(sagaMiddleware),
@@ -42,7 +44,7 @@ function* rootSaga() {
     facilitiesSagas(),
     deadlineSagas(),
     workspacesSagas(),
-    syncSaga(),
+    projectsSagas(),
   ])
 }
 
