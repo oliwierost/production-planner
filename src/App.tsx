@@ -147,8 +147,6 @@ function App() {
     },
   })
 
-  const sensors = useSensors(mouseSensor)
-
   return (
     <>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -156,7 +154,6 @@ function App() {
           <Stack width="100vw" height="100vh">
             <Toolbar />
             <DndContext
-              sensors={sensors}
               onDragEnd={handleDragEnd}
               onDragStart={handleDragStart}
               onDragCancel={handleDragCancel}
