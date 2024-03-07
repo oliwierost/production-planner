@@ -47,7 +47,6 @@ export function DroppedTask({
 
   const handleClose = () => {
     setAnchorEl(null)
-    dispatch(setDragDisabled(false))
   }
 
   const contextMenuOptions = [
@@ -56,7 +55,6 @@ export function DroppedTask({
       onClick: () => {
         setModalOpen("updateTask")
         handleClose()
-        dispatch(setDragDisabled(true))
       },
       icon: <EditIcon fontSize="small" sx={{ color: "primary.dark" }} />,
     },
@@ -72,6 +70,7 @@ export function DroppedTask({
           }),
         )
         setIsGridUpdated(true)
+        dispatch(setDragDisabled(false))
         handleClose()
       },
       icon: <DeleteIcon fontSize="small" sx={{ color: "primary.dark" }} />,
@@ -88,6 +87,7 @@ export function DroppedTask({
           }),
         )
         setIsGridUpdated(true)
+        dispatch(setDragDisabled(false))
         handleClose()
       },
       icon: (
