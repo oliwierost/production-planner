@@ -30,16 +30,38 @@ export const workspacesSlice = createSlice({
       const workspace = action.payload
       state.workspaces[workspace.id] = workspace
     },
+    setWorkspaces(state, action: PayloadAction<{ [id: string]: Workspace }>) {
+      state.workspaces = action.payload
+      state.loading = false
+    },
     upsertWorkspaceStart: (state, action: PayloadAction<Workspace>) => {
       state.loading = true
       state.error = null
       console.info("upsertWorkspaceStart", action.payload)
     },
+    setWorkspacesStart: (
+      state,
+      action: PayloadAction<{ [id: string]: Workspace }>,
+    ) => {
+      state.loading = true
+      state.error = null
+      console.info("setWorkspacesStart", action.payload)
+    },
+    syncWorkspacesStart: (state) => {
+      state.loading = true
+      state.error = null
+    },
   },
 })
 
 // Export the actions
-export const { upsertWorkspace, upsertWorkspaceStart } = workspacesSlice.actions
+export const {
+  upsertWorkspace,
+  upsertWorkspaceStart,
+  setWorkspacesStart,
+  syncWorkspacesStart,
+  setWorkspaces,
+} = workspacesSlice.actions
 
 // Export the reducer
 export default workspacesSlice.reducer

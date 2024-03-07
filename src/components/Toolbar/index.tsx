@@ -1,4 +1,10 @@
-import { Stack, ToggleButton, ToggleButtonGroup, Tooltip } from "@mui/material"
+import {
+  Select,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
+} from "@mui/material"
 import { useState } from "react"
 import { CreateTaskModal } from "../CreateTaskModal"
 import { CreateActivityModal } from "../CreateActivityModal"
@@ -10,9 +16,33 @@ import AddHomeWork from "@mui/icons-material/AddHomeWork"
 import AddTaskIcon from "@mui/icons-material/AddTask"
 import AddAlarmIcon from "@mui/icons-material/AddAlarm"
 import { CreateWorkspaceModal } from "../CreateWorkspaceModal"
+import { useAppSelector } from "../../hooks"
 
 export function Toolbar() {
-  const [modalopen, setModalOpen] = useState<string | null>(null)
+  const [modalOpen, setModalOpen] = useState<string | null>(null)
+  const workspaces = useAppSelector((state) => state.workspaces)
+  console.log(workspaces)
+
+  const renderModal = () => {
+    switch (modalOpen) {
+      case "task":
+        return <CreateTaskModal setOpen={setModalOpen} open={true} />
+      case "activity":
+        return <CreateActivityModal setOpen={setModalOpen} open={true} />
+      case "location":
+        return <CreateLocationModal setOpen={setModalOpen} open={true} />
+      case "facility":
+        return <CreateFacilityModal setOpen={setModalOpen} open={true} />
+      case "deadline":
+        return <CreateDeadlineModal setOpen={setModalOpen} open={true} />
+      case "group":
+        return <CreateGroupModal setOpen={setModalOpen} open={true} />
+      case "workspace":
+        return <CreateWorkspaceModal setOpen={setModalOpen} open={true} />
+      default:
+        return null
+    }
+  }
 
   return (
     <Stack
@@ -89,28 +119,10 @@ export function Toolbar() {
           </ToggleButton>
         </Tooltip>
       </ToggleButtonGroup>
-      <CreateActivityModal
-        open={modalopen === "activity"}
-        setOpen={setModalOpen}
-      />
-      <CreateLocationModal
-        open={modalopen === "location"}
-        setOpen={setModalOpen}
-      />
-      <CreateTaskModal open={modalopen === "task"} setOpen={setModalOpen} />
-      <CreateFacilityModal
-        open={modalopen === "facility"}
-        setOpen={setModalOpen}
-      />
-      <CreateDeadlineModal
-        open={modalopen === "deadline"}
-        setOpen={setModalOpen}
-      />
-      <CreateWorkspaceModal
-        open={modalopen === "workspace"}
-        setOpen={setModalOpen}
-      />
-      <CreateGroupModal open={modalopen === "group"} setOpen={setModalOpen} />
+      <Stack direction="row">
+        <Select variant="standard" placeholder="Wybierz grupę"></Select>
+      </Stack>
+      {renderModal()}
     </Stack>
   )
 }
