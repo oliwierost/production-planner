@@ -10,6 +10,7 @@ interface WorkspacesState {
   workspaces: {
     [id: string]: Workspace
   }
+  selectedWorkspace: string | null
   loading: boolean
   error: string | null
 }
@@ -17,6 +18,7 @@ interface WorkspacesState {
 // Initial state for the tasks slice
 const initialState: WorkspacesState = {
   workspaces: {},
+  selectedWorkspace: null,
   loading: false,
   error: null,
 }
@@ -33,6 +35,9 @@ export const workspacesSlice = createSlice({
     setWorkspaces(state, action: PayloadAction<{ [id: string]: Workspace }>) {
       state.workspaces = action.payload
       state.loading = false
+    },
+    setSelectedWorkspace(state, action: PayloadAction<string>) {
+      state.selectedWorkspace = action.payload
     },
     upsertWorkspaceStart: (state, action: PayloadAction<Workspace>) => {
       state.loading = true
@@ -59,6 +64,7 @@ export const {
   upsertWorkspace,
   upsertWorkspaceStart,
   setWorkspacesStart,
+  setSelectedWorkspace,
   syncWorkspacesStart,
   setWorkspaces,
 } = workspacesSlice.actions

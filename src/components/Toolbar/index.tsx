@@ -1,11 +1,12 @@
 import {
-  Select,
+  Box,
+  SelectChangeEvent,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
 } from "@mui/material"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { CreateTaskModal } from "../CreateTaskModal"
 import { CreateActivityModal } from "../CreateActivityModal"
 import { CreateLocationModal } from "../CreateLocationModal"
@@ -15,14 +16,22 @@ import { CreateGroupModal } from "../CreateGroupModal"
 import AddHomeWork from "@mui/icons-material/AddHomeWork"
 import AddTaskIcon from "@mui/icons-material/AddTask"
 import AddAlarmIcon from "@mui/icons-material/AddAlarm"
+import WorkspacesIcon from "@mui/icons-material/Workspaces"
 import { CreateWorkspaceModal } from "../CreateWorkspaceModal"
-import { useAppSelector } from "../../hooks"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { Dropdown } from "../Dropdown"
+import { setSelectedWorkspace } from "../../slices/workspaces"
 
 export function Toolbar() {
   const [modalOpen, setModalOpen] = useState<string | null>(null)
-  const workspaces = useAppSelector((state) => state.workspaces)
-  console.log(workspaces)
+  const workspacesState = useAppSelector((state) => state.workspaces)
+  const { workspaces, selectedWorkspace } = workspacesState
 
+  const workspaceOptions = Object.values(workspaces).map((workspace) => ({
+    label: workspace?.title,
+    value: workspace?.id,
+  }))
+  const dispatch = useAppDispatch()
   const renderModal = () => {
     switch (modalOpen) {
       case "task":
@@ -43,6 +52,17 @@ export function Toolbar() {
         return null
     }
   }
+
+  const handleWorkspaceChange = (event: SelectChangeEvent<string>) => {
+    const value = event.target.value as string
+    dispatch(setSelectedWorkspace(value))
+  }
+
+  useEffect(() => {
+    if (workspaces && !selectedWorkspace) {
+      dispatch(setSelectedWorkspace(Object.keys(workspaces)[0]))
+    }
+  }, [workspaces])
 
   return (
     <Stack
@@ -67,7 +87,7 @@ export function Toolbar() {
               },
             }}
           >
-            <AddTaskIcon />
+            <WorkspacesIcon />
           </ToggleButton>
         </Tooltip>
         <Tooltip title="Dodaj produkt" arrow>
@@ -120,9 +140,16 @@ export function Toolbar() {
         </Tooltip>
       </ToggleButtonGroup>
       <Stack direction="row">
-        <Select variant="standard" placeholder="Wybierz grupę"></Select>
+        <Dropdown
+          variant="toolbar"
+          placeholder="Wybierz zakład"
+          options={workspaceOptions}
+          onChange={handleWorkspaceChange}
+          value={selectedWorkspace || ""}
+          width={200}
+        />
       </Stack>
-      {renderModal()}
+      <Box position="absolute">{renderModal()}</Box>
     </Stack>
   )
 }

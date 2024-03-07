@@ -1,31 +1,45 @@
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
-import { Stack } from "@mui/material"
+import { SelectChangeEvent, Stack } from "@mui/material"
 import { Select, MenuItem } from "@mui/material"
 import { useState } from "react"
 
 interface TextFieldProps {
+  variant?: "toolbar" | "form"
   placeholder: string
   options: { value: string; label: string }[]
-  name: string
+  name?: string
   value?: string
-  setFieldValue: (name: string, value: string) => void
+  setFieldValue?: (name: string, value: string) => void
+  onChange?: (event: SelectChangeEvent<string>) => void
+  width?: number | string
 }
 
 export function Dropdown({
+  variant = "form",
   placeholder,
   value,
   setFieldValue,
   name,
   options,
+  onChange,
+  width = 339,
 }: TextFieldProps) {
   const [open, setOpen] = useState(false)
+
+  const handleChange = (event: SelectChangeEvent<string>) => {
+    if (setFieldValue && name) {
+      setFieldValue(name, event.target.value as string)
+    } else if (onChange) {
+      onChange(event)
+    }
+  }
 
   return (
     <Stack height={45} width="fit-content" direction="row">
       <Select
         value={value}
-        onChange={(e) => setFieldValue(name, e.target.value)}
+        onChange={(e) => handleChange(e)}
         open={open}
         onClose={() => setOpen(false)}
         onOpen={() => setOpen(true)}
@@ -35,13 +49,16 @@ export function Dropdown({
           return !val ? (
             <div style={{ color: "#a1a1a1" }}>{placeholder}</div>
           ) : (
-            <>{val}</>
+            <>{options.find((option) => option.value === val)?.label}</>
           )
         }}
         sx={{
           all: "unset",
-          border: "1px solid black",
-          width: 339,
+          borderLeft: "1px solid black",
+          borderRight: "1px solid black",
+          borderTop: variant == "form" ? "1px solid black" : "none",
+          borderBottom: variant == "form" ? "1px solid black" : "none",
+          width: width,
           height: "100%",
           "& .MuiOutlinedInput-root": {
             height: "100%",
@@ -84,8 +101,8 @@ export function Dropdown({
           cursor: "pointer",
           bgcolor: "#D9D9D9",
           borderRight: "1px solid black",
-          borderTop: "1px solid black",
-          borderBottom: "1px solid black",
+          borderTop: variant == "form" ? "1px solid black" : "none",
+          borderBottom: variant == "form" ? "1px solid black" : "none",
         }}
       >
         <Stack
