@@ -59,7 +59,13 @@ export const DroppedTask = memo(function DroppedTask({
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
   const dispatch = useAppDispatch()
   const view = useAppSelector((state) => state.view.view, isEqual)
-
+  const nextCell = useAppSelector(
+    (state) =>
+      state.grid.grid?.cells?.[
+        `${rowId}-${colId + (taskWidth / cellWidth) * 86400000}`
+      ],
+    isEqual,
+  )
   const cellSpan = task.duration
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -135,13 +141,11 @@ export const DroppedTask = memo(function DroppedTask({
     const taskDurationNum = Number(task.duration)
     const daysDiff = newTransform.x / cellWidth
     const newDuration = daysDiff + taskDurationNum
-    if (taskWidth > newDuration * cellWidth) {
+    if (taskWidth !== newDuration * cellWidth) {
       const newWidth = newDuration * cellWidth
-      setTaskWidth(newWidth)
-    } else if (taskWidth < newDuration * cellWidth) {
-      const newWidth = newDuration * cellWidth
-      setTaskWidth(newWidth)
+      !nextCell && setTaskWidth(newWidth)
     }
+
     return {
       ...transform,
       x: 0,
