@@ -67,9 +67,15 @@ export const DroppedTask = memo(function DroppedTask({
       ],
     isEqual,
   )
+  const prevCell = useAppSelector(
+    (state) =>
+      state.grid.grid?.cells?.[
+        `${rowId}-${colId + (taskWidth / cellWidth - 1) * 86400000}`
+      ],
+    isEqual,
+  )
 
   const cellSpan = task.duration
-
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
     if (view?.name !== "1 mies.") return
@@ -144,11 +150,12 @@ export const DroppedTask = memo(function DroppedTask({
     const daysDiff = newTransform.x / cellWidth
     const newDuration = daysDiff + taskDurationNum
     const nextCellState = nextCell?.state
+
     const newWidth = newDuration * cellWidth
     if (taskWidth < newDuration * cellWidth) {
       nextCellState == "occupied-start" ? null : setTaskWidth(newWidth)
     } else if (taskWidth > newDuration * cellWidth) {
-      nextCellState == "occupied" ? null : setTaskWidth(newWidth)
+      prevCell?.state == "occupied-start" ? null : setTaskWidth(newWidth)
     }
     return {
       ...transform,
@@ -223,6 +230,7 @@ export const DroppedTask = memo(function DroppedTask({
                 minWidth: "10px",
                 height: "22px",
                 mr: 1,
+                cursor: "col-resize",
               }}
             >
               <Draggable
@@ -236,6 +244,7 @@ export const DroppedTask = memo(function DroppedTask({
                   minWidth={10}
                   height="22px"
                   sx={{
+                    borderRadius: "0 4px 4px 0",
                     backgroundImage: `repeating-linear-gradient(45deg, ${
                       task.projectId === selectedProject
                         ? task.bgcolor
@@ -244,7 +253,7 @@ export const DroppedTask = memo(function DroppedTask({
                       task.projectId === selectedProject
                         ? task.bgcolor
                         : "grey.400"
-                    } 3px, #000000 3px, #000000 4px)`,
+                    } 2px, #000000 4px, #000000 2px)`,
                     backgroundSize: "22px 22px",
                     border: "1px solid black",
                     boxSizing: "border-box",
