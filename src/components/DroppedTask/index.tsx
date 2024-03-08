@@ -12,6 +12,7 @@ import { Draggable } from "../Draggable"
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
 import type { Transform } from "@dnd-kit/utilities"
 import { isEqual } from "lodash"
+import { ConstructionOutlined } from "@mui/icons-material"
 
 interface Args {
   activatorEvent: Event | null
@@ -66,6 +67,7 @@ export const DroppedTask = memo(function DroppedTask({
       ],
     isEqual,
   )
+
   const cellSpan = task.duration
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -129,7 +131,7 @@ export const DroppedTask = memo(function DroppedTask({
       ),
     },
   ]
-
+  console.log(nextCell)
   function snapToGrid(args: Args) {
     const { transform } = args
     const gridSize = cellWidth
@@ -141,11 +143,13 @@ export const DroppedTask = memo(function DroppedTask({
     const taskDurationNum = Number(task.duration)
     const daysDiff = newTransform.x / cellWidth
     const newDuration = daysDiff + taskDurationNum
-    if (taskWidth !== newDuration * cellWidth) {
-      const newWidth = newDuration * cellWidth
-      !nextCell && setTaskWidth(newWidth)
+    const nextCellState = nextCell?.state
+    const newWidth = newDuration * cellWidth
+    if (taskWidth < newDuration * cellWidth) {
+      nextCellState == "occupied-start" ? null : setTaskWidth(newWidth)
+    } else if (taskWidth > newDuration * cellWidth) {
+      nextCellState == "occupied" ? null : setTaskWidth(newWidth)
     }
-
     return {
       ...transform,
       x: 0,
