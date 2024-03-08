@@ -49,9 +49,6 @@ export const DroppedTask = memo(function DroppedTask({
     isEqual,
   )
   const [modalOpen, setModalOpen] = useState<string | null>(null)
-  const [bgcolor, _] = useState<string>(
-    task.projectId === selectedProject ? task.bgcolor : "grey.400",
-  )
   const [taskWidth, setTaskWidth] = useState<number>(
     width ? width : task.duration * cellWidth,
   )
@@ -173,7 +170,8 @@ export const DroppedTask = memo(function DroppedTask({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             sx={{
-              bgcolor: bgcolor,
+              bgcolor:
+                task.projectId === selectedProject ? task.bgcolor : "grey.400",
               color: "background.default",
               borderRadius: 1,
               border: "1px solid black",
@@ -230,7 +228,15 @@ export const DroppedTask = memo(function DroppedTask({
                   minWidth={10}
                   height="22px"
                   sx={{
-                    backgroundImage: `repeating-linear-gradient(45deg, ${bgcolor}, ${bgcolor} 3px, #000000 3px, #000000 4px)`,
+                    backgroundImage: `repeating-linear-gradient(45deg, ${
+                      task.projectId === selectedProject
+                        ? task.bgcolor
+                        : "grey.400"
+                    }, ${
+                      task.projectId === selectedProject
+                        ? task.bgcolor
+                        : "grey.400"
+                    } 3px, #000000 3px, #000000 4px)`,
                     backgroundSize: "22px 22px",
                     border: "1px solid black",
                     boxSizing: "border-box",
