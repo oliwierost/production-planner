@@ -131,7 +131,7 @@ export const DroppedTask = memo(function DroppedTask({
       ),
     },
   ]
-  console.log(nextCell)
+
   function snapToGrid(args: Args) {
     const { transform } = args
     const gridSize = cellWidth
