@@ -39,7 +39,7 @@ export function Draggable({ children, id, data }: DraggableProps) {
             data.task.projectId === selectedProject && view?.isEditable
               ? "grab"
               : "default",
-          zIndex: 999,
+          zIndex: data.task.dragged ? 100 : 10,
           position: transform ? "fixed" : "initial",
           ...style,
         }}

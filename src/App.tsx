@@ -80,6 +80,13 @@ function App() {
         const cell = cellStateMap.cells[cellId]
         if (Object.keys(cell.tasks).some((tid) => tid !== task.id)) {
           dispatch(
+            setTaskDraggedStart({
+              task: active.data.current?.task,
+              dragged: false,
+              cellId: active.id as string,
+            }),
+          )
+          dispatch(
             setToastOpen({
               message: "Wykryto kolizję",
               severity: "error",

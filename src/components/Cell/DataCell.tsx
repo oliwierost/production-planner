@@ -1,7 +1,7 @@
 import { Draggable } from "../Draggable"
 import { Droppable } from "../Droppable"
 import { DroppedTask } from "../DroppedTask"
-import { Stack } from "@mui/material"
+import { Box, Stack } from "@mui/material"
 import { useAppSelector } from "../../hooks"
 import { Task as TaskType } from "../../slices/tasks"
 import { Deadlines } from "../Deadlines"
@@ -51,25 +51,39 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
   ) => {
     if (cell?.state == "occupied-start") {
       return (
-        <Draggable
-          id={cellKey}
-          key={cellKey + task?.id + idx}
-          data={{
-            task,
-            sourceId: cellKey,
-          }}
-        >
-          <Stack height="100%" width={cellWidth}>
-            <DroppedTask
-              task={task}
-              cellWidth={cellWidth}
-              left={left}
-              width={width}
-              rowId={rowId}
-              colId={time}
-            />
-          </Stack>
-        </Draggable>
+        <>
+          <Draggable
+            id={cellKey}
+            key={cellKey + task?.id + idx}
+            data={{
+              task,
+              sourceId: cellKey,
+            }}
+          >
+            <Stack height="100%" width={cellWidth}>
+              <DroppedTask
+                task={task}
+                cellWidth={cellWidth}
+                left={left}
+                width={width}
+                rowId={rowId}
+                colId={time}
+              />
+            </Stack>
+          </Draggable>
+          {task.dragged ? (
+            <Box sx={{ opacity: 0.5, zIndex: 20 }}>
+              <DroppedTask
+                task={task}
+                cellWidth={cellWidth}
+                left={left}
+                width={width}
+                rowId={rowId}
+                colId={time}
+              />
+            </Box>
+          ) : null}
+        </>
       )
     }
   }
