@@ -414,8 +414,8 @@ export function* resizeTaskSaga(
       yield put(
         removeCells({
           rowId: rowId,
-          colId: newColId.toString(),
           duration: task.duration - newDuration,
+          colId: newColId.toString(),
         }),
       )
     }

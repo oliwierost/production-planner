@@ -144,7 +144,7 @@ function App() {
     }
     const canDrop = checkCanDrop(event.over, event.active)
     if (canDrop) {
-      if (event.active.data?.current?.source === null) {
+      if (event.active.data?.current?.sourceId === null) {
         handleDragEndFromSlider(event.over, event.active)
       } else {
         handleDragEndBetweenCells(event.over, event.active)
