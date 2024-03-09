@@ -141,6 +141,18 @@ export const tasksSlice = createSlice({
       state.error = null
       console.info("updateTaskStart", action.payload)
     },
+    resizeTaskStart(
+      state,
+      action: PayloadAction<{
+        task: Task
+        cellId: string
+        newDuration: number
+      }>,
+    ) {
+      state.loading = true
+      state.error = null
+      console.info("resizeTaskStart", action.payload)
+    },
     setTaskDraggedStart(
       state,
       action: PayloadAction<{
@@ -216,6 +228,7 @@ export const {
   deleteTaskStart,
   updateTaskStart,
   setTaskDroppedStart,
+  resizeTaskStart,
   syncTasksStart,
   setTaskDragged,
   setTaskDraggedStart,

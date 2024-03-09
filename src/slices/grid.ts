@@ -119,18 +119,27 @@ const gridSlice = createSlice({
         }
       })
     },
-    setTaskDraggedInCell: (
+    updateTaskInCell: (
       state,
       action: PayloadAction<{
         cellId: string
         task: Task
-        dragged: boolean
+        data: any
       }>,
     ) => {
-      const { cellId, task, dragged } = action.payload
-      const cell = state.grid?.cells[cellId]
+      const { cellId, task, data } = action.payload
+      if (!state.grid) {
+        return
+      }
+      const cell = state.grid.cells[cellId]
       if (cell) {
-        cell.tasks[task.id].task.dragged = dragged
+        state.grid.cells[cellId].tasks[task.id] = {
+          ...cell.tasks[task.id],
+          task: {
+            ...task,
+            ...data,
+          },
+        }
       }
     },
 
@@ -195,7 +204,7 @@ export const {
   initializeGridStart,
   removeFacilityFromGrid,
   syncGridStart,
-  setTaskDraggedInCell,
+  updateTaskInCell,
 } = gridSlice.actions
 
 // Default export the reducer

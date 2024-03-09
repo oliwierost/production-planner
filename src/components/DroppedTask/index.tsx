@@ -2,7 +2,12 @@ import EditIcon from "@mui/icons-material/Edit"
 import DeleteIcon from "@mui/icons-material/Delete"
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 import { Box, Stack, Typography } from "@mui/material"
-import { Task, deleteTaskStart, setTaskDroppedStart } from "../../slices/tasks"
+import {
+  Task,
+  deleteTaskStart,
+  resizeTaskStart,
+  setTaskDroppedStart,
+} from "../../slices/tasks"
 import { ContextMenu } from "../ContextMenu"
 import { memo, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
@@ -12,7 +17,6 @@ import { Draggable } from "../Draggable"
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
 import type { Transform } from "@dnd-kit/utilities"
 import { isEqual } from "lodash"
-import { ConstructionOutlined } from "@mui/icons-material"
 
 interface Args {
   activatorEvent: Event | null
@@ -31,8 +35,7 @@ interface Args {
 interface DroppedTaskProps {
   task: Task
   cellWidth: number
-  left: number | undefined
-  width: number | undefined
+  left?: number | undefined
   rowId: string | number
   colId: number
 }
@@ -40,19 +43,16 @@ interface DroppedTaskProps {
 export const DroppedTask = memo(function DroppedTask({
   task,
   cellWidth,
-  left,
+  left = 0,
   rowId,
   colId,
-  width,
 }: DroppedTaskProps) {
   const selectedProject = useAppSelector(
     (state) => state.projects.selectedProject,
     isEqual,
   )
   const [modalOpen, setModalOpen] = useState<string | null>(null)
-  const [taskWidth, setTaskWidth] = useState<number>(
-    width ? width : task.duration * cellWidth,
-  )
+  const [taskDuration, setTaskDuration] = useState<number>(task?.duration)
   const [isHovered, setIsHovered] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [isGridUpdated, setIsGridUpdated] = useState(false)
@@ -62,15 +62,13 @@ export const DroppedTask = memo(function DroppedTask({
   const view = useAppSelector((state) => state.view.view, isEqual)
   const nextCell = useAppSelector(
     (state) =>
-      state.grid.grid?.cells?.[
-        `${rowId}-${colId + (taskWidth / cellWidth) * 86400000}`
-      ],
+      state.grid.grid?.cells?.[`${rowId}-${colId + taskDuration * 86400000}`],
     isEqual,
   )
   const prevCell = useAppSelector(
     (state) =>
       state.grid.grid?.cells?.[
-        `${rowId}-${colId + (taskWidth / cellWidth - 1) * 86400000}`
+        `${rowId}-${colId + (taskDuration - 1) * 86400000}`
       ],
     isEqual,
   )
@@ -151,11 +149,10 @@ export const DroppedTask = memo(function DroppedTask({
     const newDuration = daysDiff + taskDurationNum
     const nextCellState = nextCell?.state
 
-    const newWidth = newDuration * cellWidth
-    if (taskWidth < newDuration * cellWidth) {
-      nextCellState == "occupied-start" ? null : setTaskWidth(newWidth)
-    } else if (taskWidth > newDuration * cellWidth) {
-      prevCell?.state == "occupied-start" ? null : setTaskWidth(newWidth)
+    if (taskDuration < newDuration) {
+      nextCellState == "occupied-start" ? null : setTaskDuration(newDuration)
+    } else if (taskDuration > newDuration) {
+      prevCell?.state == "occupied-start" ? null : setTaskDuration(newDuration)
     }
     return {
       ...transform,
@@ -164,19 +161,31 @@ export const DroppedTask = memo(function DroppedTask({
     }
   }
 
+  const handleDragEnd = () => {
+    setIsDragging(false)
+    dispatch(
+      resizeTaskStart({
+        task: task,
+        cellId: `${rowId}-${colId}`,
+        newDuration: taskDuration,
+      }),
+    )
+    setIsGridUpdated(true)
+  }
+
   return (
     <>
       {task ? (
         <DndContext
           modifiers={[restrictToHorizontalAxis, snapToGrid]}
           onDragStart={() => setIsDragging(true)}
-          onDragEnd={() => setIsDragging(false)}
+          onDragEnd={handleDragEnd}
           onDragCancel={() => setIsDragging(false)}
         >
           <Stack
             onContextMenu={(e) => handleRightClick(e)}
             key={task.id}
-            width={taskWidth}
+            width={taskDuration * cellWidth}
             height="30px"
             direction="row"
             alignItems="center"

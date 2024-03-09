@@ -43,12 +43,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
     isEqual,
   )
 
-  const renderTask = (
-    task: TaskType,
-    left: number | undefined,
-    width: number | undefined,
-    idx: number,
-  ) => {
+  const renderTask = (task: TaskType, idx: number) => {
     if (cell?.state == "occupied-start") {
       return (
         <>
@@ -64,8 +59,6 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
               <DroppedTask
                 task={task}
                 cellWidth={cellWidth}
-                left={left}
-                width={width}
                 rowId={rowId}
                 colId={time}
               />
@@ -76,8 +69,6 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
               <DroppedTask
                 task={task}
                 cellWidth={cellWidth}
-                left={left}
-                width={width}
                 rowId={rowId}
                 colId={time}
               />
@@ -108,7 +99,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
           {cell?.tasks
             ? Object.values(cell.tasks).map((taskInCell, idx) => {
                 const task = taskInCell.task
-                return renderTask(task, 0, task.duration * cellWidth, idx)
+                return renderTask(task, idx)
               })
             : null}
         </>

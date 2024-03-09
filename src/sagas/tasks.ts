@@ -40,13 +40,14 @@ import {
   setTaskDraggedStart,
   updateTask,
   upsertTask,
+  resizeTaskStart,
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
 import {
   GridType,
   removeCells,
   setCellsOccupied,
-  setTaskDraggedInCell,
+  updateTaskInCell,
 } from "../slices/grid"
 import { setDraggedTask } from "../slices/drag"
 import { hashObject } from "./facilities"
@@ -154,6 +155,30 @@ export const moveTaskInFirestore = async (
       tasks: arrayRemove(taskId),
     })
   }
+  batch.update(gridRef, {
+    cells: gridState.cells,
+  })
+  await batch.commit()
+}
+
+export const resizeTaskInFirestore = async (
+  taskId: string,
+  workspaceId: string,
+  newDuration: number,
+  gridState: GridType,
+) => {
+  const batch = writeBatch(firestore)
+  const taskRef = doc(
+    firestore,
+    `users/first-user/workspaces/${workspaceId}/tasks/${taskId}`,
+  )
+  const gridRef = doc(
+    firestore,
+    `users/first-user/workspaces/${workspaceId}/grid/first-grid`,
+  )
+  batch.update(taskRef, {
+    duration: newDuration,
+  })
   batch.update(gridRef, {
     cells: gridState.cells,
   })
@@ -361,11 +386,62 @@ export function* moveTaskSaga(
   }
 }
 
+export function* resizeTaskSaga(
+  action: PayloadAction<{
+    cellId: string
+    task: Task
+    newDuration: number
+  }>,
+) {
+  const { cellId, task, newDuration } = action.payload
+  const [rowId, colId] = cellId.split("-")
+  const taskDuration = Number(task.duration)
+  //get newColId based on the newDuration as days in miliseconds
+  const newColId = Number(colId) + newDuration * 24 * 60 * 60 * 1000
+  try {
+    yield put(updateTask({ id: task.id, data: { duration: newDuration } }))
+    yield put(
+      updateTaskInCell({ cellId, task, data: { duration: newDuration } }),
+    )
+    const updatedTask: Task = yield select(
+      (state) => state.tasks.tasks[task.id],
+    )
+    if (taskDuration < newDuration) {
+      yield put(
+        setCellsOccupied({ rowId: rowId, colId: colId, task: updatedTask }),
+      )
+    } else if (taskDuration > newDuration) {
+      yield put(
+        removeCells({
+          rowId: rowId,
+          colId: newColId.toString(),
+          duration: task.duration - newDuration,
+        }),
+      )
+    }
+
+    const selectedWorkspaceId: string = yield select(
+      (state) => state.workspaces.selectedWorkspace,
+    )
+    const gridState: GridType = yield select((state) => state.grid.grid)
+
+    yield call(
+      resizeTaskInFirestore,
+      task.id,
+      selectedWorkspaceId,
+      newDuration,
+      gridState,
+    )
+  } catch (error) {
+    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
+  }
+}
+
 export function* setTaskDraggedSaga(
   action: PayloadAction<{ task: Task; cellId: string; dragged: boolean }>,
 ): Generator<any, void, any> {
   const { task, cellId, dragged } = action.payload
-  yield put(setTaskDraggedInCell({ cellId, task, dragged }))
+  yield put(updateTaskInCell({ cellId, task, data: { dragged: dragged } }))
   yield put(setTaskDragged({ task, dragged }))
 }
 
@@ -452,6 +528,10 @@ function* watchMoveTask() {
   yield takeLatest(moveTaskStart.type, moveTaskSaga)
 }
 
+function* watchResizeTask() {
+  yield takeLatest(resizeTaskStart.type, resizeTaskSaga)
+}
+
 function* watchFetchTasks() {
   yield takeLatest(fetchTasksStart.type, fetchTasksSaga)
 }
@@ -471,6 +551,7 @@ export default function* taskSagas() {
     watchSyncTasks(),
     watchSetTaskDropped(),
     watchMoveTask(),
+    watchResizeTask(),
     watchFetchTasks(),
     watchSetTaskDragged(),
     watchUpdateTask(),
