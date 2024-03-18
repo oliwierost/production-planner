@@ -89,6 +89,7 @@ export function CreateTaskModal({
     value: facility.id,
   }))
   const dispatch = useAppDispatch()
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: FormikHelpers<FormData>["setFieldValue"],

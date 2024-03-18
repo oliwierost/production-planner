@@ -24,6 +24,8 @@ import { Dropdown } from "../Dropdown"
 import { setSelectedWorkspace } from "../../slices/workspaces"
 import { setSelectedProject } from "../../slices/projects"
 import { CreateProjectModal } from "../CreateProjectModal"
+import { Logout } from "@mui/icons-material"
+import { signOutStart } from "../../slices/user"
 
 export function Toolbar() {
   const [modalOpen, setModalOpen] = useState<string | null>(null)
@@ -97,89 +99,103 @@ export function Toolbar() {
       justifyContent="space-between"
       borderTop="1px solid #000000"
     >
-      <ToggleButtonGroup>
-        <Tooltip title="Dodaj zakład" arrow>
-          <ToggleButton
-            value="workspace"
-            onClick={() => setModalOpen("workspace")}
-            sx={{
-              px: 1,
-              py: 0.5,
-              border: "none",
-              "&:focus": {
-                outline: "none",
-              },
-            }}
-          >
-            <WorkspacesIcon />
-          </ToggleButton>
-        </Tooltip>
-        <Tooltip title="Dodaj projekt" arrow>
-          <ToggleButton
-            value="project"
-            onClick={() => setModalOpen("project")}
-            sx={{
-              px: 1,
-              py: 0.5,
-              border: "none",
-              "&:focus": {
-                outline: "none",
-              },
-            }}
-          >
-            <AccountTreeIcon />
-          </ToggleButton>
-        </Tooltip>
-        <Tooltip title="Dodaj produkt" arrow>
-          <ToggleButton
-            value="facility"
-            onClick={() => setModalOpen("task")}
-            sx={{
-              px: 1,
-              py: 0.5,
-              border: "none",
-              "&:focus": {
-                outline: "none",
-              },
-            }}
-          >
-            <AssignmentIcon />
-          </ToggleButton>
-        </Tooltip>
-        <Tooltip title="Dodaj stanowisko" arrow>
-          <ToggleButton
-            value="task"
-            onClick={() => setModalOpen("facility")}
-            sx={{
-              px: 1,
-              py: 0.5,
-              border: "none",
-              "&:focus": {
-                outline: "none",
-              },
-            }}
-          >
-            <HomeWorkIcon />
-          </ToggleButton>
-        </Tooltip>
-        <Tooltip title="Dodaj deadline" arrow>
-          <ToggleButton
-            value="task"
-            onClick={() => setModalOpen("deadline")}
-            sx={{
-              px: 1,
-              py: 0.5,
-              border: "none",
-              "&:focus": {
-                outline: "none",
-              },
-            }}
-          >
-            <AccessTimeFilledIcon />
-          </ToggleButton>
-        </Tooltip>
-      </ToggleButtonGroup>
+      <ToggleButton
+        value="logout"
+        onClick={() => dispatch(signOutStart())}
+        sx={{
+          px: 1,
+          py: 0.5,
+          border: "none",
+          "&:focus": {
+            outline: "none",
+          },
+        }}
+      >
+        <Logout />
+      </ToggleButton>
       <Stack direction="row">
+        <ToggleButtonGroup>
+          <Tooltip title="Dodaj zakład" arrow>
+            <ToggleButton
+              value="workspace"
+              onClick={() => setModalOpen("workspace")}
+              sx={{
+                px: 1,
+                py: 0.5,
+                border: "none",
+                "&:focus": {
+                  outline: "none",
+                },
+              }}
+            >
+              <WorkspacesIcon />
+            </ToggleButton>
+          </Tooltip>
+          <Tooltip title="Dodaj projekt" arrow>
+            <ToggleButton
+              value="project"
+              onClick={() => setModalOpen("project")}
+              sx={{
+                px: 1,
+                py: 0.5,
+                border: "none",
+                "&:focus": {
+                  outline: "none",
+                },
+              }}
+            >
+              <AccountTreeIcon />
+            </ToggleButton>
+          </Tooltip>
+          <Tooltip title="Dodaj produkt" arrow>
+            <ToggleButton
+              value="facility"
+              onClick={() => setModalOpen("task")}
+              sx={{
+                px: 1,
+                py: 0.5,
+                border: "none",
+                "&:focus": {
+                  outline: "none",
+                },
+              }}
+            >
+              <AssignmentIcon />
+            </ToggleButton>
+          </Tooltip>
+          <Tooltip title="Dodaj stanowisko" arrow>
+            <ToggleButton
+              value="task"
+              onClick={() => setModalOpen("facility")}
+              sx={{
+                px: 1,
+                py: 0.5,
+                border: "none",
+                "&:focus": {
+                  outline: "none",
+                },
+              }}
+            >
+              <HomeWorkIcon />
+            </ToggleButton>
+          </Tooltip>
+          <Tooltip title="Dodaj deadline" arrow>
+            <ToggleButton
+              value="task"
+              onClick={() => setModalOpen("deadline")}
+              sx={{
+                px: 1,
+                py: 0.5,
+                border: "none",
+                "&:focus": {
+                  outline: "none",
+                },
+              }}
+            >
+              <AccessTimeFilledIcon />
+            </ToggleButton>
+          </Tooltip>
+        </ToggleButtonGroup>
         <Dropdown
           variant="toolbar"
           placeholder="Wybierz projekt"

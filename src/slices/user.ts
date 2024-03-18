@@ -1,0 +1,94 @@
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+
+// Define the Task interface
+export interface Credentials {
+  email: string
+  password: string
+}
+
+export interface User {
+  id: string
+  email: string
+  openProjectId: string | null
+  openWorkspaceId: string | null
+}
+
+// Define the state structure for tasks
+interface UserState {
+  user: User | null
+  loading: boolean
+  error: string | null
+}
+
+// Initial state for the tasks slice
+const initialState: UserState = {
+  user: null,
+  loading: false,
+  error: null,
+}
+
+// Create the tasks slice
+export const userSlice = createSlice({
+  name: "deadlines",
+  initialState,
+  reducers: {
+    setUser: (state, action: PayloadAction<User | null>) => {
+      const user = action.payload
+      state.user = user
+    },
+    setProjectOpen: (state, action: PayloadAction<string>) => {
+      if (state.user) {
+        state.user.openProjectId = action.payload
+      }
+    },
+    setWorkspaceOpen: (state, action: PayloadAction<string>) => {
+      if (state.user) {
+        state.user.openWorkspaceId = action.payload
+      }
+    },
+    initializeUserStart: (state, action: PayloadAction<User>) => {
+      state.loading = true
+      state.error = null
+    },
+    syncUserStart: (state, action: PayloadAction<string>) => {
+      state.loading = true
+      state.error = null
+      console.info("syncUserStart", action.payload)
+    },
+    signInStart: (state, action: PayloadAction<Credentials>) => {
+      state.loading = true
+      state.error = null
+      console.info("setUserStart", action.payload)
+    },
+    signOutStart: (state) => {
+      state.loading = true
+      state.error = null
+    },
+    setProjectOpenStart: (state, action: PayloadAction<string>) => {
+      state.loading = true
+      state.error = null
+      console.info("setProjectOpenStart", action.payload)
+    },
+    setWorkspaceOpenStart: (state, action: PayloadAction<string>) => {
+      state.loading = true
+      state.error = null
+      console.info("setWorkspaceOpenStart", action.payload)
+    },
+  },
+})
+
+// Export the actions
+export const {
+  setUser,
+  setProjectOpen,
+  setWorkspaceOpen,
+  initializeUserStart,
+  syncUserStart,
+  signInStart,
+  signOutStart,
+  setProjectOpenStart,
+  setWorkspaceOpenStart,
+} = userSlice.actions
+
+// Export the reducer
+export default userSlice.reducer

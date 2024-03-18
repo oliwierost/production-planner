@@ -3,17 +3,19 @@ import { Modal as MuiModal, Stack } from "@mui/material"
 interface ModalProps {
   open: boolean
   children: React.ReactNode
-  onClose: () => void
+  onClose?: () => void
+  blur?: boolean
 }
 
-export function Modal({ open, children, onClose }: ModalProps) {
+export function Modal({ open, children, onClose, blur = false }: ModalProps) {
   return (
     <MuiModal
       open={open}
-      onClose={() => onClose()}
+      onClose={onClose ? () => onClose() : () => null}
       sx={{
         "& .MuiBackdrop-root": {
           bgcolor: "transparent",
+          backdropFilter: blur ? "blur(8px)" : "none",
         },
       }}
     >
