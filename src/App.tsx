@@ -8,7 +8,7 @@ import {
   Over,
 } from "@dnd-kit/core"
 import { Toolbar } from "./components/Toolbar"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { DataGrid } from "./components/DataGrid"
 import { ThemeProvider } from "@mui/material/styles"
 import { theme } from "../theme"
@@ -30,26 +30,30 @@ import { initializeGridStart, syncGridStart } from "./slices/grid"
 import { syncDeadlinesStart } from "./slices/deadlines"
 import { syncWorkspacesStart } from "./slices/workspaces"
 import { syncProjectsStart } from "./slices/projects"
-import { auth } from "../firebase.config"
 import { AuthModal } from "./components/AuthModal"
 import { syncUserStart } from "./slices/user"
+import { auth } from "../firebase.config"
 
 function App() {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const dispatch = useAppDispatch()
   const monthView = generateMonthView(100)
-  const userCredential = auth.currentUser
   const selectedWorkspace = useAppSelector(
     (state) => state.workspaces.selectedWorkspace,
   )
   const selectedProject = useAppSelector(
     (state) => state.projects.selectedProject,
   )
-  const user = useAppSelector((state) => state.user.user)
+  const currentUser = auth.currentUser
 
   useEffect(() => {
-    if (userCredential) {
-      dispatch(syncUserStart(userCredential.uid))
-    }
+    auth.onAuthStateChanged((user) => {
+      setIsAuthModalOpen(!user)
+      dispatch(syncUserStart(user?.uid))
+    })
+  }, [currentUser])
+
+  useEffect(() => {
     if (!selectedWorkspace && !selectedProject) {
       dispatch(syncWorkspacesStart())
     } else if (selectedWorkspace && !selectedProject) {
@@ -179,14 +183,12 @@ function App() {
     )
   }
 
-  const authModalOpen = user ? false : true
-
   return (
     <>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={theme}>
           <Stack width="100vw" height="100vh">
-            <AuthModal open={authModalOpen} />
+            <AuthModal open={isAuthModalOpen} />
             <Toolbar />
             <DndContext
               onDragEnd={handleDragEnd}

@@ -29,11 +29,12 @@ const initialState: UserState = {
 
 // Create the tasks slice
 export const userSlice = createSlice({
-  name: "deadlines",
+  name: "user",
   initialState,
   reducers: {
     setUser: (state, action: PayloadAction<User | null>) => {
       const user = action.payload
+      state.loading = false
       state.user = user
     },
     setProjectOpen: (state, action: PayloadAction<string>) => {
@@ -46,11 +47,11 @@ export const userSlice = createSlice({
         state.user.openWorkspaceId = action.payload
       }
     },
-    initializeUserStart: (state, action: PayloadAction<User>) => {
+    initializeUserStart: (state, action: PayloadAction<Credentials>) => {
       state.loading = true
       state.error = null
     },
-    syncUserStart: (state, action: PayloadAction<string>) => {
+    syncUserStart: (state, action: PayloadAction<string | undefined>) => {
       state.loading = true
       state.error = null
       console.info("syncUserStart", action.payload)

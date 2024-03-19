@@ -10,13 +10,20 @@ interface SignInProps {
 export function AuthModal({ open }: SignInProps) {
   const [mode, setMode] = useState<"signIn" | "signUp">("signIn")
 
+  const renderForm = () => {
+    switch (mode) {
+      case "signIn":
+        return <SignIn setMode={setMode} />
+      case "signUp":
+        return <SignUp setMode={setMode} />
+      default:
+        return null
+    }
+  }
+
   return (
     <Modal open={open} blur>
-      {mode === "signIn" ? (
-        <SignIn setMode={setMode} />
-      ) : (
-        <SignUp setMode={setMode} />
-      )}
+      {renderForm()}
     </Modal>
   )
 }

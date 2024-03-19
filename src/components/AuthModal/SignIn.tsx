@@ -6,6 +6,7 @@ import { DriveFileRenameOutline } from "@mui/icons-material"
 import { PrimaryButton } from "../PrimaryButton"
 import { useAppDispatch } from "../../hooks"
 import { signInStart } from "../../slices/user"
+import { signInModalSchema } from "../../../validationSchema"
 
 interface SignInProps {
   setMode: React.Dispatch<SetStateAction<"signIn" | "signUp">>
@@ -47,6 +48,7 @@ export function SignIn({ setMode }: SignInProps) {
     <Formik
       enableReinitialize
       initialValues={initialValues}
+      validationSchema={signInModalSchema}
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)
       }
@@ -90,11 +92,7 @@ export function SignIn({ setMode }: SignInProps) {
               </Stack>
               <Stack p={2} alignItems="center" spacing={2}>
                 <Box width="fit-content">
-                  <PrimaryButton
-                    type="submit"
-                    onClick={() => handleSubmit()}
-                    label="Zaloguj"
-                  />
+                  <PrimaryButton type="submit" label="Zaloguj" />
                 </Box>
                 <Typography variant="body1">
                   Nie masz konta? Utwórz je{" "}

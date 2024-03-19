@@ -26,7 +26,11 @@ import {
   signOutStart,
   syncUserStart,
 } from "../slices/user"
-import { UserCredential, createUserWithEmailAndPassword } from "firebase/auth"
+import {
+  UserCredential,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth"
 import { setToastOpen } from "../slices/toast"
 
 export const fetchUserFromFirestore = async (userId: string): Promise<User> => {
@@ -70,11 +74,14 @@ export const signUpWithFirebase = async (
 
 export const signInUserWithFirebase = async (
   credentials: Credentials,
-): Promise<void> => {
+): Promise<UserCredential | null> => {
   try {
-    await signInUserWithFirebase(credentials)
+    const { email, password } = credentials
+    const user = await signInWithEmailAndPassword(auth, email, password)
+    return user
   } catch (error) {
     console.error("Error signing in with Firebase:", error)
+    return null
   }
 }
 
@@ -115,9 +122,10 @@ function* signInSaga(action: PayloadAction<Credentials>) {
       signInUserWithFirebase,
       action.payload,
     )
+    console.log("userCredential:", userCredential)
     const user: User = yield call(
       fetchUserFromFirestore,
-      userCredential.user.uid,
+      userCredential?.user.uid,
     )
     yield put(setUser(user))
     yield put(
@@ -166,7 +174,12 @@ function* setWorkspaceOpenSaga(action: PayloadAction<string>) {
   }
 }
 
-export function* syncUserSaga({ payload: userId }: PayloadAction<string>) {
+export function* syncUserSaga({
+  payload: userId,
+}: PayloadAction<string | undefined>) {
+  if (!userId) {
+    return
+  }
   const channel = eventChannel((emitter) => {
     const docRef = doc(firestore, `users/${userId}`)
     const unsubscribe = onSnapshot(docRef, async () => {

@@ -46,7 +46,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
   const renderTask = (task: TaskType, idx: number) => {
     if (cell?.state == "occupied-start") {
       return (
-        <div key={cellKey + task?.id + idx}>
+        <>
           <Draggable
             id={cellKey}
             data={{
@@ -73,7 +73,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
               />
             </Box>
           ) : null}
-        </div>
+        </>
       )
     }
   }
