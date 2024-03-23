@@ -86,8 +86,8 @@ export function Dropdown({
           },
         }}
       >
-        {options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
+        {options.map((option, idx) => (
+          <MenuItem key={idx} value={option.value}>
             {option.label}
           </MenuItem>
         ))}

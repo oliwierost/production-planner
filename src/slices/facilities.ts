@@ -1,8 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { workspaceId } from "./workspaces"
+import { Task } from "./tasks"
 
 // Define the Facility interface
+
+export type facilityId = string
 export interface Facility {
-  id: string
+  id: facilityId
+  workspaceId: workspaceId
   index?: number
   title: string
   location: string
@@ -16,7 +21,9 @@ export interface Facility {
 // Define the state structure for facilities
 interface FacilitiesState {
   facilities: {
-    [id: string]: Facility
+    [id: workspaceId]: {
+      [id: facilityId]: Facility
+    }
   }
   total: number
   loading: boolean
@@ -41,7 +48,7 @@ export const facilitiesSlice = createSlice({
       const facility = action.payload
       // Initialize tasks array if not provided
       if (!facility.tasks) facility.tasks = []
-      state.facilities[facility.id] = facility
+      state.facilities[facility.workspaceId][facility.id] = facility
     },
     // Action to remove a facility by its ID
     removeFacility: (state, action: PayloadAction<string>) => {
@@ -50,39 +57,41 @@ export const facilitiesSlice = createSlice({
     // Action to assign a task to a facility
     assignTaskToFacility: (
       state,
-      action: PayloadAction<{ facilityId: string; taskId: string }>,
+      action: PayloadAction<{
+        facilityId: string
+        task: Task
+      }>,
     ) => {
-      const { facilityId, taskId } = action.payload
-      const facility = state.facilities[facilityId]
-      if (facility && !facility.tasks.includes(taskId)) {
-        facility.tasks.push(taskId)
+      const { facilityId, task } = action.payload
+      const facility = state.facilities[task.workspaceId][facilityId]
+      if (facility && !facility.tasks.includes(task.id)) {
+        facility.tasks.push(task.id)
       }
     },
     // Action to remove a task from a facility
     removeTaskFromFacility: (
       state,
-      action: PayloadAction<{ facilityId: string; taskId: string }>,
+      action: PayloadAction<{
+        facilityId: string
+        task: Task
+      }>,
     ) => {
-      const { facilityId, taskId } = action.payload
-      const facility = state.facilities[facilityId]
+      const { facilityId, task } = action.payload
+      const facility = state.facilities[task.workspaceId][facilityId]
       if (facility) {
-        facility.tasks = facility.tasks.filter((id) => id !== taskId)
+        facility.tasks = facility.tasks.filter((id) => id !== task.id)
       }
     },
-    setFacilities(state, action: PayloadAction<{ [id: string]: Facility }>) {
+    setFacilities(
+      state,
+      action: PayloadAction<{ [id: workspaceId]: { [id: string]: Facility } }>,
+    ) {
       //add index property to each facility by bgcolor order
 
       const facilities = action.payload
       //sort facilities by bgcolor and add index property then convert to object
       const facilitiesArray = Object.values(facilities)
-      const sortedFacilities = facilitiesArray
-        .sort((a, b) => a.bgcolor.localeCompare(b.bgcolor))
-        .map((facility, index) => ({ ...facility, index }))
-        .reduce((acc, facility) => {
-          acc[facility.id] = facility
-          return acc
-        }, {} as { [id: string]: Facility })
-      state.facilities = sortedFacilities
+      state.facilities = { ...facilities, ...state.facilities }
       state.total = facilitiesArray.length - 1
       state.loading = false
       state.error = null

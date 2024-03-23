@@ -49,7 +49,7 @@ export function Task({ task }: TaskProps) {
     {
       title: "Usuń",
       onClick: () => {
-        dispatch(deleteTaskStart({ taskId: task.id }))
+        dispatch(deleteTaskStart({ task }))
       },
       icon: (
         <DeleteForeverIcon fontSize="small" sx={{ color: "primary.dark" }} />

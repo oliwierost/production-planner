@@ -19,11 +19,15 @@ import { setDragDisabled } from "../../slices/drag"
 import { taskModalSchema } from "../../../validationSchema"
 import { DateField } from "../DateField"
 import { Dropdown } from "../Dropdown"
+import { Modal as ModalType } from "../DataPanel"
+import { selectFacilities } from "../../selectors/facilities"
 
 interface CreateTaskModalProps {
   open: boolean
-  setOpen: React.Dispatch<React.SetStateAction<string | null>>
+  setModal: React.Dispatch<React.SetStateAction<ModalType | null>>
   taskId?: string
+  projectId?: string
+  workspaceId?: string
 }
 
 interface FormData {
@@ -68,27 +72,27 @@ const initialValues = {
   facilityId: null,
   bgcolor: "",
   projectId: "",
+  workspaceId: "",
 }
 
 export function CreateTaskModal({
   open,
-  setOpen,
+  setModal,
   taskId,
+  projectId,
+  workspaceId,
 }: CreateTaskModalProps) {
   const [task, setTask] = useState<Task>(initialValues)
   const tasks = useAppSelector((state) => state.tasks.tasks)
-  const selectedProject = useAppSelector(
-    (state) => state.projects.selectedProject,
+  const facilities = useAppSelector((state) =>
+    selectFacilities(state, workspaceId),
   )
-  const selectedWorkspace = useAppSelector(
-    (state) => state.workspaces.selectedWorkspace,
-  )
-  const facilities = useAppSelector((state) => state.facilities.facilities)
-  const facilitiesOptions = Object.values(facilities).map((facility) => ({
+  const facilitiesOptions = Object.values(facilities ?? {}).map((facility) => ({
     label: facility.title,
     value: facility.id,
   }))
   const dispatch = useAppDispatch()
+  const user = useAppSelector((state) => state.user.user)
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -99,8 +103,8 @@ export function CreateTaskModal({
   }
 
   useEffect(() => {
-    if (taskId) {
-      const task = tasks[taskId]
+    if (taskId && projectId) {
+      const task = tasks[projectId][taskId]
       setTask(task)
     }
   }, [taskId, tasks])
@@ -114,26 +118,27 @@ export function CreateTaskModal({
         const id = doc(
           collection(
             firestore,
-            `users/first-user/workspaces/${selectedWorkspace}/tasks`,
+            `users/${user?.id}/workspaces/${workspaceId}/tasks`,
           ),
         ).id
-        if (selectedProject && selectedWorkspace) {
-          dispatch(
-            addTaskStart({
-              task: {
-                ...values,
-                dropped: false,
-                projectId: selectedProject,
-                id,
-              },
-              workspaceId: selectedWorkspace,
-            }),
-          )
-        }
+        if (!projectId || !workspaceId) return
+        dispatch(
+          addTaskStart({
+            task: {
+              ...values,
+              dropped: false,
+              projectId: projectId,
+              workspaceId: workspaceId,
+              id,
+            },
+            workspaceId: workspaceId,
+          }),
+        )
       } else {
-        dispatch(updateTaskStart({ id: task.id, data: values }))
+        if (!workspaceId) return
+        dispatch(updateTaskStart({ task: task, data: values, workspaceId }))
       }
-      setOpen(null)
+      setModal(null)
       resetForm()
       dispatch(setDragDisabled(false))
     } catch (error) {
@@ -142,7 +147,7 @@ export function CreateTaskModal({
   }
 
   const handleClose = (resetForm: FormikHelpers<FormData>["resetForm"]) => {
-    setOpen(null)
+    setModal(null)
     resetForm()
     dispatch(setDragDisabled(false))
   }
@@ -274,7 +279,7 @@ export function CreateTaskModal({
                       <Stack direction="row" alignItems="center">
                         <Dropdown
                           placeholder="Stanowisko"
-                          value={facilities[values.facilityId!]?.title || ""}
+                          value={values.facilityId || ""}
                           setFieldValue={setFieldValue}
                           name="facilityId"
                           options={facilitiesOptions}

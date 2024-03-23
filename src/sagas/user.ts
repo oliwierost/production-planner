@@ -19,8 +19,10 @@ import {
   Credentials,
   User,
   initializeUserStart,
+  setProjectOpen,
   setProjectOpenStart,
   setUser,
+  setWorkspaceOpen,
   setWorkspaceOpenStart,
   signInStart,
   signOutStart,
@@ -122,7 +124,6 @@ function* signInSaga(action: PayloadAction<Credentials>) {
       signInUserWithFirebase,
       action.payload,
     )
-    console.log("userCredential:", userCredential)
     const user: User = yield call(
       fetchUserFromFirestore,
       userCredential?.user.uid,
@@ -159,18 +160,30 @@ function* signOutSaga() {
 function* setProjectOpenSaga(action: PayloadAction<string>) {
   try {
     const userId: string = yield select((state) => state.user.user.id)
+    yield put(setProjectOpen(action.payload))
     yield call(setProjectOpenInFirestore, userId, action.payload)
   } catch (error) {
-    console.error("Error setting project open in Firestore:", error)
+    yield put(
+      setToastOpen({
+        message: "Error setting project open!",
+        severity: "error",
+      }),
+    )
   }
 }
 
 function* setWorkspaceOpenSaga(action: PayloadAction<string>) {
   try {
     const userId: string = yield select((state) => state.user.user.id)
+    yield put(setWorkspaceOpen(action.payload))
     yield call(setWorkspaceOpenInFirestore, userId, action.payload)
   } catch (error) {
-    console.error("Error setting workspace open in Firestore:", error)
+    yield put(
+      setToastOpen({
+        message: "Error setting workspace open!",
+        severity: "error",
+      }),
+    )
   }
 }
 

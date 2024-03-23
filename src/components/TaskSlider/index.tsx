@@ -1,32 +1,23 @@
 import { Stack, Divider, Box } from "@mui/material"
-import { Task } from "../Task"
 import { Draggable } from "../Draggable"
 import { useAppSelector } from "../../hooks"
+import { Task as TaskType } from "../../slices/tasks"
+import { Task } from "../Task"
+import { selectTasks } from "../../selectors/tasks"
+import _ from "lodash"
 
 export function TaskSlider() {
-  const tasks = useAppSelector((state) => state.tasks.tasks)
-  const selectedProject = useAppSelector(
-    (state) => state.projects.selectedProject,
-  )
-  const taskArr = Object.entries(tasks)
-    .filter(([, task]) => !task.startTime && task.projectId === selectedProject)
-    .sort((a, b) => {
-      if (a[1].bgcolor < b[1].bgcolor) {
-        return -1
-      }
-      if (a[1].bgcolor > b[1].bgcolor) {
-        return 1
-      }
-      return 0
-    })
-
+  const projectId = useAppSelector((state) => state.user.user?.openProjectId)
+  const tasks = useAppSelector((state) => selectTasks(state, projectId))
+  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
+  console.log("tasks", draggedTask)
   return (
     <Stack width="100%">
       <Stack
         direction="row"
         px={2}
         py={1}
-        minHeight={60}
+        minHeight={80}
         overflow="scroll"
         borderTop="1px solid #000000"
         borderBottom="1px solid #000000"
@@ -53,18 +44,24 @@ export function TaskSlider() {
           minHeight={60}
           spacing={2}
         >
-          {taskArr.map(([id, task]) => (
-            <Box key={id}>
-              <Draggable id={id} data={{ task, sourceId: null }}>
-                <Task task={task} />
-              </Draggable>
-              {task.dragged ? (
-                <Box sx={{ opacity: 0.5 }}>
-                  <Task task={task} />
-                </Box>
-              ) : null}
-            </Box>
-          ))}
+          {!_.isEmpty(tasks)
+            ? Object.values(tasks).map((task) => (
+                <>
+                  {!task.dropped ? (
+                    <Box key={task.id}>
+                      <Draggable id={task.id} data={{ task, sourceId: null }}>
+                        <Task task={task} />
+                      </Draggable>
+                      {task.dragged ? (
+                        <Box sx={{ opacity: 0.5 }}>
+                          <Task task={task} />
+                        </Box>
+                      ) : null}
+                    </Box>
+                  ) : null}
+                </>
+              ))
+            : null}
         </Stack>
       </Stack>
     </Stack>

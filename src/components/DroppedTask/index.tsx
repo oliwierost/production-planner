@@ -17,6 +17,10 @@ import { Draggable } from "../Draggable"
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
 import type { Transform } from "@dnd-kit/utilities"
 import { isEqual } from "lodash"
+import { selectCell } from "../../selectors/grid"
+import SplineLinkExample, { Arrow } from "../../Spline"
+import SplineComponent from "../../Spline"
+import Spline from "../../Spline"
 
 interface Args {
   activatorEvent: Event | null
@@ -47,10 +51,15 @@ export const DroppedTask = memo(function DroppedTask({
   rowId,
   colId,
 }: DroppedTaskProps) {
-  const selectedProject = useAppSelector(
-    (state) => state.projects.selectedProject,
+  const projectId = useAppSelector(
+    (state) => state.user.user?.openProjectId,
     isEqual,
   )
+  const workspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
+    isEqual,
+  )
+
   const [modalOpen, setModalOpen] = useState<string | null>(null)
   const [taskDuration, setTaskDuration] = useState<number>(task?.duration)
   const [isHovered, setIsHovered] = useState(false)
@@ -60,16 +69,15 @@ export const DroppedTask = memo(function DroppedTask({
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
   const dispatch = useAppDispatch()
   const view = useAppSelector((state) => state.view.view, isEqual)
+  const nextCellKey = `${rowId}-${colId + taskDuration * 86400000}`
+  const prevCellKey = `${rowId}-${colId + (taskDuration - 1) * 86400000}`
+
   const nextCell = useAppSelector(
-    (state) =>
-      state.grid.grid?.cells?.[`${rowId}-${colId + taskDuration * 86400000}`],
+    (state) => selectCell(state, workspaceId, nextCellKey),
     isEqual,
   )
   const prevCell = useAppSelector(
-    (state) =>
-      state.grid.grid?.cells?.[
-        `${rowId}-${colId + (taskDuration - 1) * 86400000}`
-      ],
+    (state) => selectCell(state, workspaceId, prevCellKey),
     isEqual,
   )
 
@@ -120,7 +128,7 @@ export const DroppedTask = memo(function DroppedTask({
       onClick: () => {
         dispatch(
           deleteTaskStart({
-            taskId: task.id,
+            task: task,
             facilityId: rowId as string,
             colId,
             cellSpan,
@@ -194,8 +202,7 @@ export const DroppedTask = memo(function DroppedTask({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             sx={{
-              bgcolor:
-                task.projectId === selectedProject ? task.bgcolor : "grey.400",
+              bgcolor: task.projectId === projectId ? task.bgcolor : "grey.400",
               color: "background.default",
               borderRadius: 1,
               border: "1px solid black",
@@ -255,13 +262,9 @@ export const DroppedTask = memo(function DroppedTask({
                   sx={{
                     borderRadius: "0 4px 4px 0",
                     backgroundImage: `repeating-linear-gradient(45deg, ${
-                      task.projectId === selectedProject
-                        ? task.bgcolor
-                        : "grey.400"
+                      task.projectId === projectId ? task.bgcolor : "grey.400"
                     }, ${
-                      task.projectId === selectedProject
-                        ? task.bgcolor
-                        : "grey.400"
+                      task.projectId === projectId ? task.bgcolor : "grey.400"
                     } 2px, #000000 4px, #000000 2px)`,
                     backgroundSize: "22px 22px",
                     border: "1px solid black",
@@ -269,7 +272,7 @@ export const DroppedTask = memo(function DroppedTask({
                     cursor: "col-resize",
                     display:
                       (isHovered || isDragging) &&
-                      task.projectId === selectedProject &&
+                      task.projectId === projectId &&
                       !task.dragged
                         ? "block"
                         : "none",

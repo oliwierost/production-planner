@@ -3,29 +3,17 @@ import { DataGridPro, useGridApiRef } from "@mui/x-data-grid-pro"
 import { Cell } from "../Cell/Cell"
 import { useAppSelector } from "../../hooks"
 import { Facility } from "../../slices/facilities"
+import { selectFacilities } from "../../selectors/facilities"
 
 export function DataGrid() {
   const [, setCellWidth] = useState<number>(100)
-  const [sortedFacilities, setSortedFacilities] = useState<Facility[]>([])
   const apiRef = useGridApiRef()
-  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
-  const facilitiesState = useAppSelector((state) => state.facilities)
+  const user = useAppSelector((state) => state.user.user)
+  const facilities = useAppSelector((state) =>
+    selectFacilities(state, user?.openWorkspaceId),
+  )
   const viewState = useAppSelector((state) => state.view)
-  const facilities = facilitiesState.facilities
   const view = viewState.view
-
-  useEffect(() => {
-    const sortedFacilities = Object.values(facilities).sort((a, b) => {
-      if (a.bgcolor < b.bgcolor) {
-        return -1
-      }
-      if (a.bgcolor > b.bgcolor) {
-        return 1
-      }
-      return 0
-    })
-    setSortedFacilities(sortedFacilities)
-  }, [facilities])
 
   const handleZoom = (event: WheelEvent) => {
     // Check if the "Ctrl" key is pressed
@@ -61,7 +49,7 @@ export function DataGrid() {
   return (
     <DataGridPro
       apiRef={apiRef}
-      rows={sortedFacilities}
+      rows={Object.values(facilities || {})}
       columns={view?.headerBottomData || []}
       disableColumnFilter
       disableColumnMenu
@@ -72,6 +60,9 @@ export function DataGrid() {
       hideFooter
       rowHeight={50}
       columnBuffer={30}
+      pinnedColumns={{
+        left: ["stand"],
+      }}
       pinnedRows={{
         top: [
           {
@@ -84,13 +75,9 @@ export function DataGrid() {
             bgcolor: "",
             tasks: [],
             index: 0,
+            workspaceId: "",
           },
         ],
-      }}
-      initialState={{
-        pinnedColumns: {
-          left: ["stand"],
-        },
       }}
       slots={{
         cell: Cell,
@@ -100,7 +87,6 @@ export function DataGrid() {
           view: view,
         },
       }}
-      getRowId={(row: Facility) => row.id}
       sx={{
         //disable cell outline on focus
         "& .MuiDataGrid-virtualScroller::-webkit-scrollbar": {
@@ -112,14 +98,21 @@ export function DataGrid() {
         "& .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb": {
           backgroundColor: "#5A5A5A",
         },
-        height: "fit-content",
-        border: "none",
+
         "& .MuiDataGrid-cell": {
           all: "unset",
           "&:focus": {
             all: "unset",
             outline: "none",
           },
+          //target pinned column cells
+          "&.MuiDataGrid-pinned": {
+            boxShadow: "none",
+          },
+        },
+        //target MuiDataGrid-pinnedColumns
+        "& .MuiDataGrid-pinnedColumns": {
+          boxShadow: "none",
         },
         //disable header cell outline on focus
         "& .MuiDataGrid-columnHeaders": {

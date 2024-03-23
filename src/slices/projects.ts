@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { workspaceId } from "./workspaces"
 
 export interface Project {
   id: string
@@ -6,11 +7,14 @@ export interface Project {
   description: string
 }
 
+export type projectId = string
+
 interface ProjectsState {
   projects: {
-    [id: string]: Project
+    [id: workspaceId]: {
+      [id: projectId]: Project
+    }
   }
-  selectedProject: string | null
   loading: boolean
   error: string | null
 }
@@ -18,7 +22,6 @@ interface ProjectsState {
 // Initial state for the tasks slice
 const initialState: ProjectsState = {
   projects: {},
-  selectedProject: null,
   loading: false,
   error: null,
 }
@@ -28,20 +31,28 @@ export const projectsSlice = createSlice({
   name: "projects",
   initialState,
   reducers: {
-    upsertProject: (state, action: PayloadAction<Project>) => {
-      const project = action.payload
-      state.projects[project.id] = project
+    upsertProject: (
+      state,
+      action: PayloadAction<{ workspaceId: workspaceId; project: Project }>,
+    ) => {
+      const { workspaceId, project } = action.payload
+      if (!state.projects[workspaceId]) {
+        state.projects[workspaceId] = {}
+      }
+      state.projects[workspaceId][project.id] = project
     },
-    setProjects(state, action: PayloadAction<{ [id: string]: Project }>) {
-      state.projects = action.payload
+    setProjects(
+      state,
+      action: PayloadAction<{
+        [id: workspaceId]: { [id: projectId]: Project }
+      }>,
+    ) {
+      state.projects = { ...state.projects, ...action.payload }
       state.loading = false
-    },
-    setSelectedProject(state, action: PayloadAction<string | null>) {
-      state.selectedProject = action.payload
     },
     upsertProjectStart: (
       state,
-      action: PayloadAction<{ project: Project }>,
+      action: PayloadAction<{ workspaceId: workspaceId; project: Project }>,
     ) => {
       state.loading = true
       state.error = null
@@ -66,7 +77,6 @@ export const projectsSlice = createSlice({
 export const {
   upsertProject,
   setProjects,
-  setSelectedProject,
   upsertProjectStart,
   setProjectsStart,
   syncProjectsStart,

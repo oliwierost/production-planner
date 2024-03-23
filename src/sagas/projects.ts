@@ -9,30 +9,29 @@ import {
   cancelled,
 } from "redux-saga/effects"
 import { firestore } from "../../firebase.config"
-import {
-  collection,
-  doc,
-  getDocs,
-  onSnapshot,
-  setDoc,
-} from "firebase/firestore"
+import { collection, doc, onSnapshot, setDoc } from "firebase/firestore"
 import { setToastOpen } from "../slices/toast"
-import { Workspace } from "../slices/workspaces"
 import { eventChannel } from "redux-saga"
-import { hashObject } from "./facilities"
 import {
   Project,
+  projectId,
   setProjects,
   syncProjectsStart,
   upsertProject,
   upsertProjectStart,
 } from "../slices/projects"
+import { workspaceId } from "../slices/workspaces"
+import { userId } from "../slices/user"
 
-const addProjectToFirestore = async (workspaceId: string, project: Project) => {
+const addProjectToFirestore = async (
+  userId: userId,
+  workspaceId: workspaceId,
+  project: Project,
+) => {
   await setDoc(
     doc(
       firestore,
-      `users/first-user/workspaces/${workspaceId}/projects/${project.id}`,
+      `users/${userId}/workspaces/${workspaceId}/projects/${project.id}`,
     ),
     project,
   )
@@ -40,16 +39,16 @@ const addProjectToFirestore = async (workspaceId: string, project: Project) => {
 
 export function* upsertProjectSaga(
   action: PayloadAction<{
+    workspaceId: workspaceId
     project: Project
   }>,
 ): Generator<any, void, any> {
-  const { project } = action.payload
-  const selectedWorkspaceId: string = yield select(
-    (state) => state.workspaces.selectedWorkspace,
-  )
+  const { project, workspaceId } = action.payload
+  const userId: userId = yield select((state) => state.user.user.id)
+
   try {
-    yield put(upsertProject(project))
-    yield call(addProjectToFirestore, selectedWorkspaceId, project)
+    yield put(upsertProject({ project: project, workspaceId: workspaceId }))
+    yield call(addProjectToFirestore, userId, workspaceId, project)
     yield put(setToastOpen({ message: "Dodano projekt", severity: "success" }))
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
@@ -57,26 +56,34 @@ export function* upsertProjectSaga(
 }
 
 export function* syncProjectsSaga() {
-  const selectedWorkspaceId: string = yield select(
-    (state) => state.workspaces.selectedWorkspace,
-  )
+  const userId: userId = yield select((state) => state.user.user?.id)
+  const prevProjects: { [id: workspaceId]: { [id: projectId]: Project } } =
+    yield select((state) => state.projects.projects)
+  if (!userId) return
+
   const channel = eventChannel((emitter) => {
-    const colRef = collection(
-      firestore,
-      `users/first-user/workspaces/${selectedWorkspaceId}/projects`,
-    )
-    const unsubscribe = onSnapshot(colRef, async () => {
-      const snapshot = await getDocs(
-        collection(
+    const colRef = collection(firestore, `users/${userId}/workspaces`)
+
+    const unsubscribe = onSnapshot(colRef, async (snapshot) => {
+      snapshot.forEach((workspaceDoc) => {
+        const workspaceId = workspaceDoc.id
+        const projectsRef = collection(
           firestore,
-          `users/first-user/workspaces/${selectedWorkspaceId}/projects`,
-        ),
-      )
-      const projects = {} as { [key: string]: Project }
-      snapshot.forEach(
-        (doc) => (projects[doc.id] = { id: doc.id, ...doc.data() } as Project),
-      )
-      emitter(projects)
+          `users/${userId}/workspaces/${workspaceId}/projects`,
+        )
+        onSnapshot(projectsRef, async (projectsSnapshot) => {
+          const projects = {} as { [id: projectId]: Project }
+          projectsSnapshot.forEach(
+            (doc) =>
+              (projects[doc.id] = {
+                id: doc.id,
+                ...doc.data(),
+              } as Project),
+          )
+          const newProjects = { ...prevProjects, [workspaceId]: projects }
+          emitter(newProjects)
+        })
+      })
     })
 
     return unsubscribe
@@ -84,13 +91,9 @@ export function* syncProjectsSaga() {
 
   try {
     while (true) {
-      const projects: { [key: string]: Workspace } = yield take(channel)
-      const prevProjects: { [key: string]: Workspace } = yield select(
-        (state) => state.workspaces.workspaces,
-      )
-      if (hashObject(prevProjects) !== hashObject(projects)) {
-        yield put(setProjects(projects))
-      }
+      const projects: { [id: workspaceId]: { [id: projectId]: Project } } =
+        yield take(channel)
+      yield put(setProjects(projects))
     }
   } finally {
     const isCancelled: boolean = yield cancelled()

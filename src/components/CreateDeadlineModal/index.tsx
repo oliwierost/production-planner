@@ -11,13 +11,16 @@ import { doc, collection } from "firebase/firestore"
 import { firestore } from "../../../firebase.config"
 import { Form, Formik, FormikHelpers } from "formik"
 import { DateField } from "../DateField"
-import { useAppDispatch, useAppSelector } from "../../hooks"
+import { useAppDispatch } from "../../hooks"
 import { addDeadlineStart } from "../../slices/deadlines"
 import { deadlineModalSchema } from "../../../validationSchema"
+import { Modal as ModalType } from "../DataPanel"
 
 interface CreateDeadlineModalProps {
   open: boolean
-  setOpen: React.Dispatch<React.SetStateAction<string | null>>
+  setModal: React.Dispatch<React.SetStateAction<ModalType | null>>
+  workspaceId: string
+  projectId: string
 }
 
 interface FormData {
@@ -36,15 +39,11 @@ const initialValues = {
 
 export function CreateDeadlineModal({
   open,
-  setOpen,
+  setModal,
+  workspaceId,
+  projectId,
 }: CreateDeadlineModalProps) {
   const dispatch = useAppDispatch()
-  const selectedWorkspace = useAppSelector(
-    (state) => state.workspaces.selectedWorkspace,
-  )
-  const selectedProject = useAppSelector(
-    (state) => state.projects.selectedProject,
-  )
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -73,11 +72,11 @@ export function CreateDeadlineModal({
     const monthTimestamp = yearDate.getTime()
 
     try {
-      if (selectedWorkspace) {
+      if (workspaceId && projectId) {
         const id = doc(
           collection(
             firestore,
-            `users/first-user/workspaces/${selectedWorkspace}/projects/${selectedProject}/deadlines`,
+            `users/first-user/workspaces/${workspaceId}/projects/${projectId}/deadlines`,
           ),
         ).id
         dispatch(
@@ -92,7 +91,7 @@ export function CreateDeadlineModal({
           }),
         )
       }
-      setOpen(null)
+      setModal(null)
       resetForm()
     } catch (error) {
       resetForm()
@@ -100,7 +99,7 @@ export function CreateDeadlineModal({
   }
 
   const handleClose = (resetForm: FormikHelpers<FormData>["resetForm"]) => {
-    setOpen(null)
+    setModal(null)
     resetForm()
   }
   return (

@@ -8,16 +8,17 @@ import { TextArea } from "../TextArea"
 import { doc, collection } from "firebase/firestore"
 import { firestore } from "../../../firebase.config"
 import { Form, Formik, FormikHelpers } from "formik"
-import { useAppDispatch } from "../../hooks"
+import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
 import { workspaceModalSchema } from "../../../validationSchema"
 import { upsertWorkspaceStart } from "../../slices/workspaces"
 import { SecondaryButton } from "../SecondaryButton"
 import { PrimaryButton } from "../PrimaryButton"
+import { Modal as ModalType } from "../DataPanel"
 
 interface CreateWorkspaceModalProps {
   open: boolean
-  setOpen: React.Dispatch<React.SetStateAction<string | null>>
+  setModal: React.Dispatch<React.SetStateAction<ModalType | null>>
 }
 
 interface FormData {
@@ -33,9 +34,12 @@ const initialValues = {
 
 export function CreateWorkspaceModal({
   open,
-  setOpen,
+  setModal,
 }: CreateWorkspaceModalProps) {
   const dispatch = useAppDispatch()
+
+  const user = useAppSelector((state) => state.user.user)
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: FormikHelpers<FormData>["setFieldValue"],
@@ -49,14 +53,15 @@ export function CreateWorkspaceModal({
     resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     try {
-      const id = doc(collection(firestore, "users/first-user/workspaces")).id
+      if (!user) return
+      const id = doc(collection(firestore, `users/${user.id}/workspaces`)).id
       dispatch(
         upsertWorkspaceStart({
           ...values,
           id,
         }),
       )
-      setOpen(null)
+      setModal(null)
       resetForm()
     } catch (error) {
       resetForm()
@@ -64,7 +69,7 @@ export function CreateWorkspaceModal({
   }
 
   const handleClose = (resetForm: FormikHelpers<FormData>["resetForm"]) => {
-    setOpen(null)
+    setModal(null)
     resetForm()
     dispatch(setDragDisabled(false))
   }

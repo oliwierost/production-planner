@@ -1,5 +1,6 @@
+import { isEqual } from "lodash"
 import { useAppSelector } from "../../hooks"
-import { Facility as FacilityType } from "../../slices/facilities"
+import { selectFacility } from "../../selectors/facilities"
 import { Facility } from "../Facility"
 
 interface SideCellProps {
@@ -7,9 +8,15 @@ interface SideCellProps {
 }
 
 export function SideCell({ rowId }: SideCellProps) {
-  const facilitiesState = useAppSelector((state) => state.facilities)
-  const facilities = facilitiesState.facilities
-  const facility = facilities[rowId]
+  const workspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
+  )
+
+  const facility = useAppSelector(
+    (state) => selectFacility(state, workspaceId, rowId as string),
+    isEqual,
+  )
+
   return (
     <div
       style={{

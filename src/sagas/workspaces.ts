@@ -27,9 +27,12 @@ import {
 import { eventChannel } from "redux-saga"
 import { hashObject } from "./facilities"
 
-const addWorkspaceToFirestore = async (workspace: Workspace) => {
+const addWorkspaceToFirestore = async (
+  userId: string,
+  workspace: Workspace,
+) => {
   await setDoc(
-    doc(firestore, `users/first-user/workspaces/${workspace.id}`),
+    doc(firestore, `users/${userId}/workspaces/${workspace.id}`),
     workspace,
   )
 }
@@ -38,9 +41,10 @@ export function* upsertWorkspaceSaga(
   action: PayloadAction<Workspace>,
 ): Generator<any, void, any> {
   const workspace = action.payload
+  const userId: string = yield select((state) => state.user.user?.id)
   try {
     yield put(upsertWorkspace(workspace))
-    yield call(addWorkspaceToFirestore, workspace)
+    yield call(addWorkspaceToFirestore, userId, workspace)
     yield put(setToastOpen({ message: "Dodano zakład", severity: "success" }))
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
@@ -48,8 +52,10 @@ export function* upsertWorkspaceSaga(
 }
 
 export function* syncWorkspacesSaga() {
+  const userId: string = yield select((state) => state.user.user?.id)
+  if (!userId) return
   const channel = eventChannel((emitter) => {
-    const colRef = collection(firestore, "users/first-user/workspaces")
+    const colRef = collection(firestore, `users/${userId}/workspaces`)
     const unsubscribe = onSnapshot(colRef, async () => {
       const snapshot = await getDocs(colRef)
       const workspaces = {} as { [key: string]: Workspace }

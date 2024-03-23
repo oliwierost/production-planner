@@ -7,7 +7,8 @@ import { Task as TaskType } from "../../slices/tasks"
 import { Deadlines } from "../Deadlines"
 import { memo } from "react"
 import { isEqual } from "lodash"
-import { Cell } from "../../slices/grid"
+import { selectCell } from "../../selectors/grid"
+import { selectFacility } from "../../selectors/facilities"
 
 interface DataCellProps {
   cellWidth: number
@@ -15,31 +16,28 @@ interface DataCellProps {
   date: string
 }
 
-function getOccupiedStartCell(cell: Cell | undefined) {
-  const cellState = cell?.state
-  if (cellState === "occupied-start") {
-    return cell
-  } else {
-    return null
-  }
-}
-
 export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
   const time = new Date(date).getTime()
   const cellKey = `${rowId}-${time}`
 
-  const cell = useAppSelector(
-    (state) => getOccupiedStartCell(state.grid.grid?.cells?.[cellKey]),
-    isEqual,
-  )
-
-  const rowIndex = useAppSelector(
-    (state) => state.facilities.facilities[rowId].index,
-    isEqual,
-  )
-
   const facilitiesCount = useAppSelector(
     (state) => state.facilities.total,
+    isEqual,
+  )
+
+  const workspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
+    isEqual,
+  )
+
+  const facility = useAppSelector(
+    (state) => selectFacility(state, workspaceId, rowId as string),
+    isEqual,
+  )
+  const rowIndex = facility?.index
+
+  const cell = useAppSelector(
+    (state) => selectCell(state, workspaceId, cellKey),
     isEqual,
   )
 

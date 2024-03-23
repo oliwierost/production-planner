@@ -1,4 +1,4 @@
-import { Alert, Snackbar, Stack } from "@mui/material"
+import { Alert, Box, Snackbar, Stack } from "@mui/material"
 import { TaskSlider } from "./components/TaskSlider"
 import {
   Active,
@@ -33,17 +33,16 @@ import { syncProjectsStart } from "./slices/projects"
 import { AuthModal } from "./components/AuthModal"
 import { syncUserStart } from "./slices/user"
 import { auth } from "../firebase.config"
+import { DataPanel } from "./components/DataPanel"
+import { selectGrid } from "./selectors/grid"
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const dispatch = useAppDispatch()
   const monthView = generateMonthView(100)
-  const selectedWorkspace = useAppSelector(
-    (state) => state.workspaces.selectedWorkspace,
-  )
-  const selectedProject = useAppSelector(
-    (state) => state.projects.selectedProject,
-  )
+
+  const user = useAppSelector((state) => state.user.user)
+
   const currentUser = auth.currentUser
 
   useEffect(() => {
@@ -54,28 +53,23 @@ function App() {
   }, [currentUser])
 
   useEffect(() => {
-    if (!selectedWorkspace && !selectedProject) {
-      dispatch(syncWorkspacesStart())
-    } else if (selectedWorkspace && !selectedProject) {
-      dispatch(syncProjectsStart())
-    } else if (selectedWorkspace && selectedProject) {
-      dispatch(syncTasksStart())
-      dispatch(syncFacilitiesStart())
-      dispatch(syncGridStart())
-      dispatch(syncDeadlinesStart())
-      dispatch(initializeGridStart())
-    }
-  }, [selectedWorkspace, selectedProject])
+    dispatch(syncWorkspacesStart())
+    dispatch(syncProjectsStart())
+    dispatch(syncTasksStart())
+    dispatch(syncFacilitiesStart())
+    dispatch(syncGridStart())
+    dispatch(syncDeadlinesStart())
+    dispatch(initializeGridStart())
+  }, [user, user?.openWorkspaceId, user?.openProjectId])
 
   const toastState = useAppSelector((state) => state.toast)
-  const gridState = useAppSelector((state) => state.grid)
-  const cellStateMap = gridState.grid
+  const grid = useAppSelector((state) =>
+    selectGrid(state, user?.openWorkspaceId),
+  )
 
   useEffect(() => {
-    if (cellStateMap) {
-      dispatch(setMonthView({ view: monthView, grid: cellStateMap }))
-    }
-  }, [dispatch, cellStateMap])
+    if (grid) dispatch(setMonthView({ view: monthView, grid: grid }))
+  }, [dispatch, grid])
 
   const checkCanDrop = (over: Over, active: Active) => {
     const overId = over.id
@@ -83,12 +77,12 @@ function App() {
     const cellSpan = task.duration
 
     const [rowId, colId] = (overId as string).split("-")
-    if (!cellStateMap) return
+    if (!grid) return
     const increment = 1000 * 60 * 60 * 24
     for (let i = 0; i < cellSpan * increment; i += increment) {
       const cellId = `${rowId}-${Number(colId) + i}`
-      if (cellId in cellStateMap.cells) {
-        const cell = cellStateMap.cells[cellId]
+      if (cellId in grid.cells) {
+        const cell = grid.cells[cellId]!
         if (Object.keys(cell.tasks).some((tid) => tid !== task.id)) {
           dispatch(
             setTaskDraggedStart({
@@ -143,14 +137,14 @@ function App() {
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
+    dispatch(
+      setTaskDraggedStart({
+        task: event.active.data.current?.task,
+        dragged: false,
+        cellId: event.active.id as string,
+      }),
+    )
     if (!event.over) {
-      dispatch(
-        setTaskDraggedStart({
-          task: event.active.data.current?.task,
-          dragged: false,
-          cellId: event.active.id as string,
-        }),
-      )
       return
     }
     const canDrop = checkCanDrop(event.over, event.active)
@@ -184,7 +178,7 @@ function App() {
   }
 
   return (
-    <>
+    <div style={{ maxHeight: "100vh", maxWidth: "100vw", overflow: "hidden" }}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={theme}>
           <Stack width="100vw" height="100vh">
@@ -198,7 +192,12 @@ function App() {
             >
               <TaskSlider />
               <TimelineToolbar />
-              <DataGrid />
+              <Stack direction="row" height="100%" overflow="scroll">
+                <DataPanel />
+                <Box width="100%" height="100%" overflow="scroll">
+                  <DataGrid />
+                </Box>
+              </Stack>
             </DndContext>
             <Snackbar
               open={toastState.open}
@@ -210,7 +209,7 @@ function App() {
           </Stack>
         </ThemeProvider>
       </LocalizationProvider>
-    </>
+    </div>
   )
 }
 

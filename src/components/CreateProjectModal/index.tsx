@@ -14,10 +14,12 @@ import { workspaceModalSchema } from "../../../validationSchema"
 import { SecondaryButton } from "../SecondaryButton"
 import { PrimaryButton } from "../PrimaryButton"
 import { upsertProjectStart } from "../../slices/projects"
+import { Modal as ModalType } from "../DataPanel"
 
 interface CreateProjectModalProps {
   open: boolean
-  setOpen: React.Dispatch<React.SetStateAction<string | null>>
+  setModal: React.Dispatch<React.SetStateAction<ModalType | null>>
+  workspaceId: string
 }
 
 interface FormData {
@@ -31,12 +33,13 @@ const initialValues = {
   description: "",
 }
 
-export function CreateProjectModal({ open, setOpen }: CreateProjectModalProps) {
+export function CreateProjectModal({
+  open,
+  setModal,
+  workspaceId,
+}: CreateProjectModalProps) {
   const dispatch = useAppDispatch()
-
-  const selectedWorkspace = useAppSelector(
-    (state) => state.workspaces.selectedWorkspace,
-  )
+  const user = useAppSelector((state) => state.user.user)
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -51,15 +54,16 @@ export function CreateProjectModal({ open, setOpen }: CreateProjectModalProps) {
     resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     try {
-      if (selectedWorkspace) {
+      if (workspaceId && user) {
         const id = doc(
           collection(
             firestore,
-            `users/first-user/workspaces/${selectedWorkspace}/projects`,
+            `users/${user.id}/workspaces/${workspaceId}/projects`,
           ),
         ).id
         dispatch(
           upsertProjectStart({
+            workspaceId,
             project: {
               ...values,
               id,
@@ -67,7 +71,7 @@ export function CreateProjectModal({ open, setOpen }: CreateProjectModalProps) {
           }),
         )
       }
-      setOpen(null)
+      setModal(null)
       resetForm()
     } catch (error) {
       resetForm()
@@ -75,7 +79,7 @@ export function CreateProjectModal({ open, setOpen }: CreateProjectModalProps) {
   }
 
   const handleClose = (resetForm: FormikHelpers<FormData>["resetForm"]) => {
-    setOpen(null)
+    setModal(null)
     resetForm()
     dispatch(setDragDisabled(false))
   }

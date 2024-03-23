@@ -31,6 +31,7 @@ import {
 } from "../slices/deadlines"
 
 const addDeadlineToFirestore = async (
+  userId: string,
   deadline: Deadline,
   workspaceId: string,
   projectId: string,
@@ -38,13 +39,14 @@ const addDeadlineToFirestore = async (
   await setDoc(
     doc(
       firestore,
-      `users/first-user/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadline.id}`,
+      `users/${userId}/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadline.id}`,
     ),
     deadline,
   )
 }
 
 const updateDeadlineInFirestore = async (
+  userId: string,
   deadlineId: string,
   workspaceId: string,
   projectId: string,
@@ -53,13 +55,14 @@ const updateDeadlineInFirestore = async (
   await updateDoc(
     doc(
       firestore,
-      `users/first-user/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadlineId}`,
+      `users/${userId}/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadlineId}`,
     ),
     updateData,
   )
 }
 
 const deleteDeadlineFromFirestore = async (
+  userId: string,
   deadlineId: string,
   workspaceId: string,
   projectId: string,
@@ -67,13 +70,14 @@ const deleteDeadlineFromFirestore = async (
   await deleteDoc(
     doc(
       firestore,
-      `users/first-user/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadlineId}`,
+      `users/${userId}/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadlineId}`,
     ),
   )
 }
 
 export function* addDeadlineSaga(action: PayloadAction<Deadline>) {
   try {
+    const userId: string = yield select((state) => state.user.user?.id)
     const selectedWorkspace: string = yield select(
       (state) => state.workspaces.selectedWorkspace,
     )
@@ -82,6 +86,7 @@ export function* addDeadlineSaga(action: PayloadAction<Deadline>) {
     )
     yield call(
       addDeadlineToFirestore,
+      userId,
       action.payload,
       selectedWorkspace,
       selectedProject,
@@ -99,6 +104,7 @@ export function* deleteDeadlineSaga(
 ): Generator<any, void, any> {
   try {
     const deadlineId = action.payload.deadlineId
+    const userId: string = yield select((state) => state.user.user?.id)
     const selectedWorkspace: string = yield select(
       (state) => state.workspaces.selectedWorkspace,
     )
@@ -107,6 +113,7 @@ export function* deleteDeadlineSaga(
     )
     yield call(
       deleteDeadlineFromFirestore,
+      userId,
       deadlineId,
       selectedWorkspace,
       selectedProject,
@@ -121,10 +128,11 @@ export function* deleteDeadlineSaga(
 }
 
 export function* updateDeadlineSaga(
-  action: PayloadAction<{ id: string; data: any }>,
+  action: PayloadAction<{ deadlineId: string; data: any }>,
 ): Generator<any, void, any> {
   try {
-    const { id, data } = action.payload
+    const { deadlineId, data } = action.payload
+    const userId: string = yield select((state) => state.user.user?.id)
     const selectedWorkspace: string = yield select(
       (state) => state.workspaces.selectedWorkspace,
     )
@@ -133,7 +141,8 @@ export function* updateDeadlineSaga(
     )
     yield call(
       updateDeadlineInFirestore,
-      id,
+      userId,
+      deadlineId,
       selectedWorkspace,
       selectedProject,
       data,
@@ -147,16 +156,18 @@ export function* updateDeadlineSaga(
 }
 
 export function* syncDeadlinesSaga() {
+  const userId: string = yield select((state) => state.user.user?.id)
   const selectedWorkspace: string = yield select(
     (state) => state.workspaces.selectedWorkspace,
   )
   const selectedProject: string = yield select(
     (state) => state.projects.selectedProject,
   )
+  if (!userId || !selectedWorkspace || !selectedProject) return
   const channel = eventChannel((emitter) => {
     const colRef = collection(
       firestore,
-      `users/first-user/workspaces/${selectedWorkspace}/projects/${selectedProject}/deadlines`,
+      `users/${userId}/workspaces/${selectedWorkspace}/projects/${selectedProject}/deadlines`,
     )
     const unsubscribe = onSnapshot(colRef, async () => {
       const snapshot = await getDocs(colRef)

@@ -20,11 +20,13 @@ import {
 import GroupsIcon from "@mui/icons-material/Groups"
 import { useEffect, useState } from "react"
 import { facilityModalSchema } from "../../../validationSchema"
+import { Modal as ModalType } from "../DataPanel"
 
 interface CreateFacilityModalProps {
   open: boolean
-  setOpen: React.Dispatch<React.SetStateAction<string | null>>
+  setModal: React.Dispatch<React.SetStateAction<ModalType | null>>
   facilityId?: string
+  workspaceId: string
 }
 
 interface FormData {
@@ -86,15 +88,15 @@ const colorOptions = [
 
 export function CreateFacilityModal({
   open,
-  setOpen,
+  setModal,
   facilityId,
+  workspaceId,
 }: CreateFacilityModalProps) {
   const [facility, setFacility] = useState<Facility>(initialValues)
   const dispatch = useAppDispatch()
   const facilities = useAppSelector((state) => state.facilities.facilities)
-  const selectedWorkspace = useAppSelector(
-    (state) => state.workspaces.selectedWorkspace,
-  )
+  const user = useAppSelector((state) => state.user.user)
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: FormikHelpers<FormData>["setFieldValue"],
@@ -119,13 +121,14 @@ export function CreateFacilityModal({
         const id = doc(
           collection(
             firestore,
-            `users/first-user/workspaces/${selectedWorkspace}/faciltiies`,
+            `users/${user}/workspaces/${workspaceId}/faciltiies`,
           ),
         ).id
         dispatch(
           addFacilityStart({
             ...values,
-            id: id,
+            id,
+            workspaceId,
             title: values.location + " " + values.activity,
             tasks: [],
           }),
@@ -138,7 +141,7 @@ export function CreateFacilityModal({
           }),
         )
       }
-      setOpen(null)
+      setModal(null)
       resetForm()
     } catch (error) {
       resetForm()
@@ -146,7 +149,7 @@ export function CreateFacilityModal({
   }
 
   const handleClose = (resetForm: FormikHelpers<FormData>["resetForm"]) => {
-    setOpen(null)
+    setModal(null)
     resetForm()
   }
   return (

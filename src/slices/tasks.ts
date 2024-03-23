@@ -1,4 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { projectId } from "./projects"
+import { workspaceId } from "./workspaces"
 
 // Define the Task interface
 export interface Task {
@@ -11,13 +13,18 @@ export interface Task {
   facilityId: string | null
   startTime: number | null
   dragged?: boolean
-  projectId: string
+  projectId: projectId
+  workspaceId: workspaceId
 }
+
+export type taskId = string
 
 // Define the state structure for tasks
 interface TasksState {
   tasks: {
-    [id: string]: Task
+    [id: projectId]: {
+      [id: taskId]: Task
+    }
   }
   loading: boolean
   error: string | null
@@ -50,41 +57,20 @@ export const tasksSlice = createSlice({
     // update task
     upsertTask: (state, action: PayloadAction<Task>) => {
       const task = action.payload
-      if (isTimeSlotAvailable(task, state.tasks)) {
-        state.tasks[task.id] = task
-      } else {
-        // handle conflict
+      if (!state.tasks[task.projectId]) {
+        state.tasks[task.projectId] = {}
       }
-      state.tasks[task.id] = task
+      state.tasks[task.projectId][task.id] = task
     },
     // Action to remove a task by its ID
-    removeTask: (state, action: PayloadAction<string>) => {
-      delete state.tasks[action.payload]
+    removeTask: (state, action: PayloadAction<Task>) => {
+      const task = action.payload
+      delete state.tasks[task.projectId][task.id]
     },
-    updateTask: (state, action: PayloadAction<{ id: string; data: any }>) => {
-      const { id, data } = action.payload
-      const task = state.tasks[id]
+    updateTask: (state, action: PayloadAction<{ task: Task; data: any }>) => {
+      const { task, data } = action.payload
       if (task) {
-        state.tasks[id] = { ...task, ...data }
-      }
-    },
-    moveTask: (
-      state,
-      action: PayloadAction<{
-        id: string
-        facilityId: string
-        startTime: number
-      }>,
-    ) => {
-      const { id, facilityId, startTime } = action.payload
-      const task = state.tasks[id]
-      if (task) {
-        const updatedTask = { ...task, facilityId, startTime }
-        if (isTimeSlotAvailable(updatedTask, state.tasks)) {
-          state.tasks[id] = updatedTask
-        } else {
-          // handle conflict
-        }
+        state.tasks[task.projectId][task.id] = { ...task, ...data }
       }
     },
     setTaskDragged: (
@@ -96,22 +82,26 @@ export const tasksSlice = createSlice({
     ) => {
       const { task, dragged } = action.payload
       if (task) {
-        state.tasks[task.id].dragged = dragged
+        console.log("adsa", task, dragged)
+        state.tasks[task.projectId][task.id].dragged = dragged
       }
     },
     // You can add more actions here as needed, for example, to mark a task as dropped
     setTaskDropped: (
       state,
-      action: PayloadAction<{ id: string; dropped: boolean }>,
+      action: PayloadAction<{ task: Task; dropped: boolean }>,
     ) => {
-      const { id, dropped } = action.payload
-      const task = state.tasks[id]
+      const { task, dropped } = action.payload
       if (task) {
-        task.dropped = dropped
+        state.tasks[task.projectId][task.id].dropped = dropped
       }
     },
-    setTasks(state, action: PayloadAction<{ [id: string]: Task }>) {
-      state.tasks = action.payload
+    setTasks(
+      state,
+      action: PayloadAction<{ [id: projectId]: { [id: taskId]: Task } }>,
+    ) {
+      const tasks = action.payload
+      state.tasks = { ...tasks, ...state.tasks }
       state.loading = false
     },
     fetchTasksStart(state) {
@@ -136,7 +126,14 @@ export const tasksSlice = createSlice({
       state.error = null
       console.info("addTaskStart", action.payload)
     },
-    updateTaskStart(state, action: PayloadAction<{ id: string; data: any }>) {
+    updateTaskStart(
+      state,
+      action: PayloadAction<{
+        task: Task
+        data: any
+        workspaceId: workspaceId
+      }>,
+    ) {
       state.loading = true
       state.error = null
       console.info("updateTaskStart", action.payload)
@@ -158,7 +155,7 @@ export const tasksSlice = createSlice({
       action: PayloadAction<{
         task: Task
         dragged: boolean
-        cellId: string
+        cellId?: string
       }>,
     ) {
       state.loading = true
@@ -182,7 +179,7 @@ export const tasksSlice = createSlice({
     deleteTaskStart(
       state,
       action: PayloadAction<{
-        taskId: string
+        task: Task
         facilityId?: string
         colId?: number
         cellSpan?: number
@@ -216,7 +213,6 @@ export const tasksSlice = createSlice({
 export const {
   upsertTask,
   removeTask,
-  moveTask,
   setTaskDropped,
   fetchTasksStart,
   updateTask,

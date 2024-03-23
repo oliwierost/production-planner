@@ -1,5 +1,8 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { Task } from "./tasks"
+import { projectId } from "./projects"
+import { workspaceId } from "./workspaces"
+import { facilityId } from "./facilities"
 
 export interface Cell {
   state: string
@@ -16,18 +19,20 @@ export interface Cell {
 // TODO move to types, clean up types
 export interface GridType {
   cells: {
-    [key: string]: Cell
+    [key: string]: Cell | null
   }
 }
 
 interface GridState {
-  grid: GridType | null
+  grid: {
+    [key: workspaceId]: GridType
+  }
   loading: boolean
   error: string | null
 }
 
 const initialState: GridState = {
-  grid: null,
+  grid: {},
   loading: false,
   error: null,
 }
@@ -37,21 +42,36 @@ const gridSlice = createSlice({
   initialState,
   reducers: {
     // Action to initialize the grid with a predefined size
-    initializeGrid: (state) => {
-      if (!state.grid) {
-        state.grid = {
+    initializeGrid: (
+      state,
+      action: PayloadAction<{
+        workspaceId: workspaceId
+      }>,
+    ) => {
+      const { workspaceId } = action.payload
+      if (!state.grid[workspaceId]) {
+        state.grid[workspaceId] = {
           cells: {},
         }
       }
     },
-    setCell: (state, action: PayloadAction<{ cellId: string; cell: Cell }>) => {
-      const { cellId, cell } = action.payload
-      if (!state.grid) {
-        state.grid = {
+    setCell: (
+      state,
+      action: PayloadAction<{
+        cellId: string
+        cell: Cell
+        workspaceId: workspaceId
+      }>,
+    ) => {
+      const { cellId, cell, workspaceId } = action.payload
+      if (!state.grid[workspaceId]) {
+        state.grid[workspaceId] = {
           cells: {},
         }
       }
-      state.grid.cells[cellId] = cell
+      if (state.grid[workspaceId]) {
+        state.grid[workspaceId]!.cells[cellId] = cell
+      }
     },
     setCellsOccupied: (
       state,
@@ -59,20 +79,21 @@ const gridSlice = createSlice({
         rowId: string
         colId: string
         task: Task
+        workspaceId: workspaceId
       }>,
     ) => {
-      const { rowId, colId, task } = action.payload
+      const { rowId, colId, task, workspaceId } = action.payload
       const { id: taskId, duration } = task
       const colTime = Number(colId)
       const originalDate = new Date(colTime)
 
       const cellId = `${rowId}-${colTime}`
-      if (!state.grid) {
-        state.grid = {
+      if (!state.grid[workspaceId]) {
+        state.grid[workspaceId] = {
           cells: {},
         }
       }
-      state.grid.cells[cellId] = {
+      state.grid[workspaceId].cells[cellId] = {
         state: "occupied-start",
         tasks: { [taskId]: { task: { ...task, dragged: false } } },
         source: cellId,
@@ -82,7 +103,7 @@ const gridSlice = createSlice({
           const nextDate = new Date(originalDate)
           nextDate.setDate(originalDate.getDate() + i)
           const nextDateTime = nextDate.getTime()
-          state.grid.cells[`${rowId}-${nextDateTime}`] = {
+          state.grid[workspaceId].cells[`${rowId}-${nextDateTime}`] = {
             state: "occupied",
             tasks: { [taskId]: { task: { ...task, dragged: false } } },
             source: cellId,
@@ -91,7 +112,7 @@ const gridSlice = createSlice({
         const lastDate = new Date(originalDate)
         lastDate.setDate(originalDate.getDate() + (duration - 1))
         const lastDateTime = lastDate.getTime()
-        state.grid.cells[`${rowId}-${lastDateTime}`] = {
+        state.grid[workspaceId].cells[`${rowId}-${lastDateTime}`] = {
           state: "occupied-end",
           tasks: { [taskId]: { task: { ...task, dragged: false } } },
           source: cellId,
@@ -99,23 +120,30 @@ const gridSlice = createSlice({
       }
     },
 
-    removeCell: (state, action: PayloadAction<{ cellId: string }>) => {
+    removeCell: (
+      state,
+      action: PayloadAction<{ cellId: string; workspaceId: workspaceId }>,
+    ) => {
+      const { cellId, workspaceId } = action.payload
       if (!state.grid) {
         return
       }
-      delete state.grid.cells[action.payload.cellId]
+      delete state.grid[workspaceId].cells[cellId]
     },
     removeFacilityFromGrid: (
       state,
-      action: PayloadAction<{ facilityId: string }>,
+      action: PayloadAction<{
+        facilityId: facilityId
+        workspaceId: workspaceId
+      }>,
     ) => {
       if (!state.grid) {
         return
       }
-      const { facilityId } = action.payload
+      const { facilityId, workspaceId } = action.payload
       Object.keys(state.grid.cells).forEach((cellId) => {
         if (cellId.includes(facilityId)) {
-          delete state.grid?.cells[cellId]
+          delete state.grid[workspaceId].cells[cellId]
         }
       })
     },
@@ -125,15 +153,20 @@ const gridSlice = createSlice({
         cellId: string
         task: Task
         data: any
+        workspaceId: workspaceId
       }>,
     ) => {
-      const { cellId, task, data } = action.payload
-      if (!state.grid) {
+      const { cellId, task, data, workspaceId } = action.payload
+      if (
+        !state.grid ||
+        !state.grid[workspaceId] ||
+        !state.grid[workspaceId].cells[cellId]
+      ) {
         return
       }
-      const cell = state.grid.cells[cellId]
+      const cell = state.grid[workspaceId].cells[cellId]
       if (cell) {
-        state.grid.cells[cellId].tasks[task.id] = {
+        state.grid[workspaceId].cells[cellId]!.tasks[task.id] = {
           ...cell.tasks[task.id],
           task: {
             ...task,
@@ -145,9 +178,14 @@ const gridSlice = createSlice({
 
     removeCells: (
       state,
-      action: PayloadAction<{ rowId: string; colId: string; duration: number }>,
+      action: PayloadAction<{
+        rowId: string
+        colId: string
+        duration: number
+        workspaceId: workspaceId
+      }>,
     ) => {
-      const { rowId, colId, duration } = action.payload
+      const { rowId, colId, duration, workspaceId } = action.payload
       if (!state.grid) {
         return
       }
@@ -157,7 +195,7 @@ const gridSlice = createSlice({
         const nextDate = new Date(originalDate)
         nextDate.setDate(originalDate.getDate() + i)
         const nextDateTime = nextDate.getTime()
-        delete state.grid.cells[`${rowId}-${nextDateTime}`]
+        delete state.grid[workspaceId].cells[`${rowId}-${nextDateTime}`]
       }
     },
     // Triggered when the grid fetch starts
@@ -166,8 +204,12 @@ const gridSlice = createSlice({
       state.error = null
     },
     // Triggered when the grid data is successfully fetched or updated
-    setGrid(state, action: PayloadAction<GridType>) {
-      state.grid = action.payload
+    setGrid(
+      state,
+      action: PayloadAction<{ grid: { [id: workspaceId]: GridType } }>,
+    ) {
+      const { grid } = action.payload
+      state.grid = { ...grid, ...state.grid }
       state.loading = false
     },
     // Triggered when fetching or updating the grid fails

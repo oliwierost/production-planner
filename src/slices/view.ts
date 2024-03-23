@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { GridType } from "./grid"
+import { Cell, GridType } from "./grid"
+import _ from "lodash"
 
 // Define the Facility interface
 export interface View {
@@ -15,18 +16,7 @@ export interface View {
     minWidth: number
   }>
   cells?: {
-    [key: string]: {
-      state: string
-      source?: string
-      tasks: {
-        [key: string]: {
-          taskId: string
-          left?: number
-          width?: number
-          duration: number
-        }
-      }
-    }
+    [key: string]: Cell | null
   }
   cellWidth: number
   isEditable?: boolean

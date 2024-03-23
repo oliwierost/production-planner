@@ -1,6 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 // Define the Task interface
+
+export type userId = string
 export interface Credentials {
   email: string
   password: string
