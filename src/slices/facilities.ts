@@ -51,8 +51,15 @@ export const facilitiesSlice = createSlice({
       state.facilities[facility.workspaceId][facility.id] = facility
     },
     // Action to remove a facility by its ID
-    removeFacility: (state, action: PayloadAction<string>) => {
-      delete state.facilities[action.payload]
+    removeFacility: (
+      state,
+      action: PayloadAction<{
+        facilityId: facilityId
+        workspaceId: workspaceId
+      }>,
+    ) => {
+      const { facilityId, workspaceId } = action.payload
+      delete state.facilities[workspaceId][facilityId]
     },
     // Action to assign a task to a facility
     assignTaskToFacility: (

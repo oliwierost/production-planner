@@ -11,12 +11,14 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 import { updateGridStart } from "../../slices/grid"
 import { Facility } from "../../slices/facilities"
 import { CreateFacilityModal } from "../CreateFacilityModal"
+import { Modal } from "../DataPanel"
+import { selectGrid } from "../../selectors/grid"
 
 interface ContextMenuProps {
   open: boolean
   onClose: () => void
-  modalOpen: string | null
-  setModalOpen: React.Dispatch<React.SetStateAction<string | null>>
+  modal: Modal | null
+  setModal: React.Dispatch<React.SetStateAction<Modal | null>>
   isGridUpdated: boolean
   setIsGridUpdated: React.Dispatch<React.SetStateAction<boolean>>
   item: Task | Facility
@@ -32,17 +34,21 @@ export function ContextMenu({
   options,
   isGridUpdated,
   setIsGridUpdated,
-  modalOpen,
-  setModalOpen,
+  modal,
+  setModal,
 }: ContextMenuProps) {
   const dispatch = useAppDispatch()
-  const grid = useAppSelector((state) => state.grid.grid)
+  const projectId = useAppSelector((state) => state.user.user?.openProjectId)
+  const workspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
+  )
+  const grid = useAppSelector((state) => selectGrid(state, workspaceId))
 
   useEffect(() => {
-    if (modalOpen) {
+    if (modal) {
       onClose()
     }
-  }, [modalOpen, onClose])
+  }, [modal, onClose])
 
   useEffect(() => {
     if (isGridUpdated && grid) {
@@ -51,10 +57,12 @@ export function ContextMenu({
     }
   }, [isGridUpdated, dispatch, setIsGridUpdated, grid])
 
+  if (!projectId || !workspaceId) return null
+
   return (
     <>
       <Menu
-        open={modalOpen ? false : open}
+        open={modal ? false : open}
         onClose={onClose}
         anchorReference="anchorPosition"
         anchorPosition={{ top: cursorPosition.top, left: cursorPosition.left }}
@@ -98,18 +106,21 @@ export function ContextMenu({
           ))}
         </MenuList>
       </Menu>
-      {modalOpen == "updateTask" ? (
+      {modal && modal.item == "task" ? (
         <CreateTaskModal
-          setOpen={setModalOpen}
-          open={modalOpen == "updateTask" ? true : false}
+          setModal={setModal}
+          open={modal.open}
           taskId={item.id}
+          projectId={projectId}
+          workspaceId={workspaceId}
         />
       ) : null}
-      {modalOpen == "updateFacility" ? (
+      {modal && modal.item == "facility" ? (
         <CreateFacilityModal
-          setOpen={setModalOpen}
-          open={modalOpen == "updateFacility" ? true : false}
+          setModal={setModal}
+          open={modal.open}
           facilityId={item.id}
+          workspaceId={workspaceId}
         />
       ) : null}
     </>

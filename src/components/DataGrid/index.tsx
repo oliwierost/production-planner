@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { DataGridPro, useGridApiRef } from "@mui/x-data-grid-pro"
 import { Cell } from "../Cell/Cell"
 import { useAppSelector } from "../../hooks"
-import { Facility } from "../../slices/facilities"
 import { selectFacilities } from "../../selectors/facilities"
 
 export function DataGrid() {

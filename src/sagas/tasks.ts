@@ -36,7 +36,6 @@ import {
   setTaskDroppedStart,
   updateTaskStart,
   moveTaskStart,
-  fetchTasksStart,
   setTaskDragged,
   setTaskDraggedStart,
   updateTask,
@@ -50,6 +49,7 @@ import {
   GridType,
   removeCells,
   setCellsOccupied,
+  updateGridStart,
   updateTaskInCell,
 } from "../slices/grid"
 import { setDraggedTask } from "../slices/drag"
@@ -58,6 +58,7 @@ import { userId } from "../slices/user"
 import { projectId } from "../slices/projects"
 import { selectGrid } from "../selectors/grid"
 import { workspaceId } from "../slices/workspaces"
+import { updateGridInFirestore } from "./grid"
 
 const addTaskToFirestore = async ({
   userId,
@@ -79,16 +80,15 @@ const addTaskToFirestore = async ({
 
 export const undropMultipleTasksInFirestore = async (
   userId: string,
-  taskIds: Array<string>,
-  workspaceId: string,
+  tasks: { [id: taskId]: Task },
 ) => {
   const batch = writeBatch(firestore)
-  for (const taskId of taskIds) {
+  for (const task of Object.values(tasks)) {
     const docRef = doc(
       firestore,
-      `users/${userId}/workspaces/${workspaceId}/tasks/${taskId}`,
+      `users/${userId}/workspaces/${task.workspaceId}/tasks/${task.id}`,
     )
-    batch.update(docRef, { startTime: null })
+    batch.update(docRef, { startTime: null, facilityId: null, dropped: false })
   }
   await batch.commit()
 }
@@ -295,11 +295,8 @@ export function* setTaskDroppedSaga(
     const duration = task.duration
     const workspaceId = task.workspaceId
     const userId: string = yield select((state) => state.user.user?.id)
-    yield put(setDraggedTask({ draggableId: null, task: null }))
     if (dropped) {
-      yield put(
-        setCellsOccupied({ rowId, colId, task, workspaceId: workspaceId }),
-      )
+      yield put(setCellsOccupied({ rowId, colId, task, workspaceId }))
       yield put(assignTaskToFacility({ facilityId: rowId, task }))
       yield put(
         updateTask({
@@ -308,9 +305,7 @@ export function* setTaskDroppedSaga(
         }),
       )
     } else {
-      yield put(
-        removeCells({ rowId, colId, duration, workspaceId: workspaceId }),
-      )
+      yield put(removeCells({ rowId, colId, duration, workspaceId }))
       yield put(removeTaskFromFacility({ facilityId: rowId, task }))
       yield put(
         updateTask({
@@ -353,7 +348,6 @@ export function* moveTaskSaga(
   const userId: string = yield select((state) => state.user.user?.id)
   const workspaceId = task.workspaceId
   try {
-    yield put(setDraggedTask({ draggableId: null, task: null }))
     yield put(
       removeCells({
         rowId: sourceRowId,
@@ -487,7 +481,19 @@ export function* updateTaskSaga(
     const { id } = task
     const userId: string = yield select((state) => state.user.user?.id)
     yield put(updateTask({ task, data }))
-    yield call(updateTaskInFirestore, userId, id, data, workspaceId)
+    yield put(
+      updateTaskInCell({
+        cellId: `${task.facilityId}-${task.startTime}`,
+        task,
+        data,
+        workspaceId,
+      }),
+    )
+    const grid: GridType = yield select((state) =>
+      selectGrid(state, workspaceId),
+    )
+    yield call(updateGridStart, grid)
+    yield call(updateTaskInFirestore, userId, id, data, task.workspaceId)
     yield put(
       setToastOpen({ message: "Zaktualizowano zadanie", severity: "success" }),
     )

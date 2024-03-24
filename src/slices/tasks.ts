@@ -3,6 +3,7 @@ import { projectId } from "./projects"
 import { workspaceId } from "./workspaces"
 
 // Define the Task interface
+export type taskId = string
 export interface Task {
   id: string
   title: string
@@ -15,9 +16,8 @@ export interface Task {
   dragged?: boolean
   projectId: projectId
   workspaceId: workspaceId
+  requiredTasks: taskId[]
 }
-
-export type taskId = string
 
 // Define the state structure for tasks
 interface TasksState {
@@ -82,10 +82,25 @@ export const tasksSlice = createSlice({
     ) => {
       const { task, dragged } = action.payload
       if (task) {
-        console.log("adsa", task, dragged)
         state.tasks[task.projectId][task.id].dragged = dragged
       }
     },
+    undropMultipleTasks: (
+      state,
+      action: PayloadAction<{ tasks: { [id: taskId]: Task } }>,
+    ) => {
+      const { tasks } = action.payload
+      Object.values(tasks).forEach((task) => {
+        state.tasks[task.projectId][task.id] = {
+          ...task,
+          dropped: false,
+          dragged: false,
+          startTime: null,
+          facilityId: null,
+        }
+      })
+    },
+
     // You can add more actions here as needed, for example, to mark a task as dropped
     setTaskDropped: (
       state,
@@ -221,6 +236,7 @@ export const {
   updateTasksStart,
   addTaskStart,
   moveTaskStart,
+  undropMultipleTasks,
   deleteTaskStart,
   updateTaskStart,
   setTaskDroppedStart,

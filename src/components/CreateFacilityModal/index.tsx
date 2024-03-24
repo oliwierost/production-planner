@@ -12,15 +12,11 @@ import { Dropdown } from "../Dropdown"
 import { ColorField } from "../ColorField"
 import { NumberField } from "../NumberField"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import {
-  Facility,
-  addFacilityStart,
-  updateFacilityStart,
-} from "../../slices/facilities"
+import { addFacilityStart, updateFacilityStart } from "../../slices/facilities"
 import GroupsIcon from "@mui/icons-material/Groups"
-import { useEffect, useState } from "react"
 import { facilityModalSchema } from "../../../validationSchema"
 import { Modal as ModalType } from "../DataPanel"
+import { selectFacility } from "../../selectors/facilities"
 
 interface CreateFacilityModalProps {
   open: boolean
@@ -92,11 +88,13 @@ export function CreateFacilityModal({
   facilityId,
   workspaceId,
 }: CreateFacilityModalProps) {
-  const [facility, setFacility] = useState<Facility>(initialValues)
   const dispatch = useAppDispatch()
-  const facilities = useAppSelector((state) => state.facilities.facilities)
+
   const user = useAppSelector((state) => state.user.user)
 
+  const facility = useAppSelector((state) =>
+    selectFacility(state, workspaceId, facilityId),
+  )
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setFieldValue: FormikHelpers<FormData>["setFieldValue"],
@@ -105,19 +103,12 @@ export function CreateFacilityModal({
     setFieldValue(name, value)
   }
 
-  useEffect(() => {
-    if (facilityId) {
-      const facility = facilities[facilityId]
-      setFacility(facility)
-    }
-  }, [facilityId, facilities])
-
   const handleSubmit = async (
     values: FormData,
     resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     try {
-      if (!facilityId) {
+      if (!facility) {
         const id = doc(
           collection(
             firestore,
@@ -154,7 +145,7 @@ export function CreateFacilityModal({
   }
   return (
     <Formik
-      initialValues={facility}
+      initialValues={facility ? facility : initialValues}
       validationSchema={facilityModalSchema}
       enableReinitialize
       onSubmit={(values: FormData, { resetForm }) =>

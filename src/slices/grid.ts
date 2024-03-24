@@ -95,7 +95,16 @@ const gridSlice = createSlice({
       }
       state.grid[workspaceId].cells[cellId] = {
         state: "occupied-start",
-        tasks: { [taskId]: { task: { ...task, dragged: false } } },
+        tasks: {
+          [taskId]: {
+            task: {
+              ...task,
+              startTime: colTime,
+              facilityId: rowId,
+              dragged: false,
+            },
+          },
+        },
         source: cellId,
       }
       if (duration > 1) {
@@ -105,7 +114,16 @@ const gridSlice = createSlice({
           const nextDateTime = nextDate.getTime()
           state.grid[workspaceId].cells[`${rowId}-${nextDateTime}`] = {
             state: "occupied",
-            tasks: { [taskId]: { task: { ...task, dragged: false } } },
+            tasks: {
+              [taskId]: {
+                task: {
+                  ...task,
+                  startTime: colTime,
+                  facilityId: rowId,
+                  dragged: false,
+                },
+              },
+            },
             source: cellId,
           }
         }
@@ -114,7 +132,16 @@ const gridSlice = createSlice({
         const lastDateTime = lastDate.getTime()
         state.grid[workspaceId].cells[`${rowId}-${lastDateTime}`] = {
           state: "occupied-end",
-          tasks: { [taskId]: { task: { ...task, dragged: false } } },
+          tasks: {
+            [taskId]: {
+              task: {
+                ...task,
+                startTime: colTime,
+                facilityId: rowId,
+                dragged: false,
+              },
+            },
+          },
           source: cellId,
         }
       }
@@ -141,7 +168,8 @@ const gridSlice = createSlice({
         return
       }
       const { facilityId, workspaceId } = action.payload
-      Object.keys(state.grid.cells).forEach((cellId) => {
+      const cells = state.grid[workspaceId].cells
+      Object.keys(cells).forEach((cellId) => {
         if (cellId.includes(facilityId)) {
           delete state.grid[workspaceId].cells[cellId]
         }
@@ -157,13 +185,7 @@ const gridSlice = createSlice({
       }>,
     ) => {
       const { cellId, task, data, workspaceId } = action.payload
-      if (
-        !state.grid ||
-        !state.grid[workspaceId] ||
-        !state.grid[workspaceId].cells[cellId]
-      ) {
-        return
-      }
+
       const cell = state.grid[workspaceId].cells[cellId]
       if (cell) {
         state.grid[workspaceId].cells[cellId]!.tasks[task.id] = {
@@ -171,6 +193,7 @@ const gridSlice = createSlice({
           task: {
             ...task,
             ...data,
+            dragged: false,
           },
         }
       }

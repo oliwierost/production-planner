@@ -1,6 +1,8 @@
 import { Button, Typography } from "@mui/material"
+import { CSSProperties } from "styled-components"
 
 interface PrimaryButtonProps {
+  disabled?: boolean
   type?: "submit" | "button" | "reset"
   width?: string
   height?: string
@@ -19,9 +21,11 @@ interface PrimaryButtonProps {
   fontWeight?: number
   label: string
   onClick?: React.MouseEventHandler<HTMLButtonElement>
+  sx?: CSSProperties
 }
 
 export function PrimaryButton({
+  disabled = false,
   width = "100%",
   height = "fit-content",
   px = 10,
@@ -31,10 +35,12 @@ export function PrimaryButton({
   label,
   onClick,
   type = "button",
+  sx = {},
 }: PrimaryButtonProps) {
   return (
     <Button
       type={type}
+      disabled={disabled}
       onClick={onClick}
       variant="contained"
       sx={{
@@ -52,6 +58,7 @@ export function PrimaryButton({
           outline: "none",
         },
         borderRadius: 0,
+        ...sx,
       }}
     >
       <Typography variant={fontVariant} fontWeight={fontWeight}>

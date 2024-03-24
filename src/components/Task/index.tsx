@@ -7,23 +7,28 @@ import { useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
 import AccessTimeIcon from "@mui/icons-material/AccessTime"
+import { Modal } from "../DataPanel"
 
 interface TaskProps {
   task: TaskType
 }
 
 export function Task({ task }: TaskProps) {
-  const [modalOpen, setModalOpen] = useState<string | null>(null)
+  const [modal, setModal] = useState<Modal | null>(null)
   const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
   const view = useAppSelector((state) => state.view.view)
+  const workspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
+  )
+  const projectId = useAppSelector((state) => state.user.user?.openProjectId)
+
   const dispatch = useAppDispatch()
   const open = Boolean(anchorEl)
 
   const handleClose = () => {
     setAnchorEl(null)
-    dispatch(setDragDisabled(false))
   }
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -40,9 +45,15 @@ export function Task({ task }: TaskProps) {
     {
       title: "Edytuj",
       onClick: () => {
-        setModalOpen("updateTask")
-        handleClose()
+        if (!workspaceId || !projectId) return
+        setModal({
+          open: true,
+          item: "task",
+          workspaceId: workspaceId,
+          projectId: projectId,
+        })
         dispatch(setDragDisabled(true))
+        handleClose()
       },
       icon: <EditIcon fontSize="small" sx={{ color: "primary.dark" }} />,
     },
@@ -50,6 +61,8 @@ export function Task({ task }: TaskProps) {
       title: "Usuń",
       onClick: () => {
         dispatch(deleteTaskStart({ task }))
+        dispatch(setDragDisabled(false))
+        handleClose()
       },
       icon: (
         <DeleteForeverIcon fontSize="small" sx={{ color: "primary.dark" }} />
@@ -92,8 +105,8 @@ export function Task({ task }: TaskProps) {
         options={contextMenuOptions}
         isGridUpdated={isGridUpdated}
         setIsGridUpdated={setIsGridUpdated}
-        modalOpen={modalOpen}
-        setModalOpen={setModalOpen}
+        modal={modal}
+        setModal={setModal}
       />
     </Stack>
   )

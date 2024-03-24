@@ -58,6 +58,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
                 cellWidth={cellWidth}
                 rowId={rowId}
                 colId={time}
+                isOverlay={false}
               />
             </Stack>
           </Draggable>
@@ -68,6 +69,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
                 cellWidth={cellWidth}
                 rowId={rowId}
                 colId={time}
+                isOverlay
               />
             </Box>
           ) : null}

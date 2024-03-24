@@ -19,6 +19,7 @@ import {
   updateFacilityStart,
   facilityId,
   upsertFacility,
+  removeFacility,
 } from "../slices/facilities"
 import {
   arrayRemove,
@@ -26,6 +27,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  DocumentData,
   getDocs,
   onSnapshot,
   setDoc,
@@ -38,6 +40,12 @@ import CryptoJS from "crypto-js"
 import { userId } from "../slices/user"
 import { workspaceId } from "../slices/workspaces"
 import { projectId } from "../slices/projects"
+import { Task, taskId, undropMultipleTasks } from "../slices/tasks"
+import {
+  selectTasks,
+  selectTasksByIds,
+  selectTasksByIdsInWorkspace,
+} from "../selectors/tasks"
 
 function stableStringify(obj: object) {
   const allKeys: string[] = []
@@ -57,7 +65,7 @@ export const hashObject = (obj: object) => {
 }
 
 export const addFacilityToFirestore = async (
-  userId: string,
+  userId: userId,
   facility: Facility,
 ) => {
   await setDoc(
@@ -70,9 +78,9 @@ export const addFacilityToFirestore = async (
 }
 
 export const deleteFacilityFromFirestore = async (
-  userId: string,
-  facilityId: string,
-  workspaceId: string,
+  userId: userId,
+  facilityId: facilityId,
+  workspaceId: workspaceId,
 ) => {
   await deleteDoc(
     doc(
@@ -83,10 +91,10 @@ export const deleteFacilityFromFirestore = async (
 }
 
 export const assignTaskToFacilityInFirestore = async (
-  userId: string,
-  facilityId: string,
-  taskId: string,
-  workspaceId: string,
+  userId: userId,
+  facilityId: facilityId,
+  taskId: taskId,
+  workspaceId: workspaceId,
 ) => {
   await updateDoc(
     doc(
@@ -100,10 +108,10 @@ export const assignTaskToFacilityInFirestore = async (
 }
 
 export const updateFacilityInFirestore = async (
-  userId: string,
-  taskId: string,
-  updateData: { [key: string]: any },
-  workspaceId: string,
+  userId: userId,
+  taskId: taskId,
+  updateData: { [key: facilityId]: any },
+  workspaceId: workspaceId,
 ) => {
   await updateDoc(
     doc(
@@ -115,10 +123,10 @@ export const updateFacilityInFirestore = async (
 }
 
 export const removeTaskFromFacilityInFirestore = async (
-  userId: string,
-  facilityId: string,
-  taskId: string,
-  workspaceId: string,
+  userId: userId,
+  facilityId: facilityId,
+  taskId: taskId,
+  workspaceId: workspaceId,
 ) => {
   await updateDoc(
     doc(
@@ -131,30 +139,16 @@ export const removeTaskFromFacilityInFirestore = async (
   )
 }
 
-const fetchFacilities = async (userId: string, workspaceId: string) => {
-  const tasks: { [id: string]: Facility } = {}
-  const querySnapshot = await getDocs(
-    collection(
-      firestore,
-      `users/${userId}/workspaces/${workspaceId}/facilities`,
-    ),
-  )
-  querySnapshot.forEach((doc) => {
-    tasks[doc.id] = doc.data() as Facility
-  })
-  return tasks
-}
-
 export function* updateFacilitySaga(
-  action: PayloadAction<{ id: string; data: any }>,
+  action: PayloadAction<{ id: facilityId; data: any }>,
 ): Generator<any, void, any> {
   try {
     const { id, data } = action.payload
-    const userId: string = yield select((state) => state.user.user?.id)
-    const selectedWorkspace: string = yield select(
-      (state) => state.workspaces.selectedWorkspace,
+    const userId: userId = yield select((state) => state.user.user?.id)
+    const workspaceId: workspaceId = yield select(
+      (state) => state.user.user?.openWorkspaceId,
     )
-    yield call(updateFacilityInFirestore, userId, id, data, selectedWorkspace)
+    yield call(updateFacilityInFirestore, userId, id, data, workspaceId)
     yield put(
       setToastOpen({
         message: "Zaktualizowano stanowisko",
@@ -162,13 +156,13 @@ export function* updateFacilitySaga(
       }),
     )
   } catch (error) {
-    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "success" }))
+    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
 }
 
 export function* addFacilitySaga(action: PayloadAction<Facility>) {
   try {
-    const userId: string = yield select((state) => state.user.user?.id)
+    const userId: userId = yield select((state) => state.user.user?.id)
     yield put(upsertFacility(action.payload))
     yield call(addFacilityToFirestore, userId, action.payload)
     yield put(
@@ -191,19 +185,19 @@ export function* deleteFacilitySaga(
   action: PayloadAction<Facility>,
 ): Generator<any, void, any> {
   try {
-    const { id: facilityId, tasks } = action.payload
-    const userId: string = yield select((state) => state.user.user?.uid)
-    const selectedWorkspace: string = yield select(
-      (state) => state.workspaces.selectedWorkspace,
+    const { id: facilityId, tasks: taskIds } = action.payload
+    const userId: userId = yield select((state) => state.user.user?.id)
+    const workspaceId: workspaceId = yield select(
+      (state) => state.user.user?.openWorkspaceId,
     )
-    yield put(removeFacilityFromGrid({ facilityId }))
-    yield call(undropMultipleTasksInFirestore, userId, tasks, selectedWorkspace)
-    yield call(
-      deleteFacilityFromFirestore,
-      userId,
-      facilityId,
-      selectedWorkspace,
+    const tasks: { [id: taskId]: Task } = yield select((state) =>
+      selectTasksByIdsInWorkspace(state, workspaceId, taskIds),
     )
+    yield put(undropMultipleTasks({ tasks }))
+    yield put(removeFacility({ facilityId: facilityId, workspaceId }))
+    yield put(removeFacilityFromGrid({ facilityId, workspaceId }))
+    yield call(undropMultipleTasksInFirestore, userId, tasks)
+    yield call(deleteFacilityFromFirestore, userId, facilityId, workspaceId)
     yield put(
       setToastOpen({
         message: "Facility deleted successfully",
@@ -211,7 +205,12 @@ export function* deleteFacilitySaga(
       }),
     )
   } catch (error) {
-    console.error("Error deleting task:", error)
+    yield put(
+      setToastOpen({
+        message: error.message,
+        severity: "error",
+      }),
+    )
   }
 }
 
@@ -234,14 +233,26 @@ export function* syncFacilitiesSaga() {
         onSnapshot(projectsRef, async (projectsSnapshot) => {
           const facilities = {} as { [id: facilityId]: Facility }
           projectsSnapshot.forEach(
-            (doc) =>
+            (doc: DocumentData) =>
               (facilities[doc.id] = {
                 id: doc.id,
                 ...doc.data(),
               } as Facility),
           )
-          const newProjects = { ...prevFacilities, [workspaceId]: facilities }
-          emitter(newProjects)
+          const sortedFacilities = Object.values(facilities)
+            .sort((a, b) => a.bgcolor.localeCompare(b.bgcolor))
+            .reduce((acc, facility, index) => {
+              acc[facility.id] = {
+                ...facility,
+                index: index,
+              }
+              return acc
+            }, {} as { [id: facilityId]: Facility })
+          const allFacilities = {
+            ...prevFacilities,
+            [workspaceId]: sortedFacilities,
+          }
+          emitter(allFacilities)
         })
       })
     })

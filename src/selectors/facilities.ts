@@ -18,14 +18,14 @@ export const selectFacility = createSelector(
     (
       _: RootState,
       workspaceId: string | null | undefined,
-      facilityId: string,
+      facilityId: string | null | undefined,
     ) => ({
       workspaceId,
       facilityId,
     }),
   ],
   (facilities, { workspaceId, facilityId }) => {
-    if (!facilities || !workspaceId) return null
+    if (!facilities || !workspaceId || !facilityId) return null
 
     const workspaceFacilities = facilities[workspaceId]
     if (!workspaceFacilities) return null

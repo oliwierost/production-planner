@@ -9,8 +9,7 @@ import _ from "lodash"
 export function TaskSlider() {
   const projectId = useAppSelector((state) => state.user.user?.openProjectId)
   const tasks = useAppSelector((state) => selectTasks(state, projectId))
-  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
-  console.log("tasks", draggedTask)
+
   return (
     <Stack width="100%">
       <Stack
@@ -47,7 +46,7 @@ export function TaskSlider() {
           {!_.isEmpty(tasks)
             ? Object.values(tasks).map((task) => (
                 <>
-                  {!task.dropped ? (
+                  {!task.startTime || !task.facilityId ? (
                     <Box key={task.id}>
                       <Draggable id={task.id} data={{ task, sourceId: null }}>
                         <Task task={task} />

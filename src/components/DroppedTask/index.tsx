@@ -18,9 +18,11 @@ import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
 import type { Transform } from "@dnd-kit/utilities"
 import { isEqual } from "lodash"
 import { selectCell } from "../../selectors/grid"
-import SplineLinkExample, { Arrow } from "../../Spline"
-import SplineComponent from "../../Spline"
-import Spline from "../../Spline"
+import { selectTasksByIds } from "../../selectors/tasks"
+import { Arrow } from "react-absolute-svg-arrows"
+import { getCoordsHelper } from "./getCoordsHelper"
+import { Arrows } from "../Arrows"
+import { Modal } from "../DataPanel"
 
 interface Args {
   activatorEvent: Event | null
@@ -42,6 +44,7 @@ interface DroppedTaskProps {
   left?: number | undefined
   rowId: string | number
   colId: number
+  isOverlay: boolean
 }
 
 export const DroppedTask = memo(function DroppedTask({
@@ -50,7 +53,9 @@ export const DroppedTask = memo(function DroppedTask({
   left = 0,
   rowId,
   colId,
+  isOverlay,
 }: DroppedTaskProps) {
+  const requiredTasksIds = task.requiredTasks
   const projectId = useAppSelector(
     (state) => state.user.user?.openProjectId,
     isEqual,
@@ -59,8 +64,10 @@ export const DroppedTask = memo(function DroppedTask({
     (state) => state.user.user?.openWorkspaceId,
     isEqual,
   )
-
-  const [modalOpen, setModalOpen] = useState<string | null>(null)
+  const requiredTasks = useAppSelector((state) =>
+    selectTasksByIds(state, projectId, requiredTasksIds),
+  )
+  const [modal, setModal] = useState<Modal | null>(null)
   const [taskDuration, setTaskDuration] = useState<number>(task?.duration)
   const [isHovered, setIsHovered] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -101,7 +108,14 @@ export const DroppedTask = memo(function DroppedTask({
     {
       title: "Edytuj",
       onClick: () => {
-        setModalOpen("updateTask")
+        if (!projectId || !workspaceId) return
+        setModal({
+          open: true,
+          item: "task",
+          projectId: projectId,
+          workspaceId: workspaceId,
+        })
+        dispatch(setDragDisabled(true))
         handleClose()
       },
       icon: <EditIcon fontSize="small" sx={{ color: "primary.dark" }} />,
@@ -190,6 +204,13 @@ export const DroppedTask = memo(function DroppedTask({
           onDragEnd={handleDragEnd}
           onDragCancel={() => setIsDragging(false)}
         >
+          {requiredTasks && !isOverlay ? (
+            <Arrows
+              task={task}
+              requiredTasks={requiredTasks}
+              newDuration={task.duration}
+            />
+          ) : null}
           <Stack
             onContextMenu={(e) => handleRightClick(e)}
             key={task.id}
@@ -227,15 +248,14 @@ export const DroppedTask = memo(function DroppedTask({
             ) : null}
             <ContextMenu
               options={contextMenuOptions}
-              modalOpen={modalOpen}
-              setModalOpen={setModalOpen}
+              modal={modal}
+              setModal={setModal}
               isGridUpdated={isGridUpdated}
               setIsGridUpdated={setIsGridUpdated}
               open={open}
               cursorPosition={cursorPosition}
               onClose={() => {
                 handleClose()
-                dispatch(setDragDisabled(false))
               }}
               item={task}
             />

@@ -11,20 +11,26 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
 import { updateGridStart } from "../../slices/grid"
 import PersonIcon from "@mui/icons-material/Person"
+import { Modal } from "../DataPanel"
+import { selectGrid } from "../../selectors/grid"
 
 interface FacilityProps {
   facility: FacilityType
 }
 
 export function Facility({ facility }: FacilityProps) {
-  const [modalOpen, setModalOpen] = useState<string | null>(null)
+  const [modal, setModal] = useState<Modal | null>(null)
   const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
 
   const dispatch = useAppDispatch()
   const view = useAppSelector((state) => state.view.view)
-  const gridState = useAppSelector((state) => state.grid)
+  const workspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
+  )
+  const projectId = useAppSelector((state) => state.user.user?.openProjectId)
+  const grid = useAppSelector((state) => selectGrid(state, workspaceId))
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
@@ -46,7 +52,13 @@ export function Facility({ facility }: FacilityProps) {
     {
       title: "Edytuj",
       onClick: () => {
-        setModalOpen("updateFacility")
+        if (!workspaceId || !projectId) return
+        setModal({
+          open: true,
+          item: "facility",
+          workspaceId: workspaceId,
+          projectId: projectId,
+        })
         handleClose()
         dispatch(setDragDisabled(true))
       },
@@ -66,11 +78,11 @@ export function Facility({ facility }: FacilityProps) {
   ]
 
   useEffect(() => {
-    if (isGridUpdated && gridState.grid !== null) {
-      dispatch(updateGridStart(gridState.grid))
+    if (isGridUpdated && grid) {
+      dispatch(updateGridStart(grid))
       setIsGridUpdated(false)
     }
-  }, [isGridUpdated, dispatch, gridState.grid])
+  }, [isGridUpdated, dispatch, grid])
 
   return (
     <>
@@ -97,8 +109,8 @@ export function Facility({ facility }: FacilityProps) {
             options={contextMenuOptions}
             isGridUpdated={isGridUpdated}
             setIsGridUpdated={setIsGridUpdated}
-            modalOpen={modalOpen}
-            setModalOpen={setModalOpen}
+            modal={modal}
+            setModal={setModal}
           />
           <Stack
             direction="row"

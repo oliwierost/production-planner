@@ -46,22 +46,6 @@ export function Draggable({ children, id, data }: DraggableProps) {
         {...listeners}
         {...attributes}
       >
-        <Box sx={{ position: "absolute", top: "50%" }}>
-          <Arrow
-            endPoint={{
-              x: 0,
-              y: 0,
-            }}
-            startPoint={{
-              x: 0 - (transform ? transform.x : 0) + 50,
-              y: 0 - (transform ? transform.y : 0) + 50,
-            }}
-            config={{
-              strokeWidth: 2,
-              arrowColor: "black",
-            }}
-          />
-        </Box>
         {children}
       </button>
     </>

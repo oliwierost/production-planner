@@ -4,6 +4,7 @@ import {
   Active,
   DndContext,
   DragEndEvent,
+  DragMoveEvent,
   DragStartEvent,
   Over,
 } from "@dnd-kit/core"
@@ -35,6 +36,7 @@ import { syncUserStart } from "./slices/user"
 import { auth } from "../firebase.config"
 import { DataPanel } from "./components/DataPanel"
 import { selectGrid } from "./selectors/grid"
+import { setDelta, setDraggedTask } from "./slices/drag"
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -137,6 +139,8 @@ function App() {
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
+    dispatch(setDelta({ x: 0, y: 0 }))
+    dispatch(setDraggedTask(null))
     dispatch(
       setTaskDraggedStart({
         task: event.active.data.current?.task,
@@ -158,6 +162,7 @@ function App() {
   }
 
   const handleDragStart = (event: DragStartEvent) => {
+    dispatch(setDraggedTask(event.active.data.current?.task))
     dispatch(
       setTaskDraggedStart({
         task: event.active.data.current?.task,
@@ -168,11 +173,23 @@ function App() {
   }
 
   const handleDragCancel = (event: DragStartEvent) => {
+    dispatch(setDraggedTask(null))
+    dispatch(setDelta({ x: 0, y: 0 }))
     dispatch(
       setTaskDraggedStart({
         task: event.active.data.current?.task,
         dragged: false,
         cellId: event.active.id as string,
+      }),
+    )
+  }
+
+  const handleDragMove = (event: DragMoveEvent) => {
+    if (event.active.data?.current?.sourceId === null) return
+    dispatch(
+      setDelta({
+        x: event.delta.x,
+        y: event.delta.y,
       }),
     )
   }
@@ -185,6 +202,7 @@ function App() {
             <AuthModal open={isAuthModalOpen} />
             <Toolbar />
             <DndContext
+              onDragMove={handleDragMove}
               onDragEnd={handleDragEnd}
               onDragStart={handleDragStart}
               onDragCancel={handleDragCancel}
