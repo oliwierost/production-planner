@@ -41,6 +41,8 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
     isEqual,
   )
 
+  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
+
   const renderTask = (task: TaskType, idx: number) => {
     if (cell?.state == "occupied-start") {
       return (
@@ -62,17 +64,13 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
               />
             </Stack>
           </Draggable>
-          {task.dragged ? (
-            <Box sx={{ opacity: 0.5, zIndex: 20 }}>
-              <DroppedTask
-                task={task}
-                cellWidth={cellWidth}
-                rowId={rowId}
-                colId={time}
-                isOverlay
-              />
-            </Box>
-          ) : null}
+          <DroppedTask
+            task={task}
+            cellWidth={cellWidth}
+            rowId={rowId}
+            colId={time}
+            isOverlay
+          />
         </>
       )
     }

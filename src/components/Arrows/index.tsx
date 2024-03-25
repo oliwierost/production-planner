@@ -1,14 +1,21 @@
 import { Box } from "@mui/material"
 import { Task, taskId } from "../../slices/tasks"
 import { Arrow } from "./Arrow"
+import { Facility } from "../../slices/facilities"
 
 interface ArrowsProps {
   requiredTasks: { [key: taskId]: Task }
   task: Task
-  newDuration: number
+  taskWidth: number
+  overFacility: Facility | null
 }
 
-export function Arrows({ requiredTasks, task, newDuration }: ArrowsProps) {
+export function Arrows({
+  requiredTasks,
+  task,
+  taskWidth,
+  overFacility,
+}: ArrowsProps) {
   return (
     <>
       {Object.values(requiredTasks).map((requiredTask) => {
@@ -17,7 +24,8 @@ export function Arrows({ requiredTasks, task, newDuration }: ArrowsProps) {
             <Arrow
               fromTask={requiredTask}
               toTask={task}
-              newDuration={newDuration}
+              taskWidth={taskWidth}
+              overFacility={overFacility}
             />
           </Box>
         )

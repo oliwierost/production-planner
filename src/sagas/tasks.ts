@@ -12,7 +12,7 @@ import {
 import { firestore } from "../../firebase.config"
 import {
   assignTaskToFacility,
-  facilityId,
+  Facility,
   removeTaskFromFacility,
 } from "../slices/facilities"
 import {
@@ -21,7 +21,6 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDocs,
   onSnapshot,
   setDoc,
   updateDoc,
@@ -59,6 +58,8 @@ import { projectId } from "../slices/projects"
 import { selectGrid } from "../selectors/grid"
 import { workspaceId } from "../slices/workspaces"
 import { updateGridInFirestore } from "./grid"
+import { selectFacility } from "../selectors/facilities"
+import { calculateTaskDurationHelper } from "../components/DataGrid/calculateTaskDurationHelper"
 
 const addTaskToFirestore = async ({
   userId,
@@ -204,6 +205,7 @@ export const updateTaskInFirestore = async (
   updateData: { [key: string]: any },
   workspaceId: string,
 ) => {
+  console.log("updateData", updateData)
   await updateDoc(
     doc(firestore, `users/${userId}/workspaces/${workspaceId}/tasks/${taskId}`),
     updateData,
@@ -259,13 +261,17 @@ export function* deleteTaskSaga(
     const workspaceId: workspaceId = task.workspaceId
     const facilityId = task.facilityId
     const colId = task.startTime?.toString()
+    const facility = yield select((state) =>
+      selectFacility(state, workspaceId, facilityId),
+    )
+
     const taskId = task.id
     const cellSpan = task.duration
 
     if (facilityId && colId && cellSpan) {
       yield put(
         removeCells({
-          rowId: facilityId,
+          facility: facility,
           colId: colId,
           duration: Number(cellSpan),
           workspaceId,
@@ -295,8 +301,11 @@ export function* setTaskDroppedSaga(
     const duration = task.duration
     const workspaceId = task.workspaceId
     const userId: string = yield select((state) => state.user.user?.id)
+    const facility: Facility = yield select((state) =>
+      selectFacility(state, workspaceId, rowId),
+    )
     if (dropped) {
-      yield put(setCellsOccupied({ rowId, colId, task, workspaceId }))
+      yield put(setCellsOccupied({ facility, colId, task, workspaceId }))
       yield put(assignTaskToFacility({ facilityId: rowId, task }))
       yield put(
         updateTask({
@@ -305,7 +314,7 @@ export function* setTaskDroppedSaga(
         }),
       )
     } else {
-      yield put(removeCells({ rowId, colId, duration, workspaceId }))
+      yield put(removeCells({ facility, colId, duration, workspaceId }))
       yield put(removeTaskFromFacility({ facilityId: rowId, task }))
       yield put(
         updateTask({
@@ -347,17 +356,24 @@ export function* moveTaskSaga(
   const taskId = task.id
   const userId: string = yield select((state) => state.user.user?.id)
   const workspaceId = task.workspaceId
+  const facility = yield select((state) =>
+    selectFacility(state, workspaceId, rowId),
+  )
+  const sourceFacility = yield select((state) =>
+    selectFacility(state, workspaceId, sourceRowId),
+  )
+
   try {
     yield put(
       removeCells({
-        rowId: sourceRowId,
+        facility: sourceFacility,
         colId: sourceColId,
         duration: duration,
         workspaceId,
       }),
     )
     yield put(removeTaskFromFacility({ facilityId: sourceRowId, task }))
-    yield put(setCellsOccupied({ rowId, colId, task, workspaceId }))
+    yield put(setCellsOccupied({ facility, colId, task, workspaceId }))
     yield put(assignTaskToFacility({ facilityId: rowId, task }))
     yield put(
       updateTask({
@@ -401,9 +417,21 @@ export function* resizeTaskSaga(
   const taskDuration = Number(task.duration)
   //get newColId based on the newDuration as days in miliseconds
   const newColId = Number(colId) + newDuration * 24 * 60 * 60 * 1000
+
   try {
     const workspaceId: workspaceId = task.workspaceId
     const userId: string = yield select((state) => state.user.user?.id)
+    const facility: Facility = yield select((state) =>
+      selectFacility(state, workspaceId, rowId),
+    )
+    const actualDuration = calculateTaskDurationHelper({
+      manpower: facility.manpower,
+      duration: task.duration,
+    })
+    const actualNewDuration = calculateTaskDurationHelper({
+      manpower: facility.manpower,
+      duration: newDuration,
+    })
     yield put(
       updateTask({ task, data: { duration: newDuration, dropped: true } }),
     )
@@ -418,20 +446,20 @@ export function* resizeTaskSaga(
     const updatedTask: Task = yield select(
       (state) => state.tasks.tasks[task.projectId][task.id],
     )
-    if (taskDuration < newDuration) {
+    if (actualDuration < actualNewDuration) {
       yield put(
         setCellsOccupied({
-          rowId: rowId,
+          facility,
           colId: colId,
           task: updatedTask,
           workspaceId,
         }),
       )
-    } else if (taskDuration > newDuration) {
+    } else if (actualDuration > actualNewDuration) {
       yield put(
         removeCells({
-          rowId: rowId,
-          duration: task.duration - newDuration,
+          facility,
+          duration: actualDuration - actualNewDuration,
           colId: newColId.toString(),
           workspaceId,
         }),

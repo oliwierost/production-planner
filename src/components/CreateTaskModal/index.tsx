@@ -307,8 +307,8 @@ export function CreateTaskModal({
                               <NumberField
                                 placeholder="Czas"
                                 icon={
-                                  <Typography fontWeight={600}>
-                                    [dni]
+                                  <Typography fontWeight={600} fontSize="14px">
+                                    [dni/os]
                                   </Typography>
                                 }
                                 value={values.duration}

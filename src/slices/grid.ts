@@ -2,7 +2,8 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit"
 import { Task } from "./tasks"
 import { projectId } from "./projects"
 import { workspaceId } from "./workspaces"
-import { facilityId } from "./facilities"
+import { Facility, facilityId } from "./facilities"
+import { calculateTaskDurationHelper } from "../components/DataGrid/calculateTaskDurationHelper"
 
 export interface Cell {
   state: string
@@ -76,16 +77,18 @@ const gridSlice = createSlice({
     setCellsOccupied: (
       state,
       action: PayloadAction<{
-        rowId: string
+        facility: Facility
         colId: string
         task: Task
         workspaceId: workspaceId
       }>,
     ) => {
-      const { rowId, colId, task, workspaceId } = action.payload
+      const { facility, colId, task, workspaceId } = action.payload
+      const { id: rowId, manpower } = facility
       const { id: taskId, duration } = task
       const colTime = Number(colId)
       const originalDate = new Date(colTime)
+      const actualDuration = calculateTaskDurationHelper({ manpower, duration })
 
       const cellId = `${rowId}-${colTime}`
       if (!state.grid[workspaceId]) {
@@ -107,8 +110,8 @@ const gridSlice = createSlice({
         },
         source: cellId,
       }
-      if (duration > 1) {
-        for (let i = 1; i < duration - 1; i++) {
+      if (actualDuration > 1) {
+        for (let i = 1; i < actualDuration - 1; i++) {
           const nextDate = new Date(originalDate)
           nextDate.setDate(originalDate.getDate() + i)
           const nextDateTime = nextDate.getTime()
@@ -128,7 +131,7 @@ const gridSlice = createSlice({
           }
         }
         const lastDate = new Date(originalDate)
-        lastDate.setDate(originalDate.getDate() + (duration - 1))
+        lastDate.setDate(originalDate.getDate() + (actualDuration - 1))
         const lastDateTime = lastDate.getTime()
         state.grid[workspaceId].cells[`${rowId}-${lastDateTime}`] = {
           state: "occupied-end",
@@ -185,7 +188,7 @@ const gridSlice = createSlice({
       }>,
     ) => {
       const { cellId, task, data, workspaceId } = action.payload
-
+      console.log(data)
       const cell = state.grid[workspaceId].cells[cellId]
       if (cell) {
         state.grid[workspaceId].cells[cellId]!.tasks[task.id] = {
@@ -202,19 +205,21 @@ const gridSlice = createSlice({
     removeCells: (
       state,
       action: PayloadAction<{
-        rowId: string
+        facility: Facility
         colId: string
         duration: number
         workspaceId: workspaceId
       }>,
     ) => {
-      const { rowId, colId, duration, workspaceId } = action.payload
+      const { facility, colId, duration, workspaceId } = action.payload
+      const { id: rowId, manpower } = facility
       if (!state.grid) {
         return
       }
       const colTime = Number(colId)
       const originalDate = new Date(colTime)
-      for (let i = 0; i <= duration - 1; i++) {
+      const actualDuration = calculateTaskDurationHelper({ manpower, duration })
+      for (let i = 0; i <= actualDuration - 1; i++) {
         const nextDate = new Date(originalDate)
         nextDate.setDate(originalDate.getDate() + i)
         const nextDateTime = nextDate.getTime()

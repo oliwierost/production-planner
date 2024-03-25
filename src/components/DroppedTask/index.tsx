@@ -9,34 +9,25 @@ import {
   setTaskDroppedStart,
 } from "../../slices/tasks"
 import { ContextMenu } from "../ContextMenu"
-import { memo, useState } from "react"
+import { memo, useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
-import { Active, ClientRect, DndContext, Over } from "@dnd-kit/core"
+import { DndContext, DragMoveEvent } from "@dnd-kit/core"
 import { Draggable } from "../Draggable"
-import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
-import type { Transform } from "@dnd-kit/utilities"
+
 import { isEqual } from "lodash"
 import { selectCell } from "../../selectors/grid"
-import { selectTasksByIds } from "../../selectors/tasks"
-import { Arrow } from "react-absolute-svg-arrows"
-import { getCoordsHelper } from "./getCoordsHelper"
+import { selectTask, selectTasksByIds } from "../../selectors/tasks"
+
 import { Arrows } from "../Arrows"
 import { Modal } from "../DataPanel"
-
-interface Args {
-  activatorEvent: Event | null
-  active: Active | null
-  activeNodeRect: ClientRect | null
-  draggingNodeRect: ClientRect | null
-  containerNodeRect: ClientRect | null
-  over: Over | null
-  overlayNodeRect: ClientRect | null
-  scrollableAncestors: Element[]
-  scrollableAncestorRects: ClientRect[]
-  transform: Transform
-  windowRect: ClientRect | null
-}
+import { selectFacility } from "../../selectors/facilities"
+import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
+import {
+  createSnapModifier,
+  restrictToHorizontalAxis,
+} from "@dnd-kit/modifiers"
+import { ResizeHandle } from "../ResizeHandle"
 
 interface DroppedTaskProps {
   task: Task
@@ -55,7 +46,7 @@ export const DroppedTask = memo(function DroppedTask({
   colId,
   isOverlay,
 }: DroppedTaskProps) {
-  const requiredTasksIds = task.requiredTasks
+  const [isResized, setIsResized] = useState(false)
   const projectId = useAppSelector(
     (state) => state.user.user?.openProjectId,
     isEqual,
@@ -64,6 +55,28 @@ export const DroppedTask = memo(function DroppedTask({
     (state) => state.user.user?.openWorkspaceId,
     isEqual,
   )
+
+  const overFacilityId = useAppSelector(
+    (state) => state.drag.overFacilityId,
+    isEqual,
+  )
+
+  const overFacility = useAppSelector(
+    (state) => selectFacility(state, workspaceId, overFacilityId),
+    isEqual,
+  )
+
+  const currentFacility = useAppSelector(
+    (state) => selectFacility(state, workspaceId, task.facilityId),
+    isEqual,
+  )
+  const droppedTask = useAppSelector(
+    (state) => selectTask(state, task.id, projectId),
+    isEqual,
+  )
+  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
+  const requiredTasksIds = droppedTask!.requiredTasks
+
   const requiredTasks = useAppSelector((state) =>
     selectTasksByIds(state, projectId, requiredTasksIds),
   )
@@ -87,6 +100,7 @@ export const DroppedTask = memo(function DroppedTask({
     (state) => selectCell(state, workspaceId, prevCellKey),
     isEqual,
   )
+  const drag = useAppSelector((state) => state.drag, isEqual)
 
   const cellSpan = task.duration
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -158,16 +172,12 @@ export const DroppedTask = memo(function DroppedTask({
     },
   ]
 
-  function snapToGrid(args: Args) {
-    const { transform } = args
+  const handleDragMove = (event: DragMoveEvent) => {
+    const { delta } = event
     const gridSize = cellWidth
-    const newTransform = {
-      ...transform,
-      x: Math.round(transform.x / gridSize) * gridSize,
-      y: Math.round(transform.y / gridSize) * gridSize,
-    }
+    const newX = Math.round(delta.x / gridSize) * gridSize
     const taskDurationNum = Number(task.duration)
-    const daysDiff = newTransform.x / cellWidth
+    const daysDiff = (newX / cellWidth) * currentFacility!.manpower
     const newDuration = daysDiff + taskDurationNum
     const nextCellState = nextCell?.state
 
@@ -175,11 +185,6 @@ export const DroppedTask = memo(function DroppedTask({
       nextCellState == "occupied-start" ? null : setTaskDuration(newDuration)
     } else if (taskDuration > newDuration) {
       prevCell?.state == "occupied-start" ? null : setTaskDuration(newDuration)
-    }
-    return {
-      ...transform,
-      x: 0,
-      y: 0,
     }
   }
 
@@ -195,26 +200,55 @@ export const DroppedTask = memo(function DroppedTask({
     setIsGridUpdated(true)
   }
 
+  const getTaskWidth = () => {
+    if (
+      drag.draggedTask &&
+      drag.draggedTask.id == task.id &&
+      overFacility &&
+      !isOverlay
+    ) {
+      return calculateTaskWidthHelper({
+        duration: taskDuration,
+        cellWidth: cellWidth,
+        manpower: overFacility!.manpower,
+      })
+    } else {
+      return calculateTaskWidthHelper({
+        duration: taskDuration,
+        cellWidth: cellWidth,
+        manpower: currentFacility!.manpower,
+      })
+    }
+  }
+  const [taskWidth, setTaskWidth] = useState(getTaskWidth())
+
+  useEffect(() => {
+    setTaskWidth(getTaskWidth())
+  }, [currentFacility, overFacility, drag.draggedTask, taskDuration])
+
+  if (!projectId) return null
+
   return (
     <>
       {task ? (
         <DndContext
-          modifiers={[restrictToHorizontalAxis, snapToGrid]}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={handleDragEnd}
           onDragCancel={() => setIsDragging(false)}
+          onDragMove={handleDragMove}
         >
-          {requiredTasks && !isOverlay ? (
+          {requiredTasks && isOverlay && taskWidth ? (
             <Arrows
               task={task}
               requiredTasks={requiredTasks}
-              newDuration={task.duration}
+              taskWidth={taskWidth}
+              overFacility={overFacility}
             />
           ) : null}
           <Stack
             onContextMenu={(e) => handleRightClick(e)}
             key={task.id}
-            width={taskDuration * cellWidth}
+            width={taskWidth}
             height="30px"
             direction="row"
             alignItems="center"
@@ -228,6 +262,13 @@ export const DroppedTask = memo(function DroppedTask({
               borderRadius: 1,
               border: "1px solid black",
               boxSizing: "border-box",
+              display: !isOverlay
+                ? "flex"
+                : draggedTask?.id !== task.id
+                ? "none"
+                : "flex",
+              opacity: isOverlay ? 0.5 : 1,
+              zIndex: isOverlay ? 20 : 1,
             }}
           >
             {task.title ? (
@@ -260,46 +301,12 @@ export const DroppedTask = memo(function DroppedTask({
               item={task}
             />
 
-            <Box
-              sx={{
-                position: "relative",
-                minWidth: "10px",
-                height: "22px",
-                mr: 1,
-                cursor: "col-resize",
-              }}
-            >
-              <Draggable
-                id={task.id + "handle"}
-                data={{
-                  task: task,
-                  sourceId: null,
-                }}
-              >
-                <Box
-                  minWidth={10}
-                  height="22px"
-                  sx={{
-                    borderRadius: "0 4px 4px 0",
-                    backgroundImage: `repeating-linear-gradient(45deg, ${
-                      task.projectId === projectId ? task.bgcolor : "grey.400"
-                    }, ${
-                      task.projectId === projectId ? task.bgcolor : "grey.400"
-                    } 2px, #000000 4px, #000000 2px)`,
-                    backgroundSize: "22px 22px",
-                    border: "1px solid black",
-                    boxSizing: "border-box",
-                    cursor: "col-resize",
-                    display:
-                      (isHovered || isDragging) &&
-                      task.projectId === projectId &&
-                      !task.dragged
-                        ? "block"
-                        : "none",
-                  }}
-                />
-              </Draggable>
-            </Box>
+            <ResizeHandle
+              task={task}
+              isDragging={isDragging}
+              isHovered={isHovered}
+              projectId={projectId}
+            />
           </Stack>
         </DndContext>
       ) : null}

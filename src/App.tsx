@@ -5,6 +5,7 @@ import {
   DndContext,
   DragEndEvent,
   DragMoveEvent,
+  DragOverEvent,
   DragStartEvent,
   Over,
 } from "@dnd-kit/core"
@@ -36,7 +37,9 @@ import { syncUserStart } from "./slices/user"
 import { auth } from "../firebase.config"
 import { DataPanel } from "./components/DataPanel"
 import { selectGrid } from "./selectors/grid"
-import { setDelta, setDraggedTask } from "./slices/drag"
+import { setDelta, setDraggedTask, setOverFacilityId } from "./slices/drag"
+import { selectFacilities } from "./selectors/facilities"
+import { calculateTaskDurationHelper } from "./components/DataGrid/calculateTaskDurationHelper"
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -44,7 +47,9 @@ function App() {
   const monthView = generateMonthView(100)
 
   const user = useAppSelector((state) => state.user.user)
-
+  const facilities = useAppSelector((state) =>
+    selectFacilities(state, user?.openWorkspaceId),
+  )
   const currentUser = auth.currentUser
 
   useEffect(() => {
@@ -76,12 +81,15 @@ function App() {
   const checkCanDrop = (over: Over, active: Active) => {
     const overId = over.id
     const task = active.data.current?.task
-    const cellSpan = task.duration
-
     const [rowId, colId] = (overId as string).split("-")
-    if (!grid) return
+    if (!facilities || !grid) return false
+    const facility = facilities[rowId]
     const increment = 1000 * 60 * 60 * 24
-    for (let i = 0; i < cellSpan * increment; i += increment) {
+    const actualDuration = calculateTaskDurationHelper({
+      manpower: facility.manpower,
+      duration: task.duration,
+    })
+    for (let i = 0; i < actualDuration * increment; i += increment) {
       const cellId = `${rowId}-${Number(colId) + i}`
       if (cellId in grid.cells) {
         const cell = grid.cells[cellId]!
@@ -194,6 +202,16 @@ function App() {
     )
   }
 
+  const handleDragOver = (event: DragOverEvent) => {
+    if (!event.over) {
+      dispatch(setOverFacilityId(null))
+    } else {
+      const cellId = event.over.id as string
+      const facilityId = cellId.split("-")[0]
+      dispatch(setOverFacilityId(facilityId))
+    }
+  }
+
   return (
     <div style={{ maxHeight: "100vh", maxWidth: "100vw", overflow: "hidden" }}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -206,6 +224,7 @@ function App() {
               onDragEnd={handleDragEnd}
               onDragStart={handleDragStart}
               onDragCancel={handleDragCancel}
+              onDragOver={handleDragOver}
               autoScroll={{ enabled: false }}
             >
               <TaskSlider />
