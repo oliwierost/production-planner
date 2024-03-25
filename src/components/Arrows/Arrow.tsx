@@ -54,6 +54,7 @@ export function Arrow({
               duration: fromTask.duration,
               cellWidth: view?.cellWidth,
               manpower: fromFacility?.manpower,
+              daysInCell: view?.daysInCell,
             }),
           y: coords.y,
         }}

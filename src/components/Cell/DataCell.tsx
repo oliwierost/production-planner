@@ -1,14 +1,15 @@
 import { Draggable } from "../Draggable"
 import { Droppable } from "../Droppable"
 import { DroppedTask } from "../DroppedTask"
-import { Box, Stack } from "@mui/material"
+import { Stack } from "@mui/material"
 import { useAppSelector } from "../../hooks"
 import { Task as TaskType } from "../../slices/tasks"
 import { Deadlines } from "../Deadlines"
 import { memo } from "react"
-import { isEqual } from "lodash"
-import { selectCell } from "../../selectors/grid"
+import _, { isEqual } from "lodash"
+import { selectTasksFromCells } from "../../selectors/grid"
 import { selectFacility } from "../../selectors/facilities"
+import { selectTimestampsFromMapping } from "../../selectors/view"
 
 interface DataCellProps {
   cellWidth: number
@@ -36,44 +37,44 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
   )
   const rowIndex = facility?.index
 
-  const cell = useAppSelector(
-    (state) => selectCell(state, workspaceId, cellKey),
+  const taskTimestamps = useAppSelector(
+    (state) => selectTimestampsFromMapping(state, time),
     isEqual,
   )
 
-  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
+  const tasks = useAppSelector((state) =>
+    selectTasksFromCells(state, workspaceId, facility?.id, taskTimestamps),
+  )
 
   const renderTask = (task: TaskType, idx: number) => {
-    if (cell?.state == "occupied-start") {
-      return (
-        <>
-          <Draggable
-            id={cellKey}
-            data={{
-              task,
-              sourceId: cellKey,
-            }}
-          >
-            <Stack height="100%" width={cellWidth}>
-              <DroppedTask
-                task={task}
-                cellWidth={cellWidth}
-                rowId={rowId}
-                colId={time}
-                isOverlay={false}
-              />
-            </Stack>
-          </Draggable>
-          <DroppedTask
-            task={task}
-            cellWidth={cellWidth}
-            rowId={rowId}
-            colId={time}
-            isOverlay
-          />
-        </>
-      )
-    }
+    return (
+      <>
+        <Draggable
+          id={cellKey}
+          data={{
+            task,
+            sourceId: cellKey,
+          }}
+        >
+          <Stack height="100%" width={cellWidth}>
+            <DroppedTask
+              task={task}
+              cellWidth={cellWidth}
+              rowId={rowId}
+              colId={time}
+              isOverlay={false}
+            />
+          </Stack>
+        </Draggable>
+        <DroppedTask
+          task={task}
+          cellWidth={cellWidth}
+          rowId={rowId}
+          colId={time}
+          isOverlay
+        />
+      </>
+    )
   }
   return (
     <Stack
@@ -93,9 +94,8 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
     >
       <Droppable id={cellKey}>
         <>
-          {cell?.tasks
-            ? Object.values(cell.tasks).map((taskInCell, idx) => {
-                const task = taskInCell.task
+          {tasks && !_.isEmpty(tasks)
+            ? Object.values(tasks).map((task, idx) => {
                 return renderTask(task, idx)
               })
             : null}

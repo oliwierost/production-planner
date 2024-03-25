@@ -1,7 +1,7 @@
 import EditIcon from "@mui/icons-material/Edit"
 import DeleteIcon from "@mui/icons-material/Delete"
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
-import { Box, Stack, Typography } from "@mui/material"
+import { Stack, Typography } from "@mui/material"
 import {
   Task,
   deleteTaskStart,
@@ -13,7 +13,6 @@ import { memo, useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
 import { DndContext, DragMoveEvent } from "@dnd-kit/core"
-import { Draggable } from "../Draggable"
 
 import { isEqual } from "lodash"
 import { selectCell } from "../../selectors/grid"
@@ -23,16 +22,13 @@ import { Arrows } from "../Arrows"
 import { Modal } from "../DataPanel"
 import { selectFacility } from "../../selectors/facilities"
 import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
-import {
-  createSnapModifier,
-  restrictToHorizontalAxis,
-} from "@dnd-kit/modifiers"
+
 import { ResizeHandle } from "../ResizeHandle"
+import { calculateTaskLeftOffsetHelper } from "../DataGrid/calculateTaskLeftOffsetHelper"
 
 interface DroppedTaskProps {
   task: Task
   cellWidth: number
-  left?: number | undefined
   rowId: string | number
   colId: number
   isOverlay: boolean
@@ -41,12 +37,10 @@ interface DroppedTaskProps {
 export const DroppedTask = memo(function DroppedTask({
   task,
   cellWidth,
-  left = 0,
   rowId,
   colId,
   isOverlay,
 }: DroppedTaskProps) {
-  const [isResized, setIsResized] = useState(false)
   const projectId = useAppSelector(
     (state) => state.user.user?.openProjectId,
     isEqual,
@@ -201,6 +195,7 @@ export const DroppedTask = memo(function DroppedTask({
   }
 
   const getTaskWidth = () => {
+    if (!view) return 0
     if (
       drag.draggedTask &&
       drag.draggedTask.id == task.id &&
@@ -211,17 +206,27 @@ export const DroppedTask = memo(function DroppedTask({
         duration: taskDuration,
         cellWidth: cellWidth,
         manpower: overFacility!.manpower,
+        daysInCell: view?.daysInCell,
       })
     } else {
       return calculateTaskWidthHelper({
         duration: taskDuration,
         cellWidth: cellWidth,
         manpower: currentFacility!.manpower,
+        daysInCell: view?.daysInCell,
       })
     }
   }
-  const [taskWidth, setTaskWidth] = useState(getTaskWidth())
 
+  const [taskWidth, setTaskWidth] = useState(getTaskWidth())
+  const [leftOffset, _] = useState(
+    calculateTaskLeftOffsetHelper(
+      task.startTime!,
+      colId,
+      cellWidth,
+      view?.daysInCell!,
+    ),
+  )
   useEffect(() => {
     setTaskWidth(getTaskWidth())
   }, [currentFacility, overFacility, drag.draggedTask, taskDuration])
@@ -237,7 +242,10 @@ export const DroppedTask = memo(function DroppedTask({
           onDragCancel={() => setIsDragging(false)}
           onDragMove={handleDragMove}
         >
-          {requiredTasks && isOverlay && taskWidth ? (
+          {requiredTasks &&
+          isOverlay &&
+          taskWidth &&
+          view?.name == "1 mies." ? (
             <Arrows
               task={task}
               requiredTasks={requiredTasks}
@@ -245,6 +253,7 @@ export const DroppedTask = memo(function DroppedTask({
               overFacility={overFacility}
             />
           ) : null}
+
           <Stack
             onContextMenu={(e) => handleRightClick(e)}
             key={task.id}
@@ -253,7 +262,6 @@ export const DroppedTask = memo(function DroppedTask({
             direction="row"
             alignItems="center"
             justifyContent="space-between"
-            left={left}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             sx={{
@@ -268,7 +276,8 @@ export const DroppedTask = memo(function DroppedTask({
                 ? "none"
                 : "flex",
               opacity: isOverlay ? 0.5 : 1,
-              zIndex: isOverlay ? 20 : 1,
+              zIndex: isOverlay ? 20 : 10,
+              transform: `translateX(${leftOffset}px)`,
             }}
           >
             {task.title ? (

@@ -1,8 +1,7 @@
 import { useDraggable } from "@dnd-kit/core"
 import { useAppSelector } from "../../hooks"
 import { Task } from "../../slices/tasks"
-import { Box } from "@mui/material"
-import { Arrow } from "react-absolute-svg-arrows"
+
 interface DraggableProps {
   children: React.ReactNode
   id: string
@@ -14,8 +13,9 @@ interface DraggableProps {
 
 export function Draggable({ children, id, data }: DraggableProps) {
   const view = useAppSelector((state) => state.view.view)
-  const disabled = useAppSelector((state) => state.drag.disabled)
+  const drag = useAppSelector((state) => state.drag)
   const projectId = useAppSelector((state) => state.user.user?.openProjectId)
+  const { disabled, draggedTask } = drag
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
@@ -39,7 +39,7 @@ export function Draggable({ children, id, data }: DraggableProps) {
             data.task.projectId === projectId && view?.isEditable
               ? "grab"
               : "default",
-          zIndex: data.task.dragged ? 100 : 10,
+          zIndex: draggedTask?.id === data.task.id ? 100 : 1,
           position: transform ? "fixed" : "initial",
           ...style,
         }}

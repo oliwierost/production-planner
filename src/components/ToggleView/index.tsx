@@ -17,6 +17,7 @@ import ViewDayIcon from "@mui/icons-material/ViewDay"
 import { ViewTimeline } from "@mui/icons-material"
 import { Tooltip } from "@mui/material"
 import { setDragDisabled } from "../../slices/drag"
+import { NUM_OF_DAYS, START_DATE } from "../../App"
 
 interface ToggleViewProps {}
 
@@ -37,8 +38,7 @@ export function ToggleView({}: ToggleViewProps) {
         case "year":
           dispatch(
             setYearView({
-              view: generateYearView(1000),
-              grid: cellStateMap,
+              view: generateYearView(NUM_OF_DAYS, START_DATE),
             }),
           )
           dispatch(setDragDisabled(true))
@@ -46,15 +46,14 @@ export function ToggleView({}: ToggleViewProps) {
         case "3months.":
           dispatch(
             setQuarterView({
-              view: generateQuarterYearView(1000),
-              grid: cellStateMap,
+              view: generateQuarterYearView(NUM_OF_DAYS, START_DATE),
             }),
           )
           dispatch(setDragDisabled(true))
           break
         case "1month.":
           dispatch(
-            setMonthView({ view: generateMonthView(1000), grid: cellStateMap }),
+            setMonthView({ view: generateMonthView(NUM_OF_DAYS, START_DATE) }),
           )
           dispatch(setDragDisabled(false))
           break

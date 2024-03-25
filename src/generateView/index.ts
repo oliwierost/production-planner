@@ -14,8 +14,8 @@ export const getYear = (date: Date): number => {
   return date.getFullYear()
 }
 
-export const generateMonthView = (numberOfColumns: number) => {
-  const numOfCellsInViewport = 12
+export const generateMonthView = (numberOfColumns: number, startDate: Date) => {
+  const numOfCellsInViewport = 20
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
 
   const headerBottomData = [
@@ -32,7 +32,7 @@ export const generateMonthView = (numberOfColumns: number) => {
 
   headerBottomData.push(
     ...Array.from({ length: numberOfColumns }, (_, i) => {
-      const date = new Date(2024, 1, 1, 0, 0)
+      const date = new Date(startDate)
       date.setDate(i + 1)
       return {
         field: "date" + i,
@@ -58,10 +58,14 @@ export const generateMonthView = (numberOfColumns: number) => {
     headerTopData,
     headerBottomData,
     cellWidth,
+    daysInCell: 1,
   }
 }
 
-export const generateQuarterYearView = (numberOfColumns: number) => {
+export const generateQuarterYearView = (
+  numberOfColumns: number,
+  startDate: Date,
+) => {
   const numOfCellsInViewport = 12 // maximum is 12
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
   const headerBottomData = [
@@ -78,7 +82,7 @@ export const generateQuarterYearView = (numberOfColumns: number) => {
 
   headerBottomData.push(
     ...Array.from({ length: numberOfColumns }, (_, i) => {
-      const dateStart = new Date(2024, 1, 1, 0, 0)
+      const dateStart = new Date(startDate)
       dateStart.setDate(1 + 7 * i)
       return {
         field: "date" + i,
@@ -101,10 +105,11 @@ export const generateQuarterYearView = (numberOfColumns: number) => {
     headerTopData,
     headerBottomData,
     cellWidth,
+    daysInCell: 7,
   }
 }
 
-export const generateYearView = (numberOfColumns: number) => {
+export const generateYearView = (numberOfColumns: number, startDate: Date) => {
   const numOfCellsInViewport = 12 // maximum is 12
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
   const headerBottomData = [
@@ -121,7 +126,7 @@ export const generateYearView = (numberOfColumns: number) => {
 
   headerBottomData.push(
     ...Array.from({ length: numberOfColumns }, (_, i) => {
-      const date = new Date(2024, 1, 1, 0, 0)
+      const date = new Date(startDate)
       date.setMonth(1 + i)
       return {
         field: "date" + i,
@@ -144,5 +149,6 @@ export const generateYearView = (numberOfColumns: number) => {
     headerTopData,
     headerBottomData,
     cellWidth,
+    daysInCell: 30,
   }
 }

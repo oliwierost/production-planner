@@ -1,5 +1,6 @@
 import { createSelector } from "reselect"
-import { RootState } from "../store" // Adjust the import path based on your actual file structure
+import { RootState } from "../store"
+import { Task } from "../slices/tasks"
 
 export const selectGrid = createSelector(
   [
@@ -33,5 +34,38 @@ export const selectCell = createSelector(
     } else {
       return null
     }
+  },
+)
+
+export const selectTasksFromCells = createSelector(
+  [
+    (state: RootState) => state.grid.grid,
+    (
+      _: RootState,
+      workspaceId: string | null | undefined,
+      facilityId: string | null | undefined,
+      timestamps: number[] | null | undefined,
+    ) => ({ workspaceId, facilityId, timestamps }),
+  ],
+  (grid, { workspaceId, facilityId, timestamps }) => {
+    if (!grid || !workspaceId || !facilityId || !timestamps) return null
+
+    const workspaceCells = grid[workspaceId]?.cells
+    if (!workspaceCells) return null
+
+    const tasks = {} as { [taskId: string]: Task }
+    timestamps.forEach((timestamp) => {
+      const cellKey = `${facilityId}-${timestamp}`
+      const cell = workspaceCells[cellKey]
+
+      if (cell && cell.state === "occupied-start") {
+        Object.values(cell.tasks).forEach((task) => {
+          const taskData = task.task
+          tasks[taskData.id] = taskData
+        })
+      }
+    })
+
+    return tasks
   },
 )

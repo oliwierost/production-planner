@@ -25,7 +25,7 @@ import {
 } from "./slices/tasks"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import { setToastClose, setToastOpen } from "./slices/toast"
-import { setMonthView } from "./slices/view"
+import { initializeMappings, setMonthView } from "./slices/view"
 import { TimelineToolbar } from "./components/TimelineToolbar"
 import { syncFacilitiesStart } from "./slices/facilities"
 import { initializeGridStart, syncGridStart } from "./slices/grid"
@@ -40,11 +40,20 @@ import { selectGrid } from "./selectors/grid"
 import { setDelta, setDraggedTask, setOverFacilityId } from "./slices/drag"
 import { selectFacilities } from "./selectors/facilities"
 import { calculateTaskDurationHelper } from "./components/DataGrid/calculateTaskDurationHelper"
+import {
+  generateMonthMapping,
+  generateWeekMapping,
+} from "./components/ToggleView/generateTimeMappings"
+
+export const NUM_OF_DAYS = 100
+export const START_DATE = new Date(2024, 1, 1, 0, 0)
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const dispatch = useAppDispatch()
-  const monthView = generateMonthView(100)
+  const monthView = generateMonthView(NUM_OF_DAYS, START_DATE)
+  const monthMapping = generateMonthMapping(NUM_OF_DAYS, START_DATE)
+  const weekMapping = generateWeekMapping(NUM_OF_DAYS, START_DATE)
 
   const user = useAppSelector((state) => state.user.user)
   const facilities = useAppSelector((state) =>
@@ -58,6 +67,15 @@ function App() {
       dispatch(syncUserStart(user?.uid))
     })
   }, [currentUser])
+
+  useEffect(() => {
+    dispatch(
+      initializeMappings({
+        monthMapping: monthMapping,
+        weekMapping: weekMapping,
+      }),
+    )
+  }, [])
 
   useEffect(() => {
     dispatch(syncWorkspacesStart())
@@ -75,7 +93,7 @@ function App() {
   )
 
   useEffect(() => {
-    if (grid) dispatch(setMonthView({ view: monthView, grid: grid }))
+    if (grid) dispatch(setMonthView({ view: monthView }))
   }, [dispatch, grid])
 
   const checkCanDrop = (over: Over, active: Active) => {

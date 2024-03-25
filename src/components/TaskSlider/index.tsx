@@ -1,7 +1,6 @@
 import { Stack, Divider, Box } from "@mui/material"
 import { Draggable } from "../Draggable"
 import { useAppSelector } from "../../hooks"
-import { Task as TaskType } from "../../slices/tasks"
 import { Task } from "../Task"
 import { selectTasks } from "../../selectors/tasks"
 import _ from "lodash"
@@ -45,7 +44,7 @@ export function TaskSlider() {
         >
           {!_.isEmpty(tasks)
             ? Object.values(tasks).map((task) => (
-                <>
+                <Box key={task.id}>
                   {!task.startTime || !task.facilityId ? (
                     <Box key={task.id}>
                       <Draggable id={task.id} data={{ task, sourceId: null }}>
@@ -58,7 +57,7 @@ export function TaskSlider() {
                       ) : null}
                     </Box>
                   ) : null}
-                </>
+                </Box>
               ))
             : null}
         </Stack>

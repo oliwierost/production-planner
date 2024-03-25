@@ -180,6 +180,7 @@ export function DataPanel() {
                                         direction="row"
                                         justifyContent="space-between"
                                         alignItems="center"
+                                        key={task.id}
                                       >
                                         <Typography
                                           pl={3}
