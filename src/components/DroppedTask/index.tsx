@@ -25,8 +25,11 @@ import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
 
 import { ResizeHandle } from "../ResizeHandle"
 import { calculateTaskLeftOffsetHelper } from "../DataGrid/calculateTaskLeftOffsetHelper"
+import { current } from "@reduxjs/toolkit"
 
 interface DroppedTaskProps {
+  isResized: boolean
+  setIsResized: React.Dispatch<React.SetStateAction<boolean>>
   task: Task
   cellWidth: number
   rowId: string | number
@@ -35,6 +38,8 @@ interface DroppedTaskProps {
 }
 
 export const DroppedTask = memo(function DroppedTask({
+  isResized,
+  setIsResized,
   task,
   cellWidth,
   rowId,
@@ -68,23 +73,32 @@ export const DroppedTask = memo(function DroppedTask({
     (state) => selectTask(state, task.id, projectId),
     isEqual,
   )
-  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
-  const requiredTasksIds = droppedTask!.requiredTasks
 
+  if (!droppedTask) return null
+  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
+
+  const requiredTasksIds = droppedTask!.requiredTasks
   const requiredTasks = useAppSelector((state) =>
     selectTasksByIds(state, projectId, requiredTasksIds),
   )
+
   const [modal, setModal] = useState<Modal | null>(null)
   const [taskDuration, setTaskDuration] = useState<number>(task?.duration)
   const [isHovered, setIsHovered] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
   const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
   const dispatch = useAppDispatch()
   const view = useAppSelector((state) => state.view.view, isEqual)
-  const nextCellKey = `${rowId}-${colId + taskDuration * 86400000}`
-  const prevCellKey = `${rowId}-${colId + (taskDuration - 1) * 86400000}`
+
+  if (!currentFacility) return null
+
+  const nextCellKey = `${rowId}-${
+    colId + (taskDuration * 86400000) / currentFacility.manpower
+  }`
+  const prevCellKey = `${rowId}-${
+    colId + ((taskDuration - 1) * 86400000) / currentFacility.manpower
+  }`
 
   const nextCell = useAppSelector(
     (state) => selectCell(state, workspaceId, nextCellKey),
@@ -173,17 +187,28 @@ export const DroppedTask = memo(function DroppedTask({
     const taskDurationNum = Number(task.duration)
     const daysDiff = (newX / cellWidth) * currentFacility!.manpower
     const newDuration = daysDiff + taskDurationNum
+
+    const newDurationRounded =
+      Math.round(newDuration / currentFacility!.manpower) *
+      currentFacility!.manpower
+
     const nextCellState = nextCell?.state
 
-    if (taskDuration < newDuration) {
-      nextCellState == "occupied-start" ? null : setTaskDuration(newDuration)
-    } else if (taskDuration > newDuration) {
-      prevCell?.state == "occupied-start" ? null : setTaskDuration(newDuration)
+    if (newDurationRounded <= currentFacility!.manpower) {
+      setTaskDuration(currentFacility!.manpower)
+    } else if (taskDuration < newDurationRounded) {
+      nextCellState == "occupied-start"
+        ? null
+        : setTaskDuration(newDurationRounded)
+    } else if (taskDuration > newDurationRounded) {
+      prevCell?.state == "occupied-start"
+        ? null
+        : setTaskDuration(newDurationRounded)
     }
   }
 
   const handleDragEnd = () => {
-    setIsDragging(false)
+    setIsResized(false)
     dispatch(
       resizeTaskStart({
         task: task,
@@ -231,15 +256,19 @@ export const DroppedTask = memo(function DroppedTask({
     setTaskWidth(getTaskWidth())
   }, [currentFacility, overFacility, drag.draggedTask, taskDuration])
 
+  useEffect(() => {
+    setTaskDuration(task.duration)
+  }, [task.duration])
+
   if (!projectId) return null
 
   return (
     <>
       {task ? (
         <DndContext
-          onDragStart={() => setIsDragging(true)}
+          onDragStart={() => setIsResized(true)}
           onDragEnd={handleDragEnd}
-          onDragCancel={() => setIsDragging(false)}
+          onDragCancel={() => setIsResized(false)}
           onDragMove={handleDragMove}
         >
           {requiredTasks &&
@@ -270,13 +299,12 @@ export const DroppedTask = memo(function DroppedTask({
               borderRadius: 1,
               border: "1px solid black",
               boxSizing: "border-box",
-              display: !isOverlay
-                ? "flex"
-                : draggedTask?.id !== task.id
-                ? "none"
-                : "flex",
+              display:
+                !isOverlay || draggedTask?.id === task.id || isResized
+                  ? "flex"
+                  : "none",
               opacity: isOverlay ? 0.5 : 1,
-              zIndex: isOverlay ? 20 : 10,
+              zIndex: isOverlay ? 10 : 20,
               transform: `translateX(${leftOffset}px)`,
             }}
           >
@@ -310,12 +338,14 @@ export const DroppedTask = memo(function DroppedTask({
               item={task}
             />
 
-            <ResizeHandle
-              task={task}
-              isDragging={isDragging}
-              isHovered={isHovered}
-              projectId={projectId}
-            />
+            {view?.name == "1 mies." ? (
+              <ResizeHandle
+                task={task}
+                isResized={isResized}
+                isHovered={isHovered}
+                projectId={projectId}
+              />
+            ) : null}
           </Stack>
         </DndContext>
       ) : null}

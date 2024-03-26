@@ -31,7 +31,7 @@ export function Draggable({ children, id, data }: DraggableProps) {
 
   return (
     <>
-      <button
+      <div
         ref={setNodeRef}
         style={{
           all: "unset",
@@ -39,7 +39,7 @@ export function Draggable({ children, id, data }: DraggableProps) {
             data.task.projectId === projectId && view?.isEditable
               ? "grab"
               : "default",
-          zIndex: draggedTask?.id === data.task.id ? 100 : 1,
+          zIndex: draggedTask?.id === data.task.id ? 100 : 30,
           position: transform ? "fixed" : "initial",
           ...style,
         }}
@@ -47,7 +47,7 @@ export function Draggable({ children, id, data }: DraggableProps) {
         {...attributes}
       >
         {children}
-      </button>
+      </div>
     </>
   )
 }

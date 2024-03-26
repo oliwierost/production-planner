@@ -13,8 +13,8 @@ import { Form, Formik, FormikHelpers } from "formik"
 import { ColorField } from "../ColorField"
 import { NumberField } from "../NumberField"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { Task, addTaskStart, taskId, updateTaskStart } from "../../slices/tasks"
-import { useEffect, useState } from "react"
+import { addTaskStart, taskId, updateTaskStart } from "../../slices/tasks"
+import { useState } from "react"
 import { setDragDisabled } from "../../slices/drag"
 import { taskModalSchema } from "../../../validationSchema"
 import { DateField } from "../DateField"
@@ -23,13 +23,7 @@ import { Modal as ModalType } from "../DataPanel"
 import { selectFacilities } from "../../selectors/facilities"
 import { selectTask, selectTasks } from "../../selectors/tasks"
 import _ from "lodash"
-import {
-  ArrowBackIosSharp,
-  ArrowBackSharp,
-  ArrowLeft,
-  ArrowRight,
-  ArrowRightAlt,
-} from "@mui/icons-material"
+import { ArrowRightAlt } from "@mui/icons-material"
 
 interface CreateTaskModalProps {
   open: boolean
@@ -47,6 +41,7 @@ interface FormData {
   facilityId: string | null
   bgcolor: string
   requiredTasks: string[]
+  requiredByTasks: string[]
 }
 
 const colorOptions = [
@@ -82,6 +77,7 @@ const initialValues = {
   facilityId: null,
   bgcolor: "",
   requiredTasks: [] as taskId[],
+  requiredByTasks: [] as taskId[],
 }
 
 export function CreateTaskModal({

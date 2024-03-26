@@ -42,6 +42,8 @@ import {
   resizeTaskStart,
   taskId,
   removeTask,
+  updateRequiredTasks,
+  updateRequiredByTasks,
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
 import {
@@ -49,17 +51,14 @@ import {
   removeCells,
   setCellsOccupied,
   updateGridStart,
-  updateTaskInCell,
 } from "../slices/grid"
-import { setDraggedTask } from "../slices/drag"
-import { hashObject } from "./facilities"
+
 import { userId } from "../slices/user"
 import { projectId } from "../slices/projects"
 import { selectGrid } from "../selectors/grid"
 import { workspaceId } from "../slices/workspaces"
-import { updateGridInFirestore } from "./grid"
+
 import { selectFacility } from "../selectors/facilities"
-import { calculateTaskDurationHelper } from "../components/DataGrid/calculateTaskDurationHelper"
 
 const addTaskToFirestore = async ({
   userId,
@@ -90,6 +89,40 @@ export const undropMultipleTasksInFirestore = async (
       `users/${userId}/workspaces/${task.workspaceId}/tasks/${task.id}`,
     )
     batch.update(docRef, { startTime: null, facilityId: null, dropped: false })
+  }
+  await batch.commit()
+}
+
+export const updateRequiredTasksInFirestore = async (
+  requiredTasks: taskId[],
+  workspaceId: workspaceId,
+  userId: string,
+  taskId: taskId,
+) => {
+  const batch = writeBatch(firestore)
+  for (const requiredTaskId of requiredTasks) {
+    const docRef = doc(
+      firestore,
+      `users/${userId}/workspaces/${workspaceId}/tasks/${requiredTaskId}`,
+    )
+    batch.update(docRef, { requiredByTasks: arrayUnion(taskId) })
+  }
+  await batch.commit()
+}
+
+export const updateRequiredByTasksInFirestore = async (
+  requiredByTasks: taskId[],
+  workspaceId: workspaceId,
+  userId: string,
+  taskId: taskId,
+) => {
+  const batch = writeBatch(firestore)
+  for (const requiredByTaskId of requiredByTasks) {
+    const docRef = doc(
+      firestore,
+      `users/${userId}/workspaces/${workspaceId}/tasks/${requiredByTaskId}`,
+    )
+    batch.update(docRef, { requiredTasks: arrayRemove(taskId) })
   }
   await batch.commit()
 }
@@ -205,7 +238,6 @@ export const updateTaskInFirestore = async (
   updateData: { [key: string]: any },
   workspaceId: string,
 ) => {
-  console.log("updateData", updateData)
   await updateDoc(
     doc(firestore, `users/${userId}/workspaces/${workspaceId}/tasks/${taskId}`),
     updateData,
@@ -238,12 +270,32 @@ export function* addTaskSaga(
   action: PayloadAction<{ task: Task; workspaceId: string }>,
 ) {
   try {
+    const { task, workspaceId } = action.payload
     const userId: string = yield select((state) => state.user.user.id)
-    yield put(upsertTask(action.payload.task))
+    yield put(upsertTask(task))
+    if (task.requiredTasks.length > 0) {
+      yield put(
+        updateRequiredTasks({
+          requiredTasks: task.requiredTasks,
+          projectId: task.projectId,
+          taskId: task.id,
+        }),
+      )
+    }
     yield call(addTaskToFirestore, {
-      ...action.payload,
+      task,
+      workspaceId,
       userId,
     })
+    if (task.requiredTasks.length > 0) {
+      yield call(
+        updateRequiredTasksInFirestore,
+        task.requiredTasks,
+        workspaceId,
+        userId,
+        task.id,
+      )
+    }
     yield put(setToastOpen({ message: "Dodano zadanie", severity: "success" }))
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
@@ -275,6 +327,15 @@ export function* deleteTaskSaga(
           colId: colId,
           duration: Number(cellSpan),
           workspaceId,
+        }),
+      )
+    }
+    if (task.requiredByTasks.length > 0) {
+      yield put(
+        updateRequiredByTasks({
+          requiredByTasks: task.requiredByTasks,
+          taskId: task.id,
+          projectId: task.projectId,
         }),
       )
     }
@@ -337,7 +398,9 @@ export function* setTaskDroppedSaga(
       workspaceId,
     )
   } catch (error) {
-    yield put(setToastOpen({ message: error.message, severity: "error" }))
+    yield put(
+      setToastOpen({ message: "Error dropping task", severity: "error" }),
+    )
   }
 }
 
@@ -414,62 +477,40 @@ export function* resizeTaskSaga(
   const { cellId, task, newDuration } = action.payload
 
   const [rowId, colId] = cellId.split("-")
-  const taskDuration = Number(task.duration)
   //get newColId based on the newDuration as days in miliseconds
-  const newColId = Number(colId) + newDuration * 24 * 60 * 60 * 1000
-
   try {
     const workspaceId: workspaceId = task.workspaceId
     const userId: string = yield select((state) => state.user.user?.id)
     const facility: Facility = yield select((state) =>
       selectFacility(state, workspaceId, rowId),
     )
-    const actualDuration = calculateTaskDurationHelper({
-      manpower: facility.manpower,
-      duration: task.duration,
-    })
-    const actualNewDuration = calculateTaskDurationHelper({
-      manpower: facility.manpower,
-      duration: newDuration,
-    })
     yield put(
       updateTask({ task, data: { duration: newDuration, dropped: true } }),
     )
     yield put(
-      updateTaskInCell({
-        cellId,
-        task,
-        data: { duration: newDuration },
-        workspaceId: workspaceId,
+      removeCells({
+        facility,
+        duration: task.duration,
+        colId: colId,
+        workspaceId,
       }),
     )
-    const updatedTask: Task = yield select(
-      (state) => state.tasks.tasks[task.projectId][task.id],
+    yield put(
+      setCellsOccupied({
+        facility,
+        colId: colId,
+        task: {
+          ...task,
+          duration: newDuration,
+          dropped: true,
+        },
+        workspaceId,
+      }),
     )
-    if (actualDuration < actualNewDuration) {
-      yield put(
-        setCellsOccupied({
-          facility,
-          colId: colId,
-          task: updatedTask,
-          workspaceId,
-        }),
-      )
-    } else if (actualDuration > actualNewDuration) {
-      yield put(
-        removeCells({
-          facility,
-          duration: actualDuration - actualNewDuration,
-          colId: newColId.toString(),
-          workspaceId,
-        }),
-      )
-    }
 
     const grid: GridType = yield select((state) =>
       selectGrid(state, workspaceId),
     )
-
     yield call(
       resizeTaskInFirestore,
       userId,
@@ -479,25 +520,16 @@ export function* resizeTaskSaga(
       grid,
     )
   } catch (error) {
-    yield put(setToastOpen({ message: error.message, severity: "error" }))
+    yield put(
+      setToastOpen({ message: "Error resizing task", severity: "error" }),
+    )
   }
 }
 
 export function* setTaskDraggedSaga(
   action: PayloadAction<{ task: Task; cellId?: string; dragged: boolean }>,
 ): Generator<any, void, any> {
-  const { task, cellId, dragged } = action.payload
-  const workspaceId = task.workspaceId
-  if (cellId) {
-    yield put(
-      updateTaskInCell({
-        cellId,
-        task,
-        data: { dragged: dragged },
-        workspaceId,
-      }),
-    )
-  }
+  const { task, dragged } = action.payload
   yield put(setTaskDragged({ task, dragged }))
 }
 
@@ -506,27 +538,41 @@ export function* updateTaskSaga(
 ): Generator<any, void, any> {
   try {
     const { task, data, workspaceId } = action.payload
-    const { id } = task
+    const id = task.id
+    const requiredTasks = data.requiredTasks
     const userId: string = yield select((state) => state.user.user?.id)
     yield put(updateTask({ task, data }))
-    yield put(
-      updateTaskInCell({
-        cellId: `${task.facilityId}-${task.startTime}`,
-        task,
-        data,
-        workspaceId,
-      }),
-    )
+    if (requiredTasks.length > 0) {
+      yield put(
+        updateRequiredTasks({
+          requiredTasks: requiredTasks,
+          taskId: id,
+          projectId: task.projectId,
+        }),
+      )
+    }
     const grid: GridType = yield select((state) =>
       selectGrid(state, workspaceId),
     )
     yield call(updateGridStart, grid)
     yield call(updateTaskInFirestore, userId, id, data, task.workspaceId)
+    if (requiredTasks.length > 0) {
+      yield call(
+        updateRequiredTasksInFirestore,
+        requiredTasks,
+        workspaceId,
+        userId,
+        task.id,
+      )
+    }
     yield put(
-      setToastOpen({ message: "Zaktualizowano zadanie", severity: "success" }),
+      setToastOpen({
+        message: "Zaktualizowano zadanie",
+        severity: "success",
+      }),
     )
   } catch (error) {
-    yield put(setToastOpen({ message: "Wysąpił błąd", severity: "error" }))
+    yield put(setToastOpen({ message: error.message, severity: "error" }))
   }
 }
 

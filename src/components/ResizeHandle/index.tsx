@@ -3,20 +3,23 @@ import { Box } from "@mui/material"
 import { Draggable } from "../Draggable"
 import { projectId } from "../../slices/projects"
 import { Task } from "../../slices/tasks"
+import { useAppSelector } from "../../hooks"
 
 interface ResizeHandleProps {
   task: Task
   projectId: projectId
   isHovered: boolean
-  isDragging: boolean
+  isResized: boolean
 }
 
 export function ResizeHandle({
   task,
   projectId,
   isHovered,
-  isDragging,
+  isResized,
 }: ResizeHandleProps) {
+  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
+
   return (
     <Box
       sx={{
@@ -24,7 +27,14 @@ export function ResizeHandle({
         minWidth: "10px",
         height: "22px",
         mr: 1,
-        cursor: "col-resize",
+
+        display:
+          isHovered &&
+          !isResized &&
+          task.projectId === projectId &&
+          draggedTask?.id !== task.id
+            ? "block"
+            : "none",
       }}
     >
       <Draggable
@@ -48,13 +58,6 @@ export function ResizeHandle({
             border: "1px solid black",
             boxSizing: "border-box",
             cursor: "col-resize",
-            display:
-              isHovered &&
-              !isDragging &&
-              task.projectId === projectId &&
-              !task.dragged
-                ? "block"
-                : "none",
           }}
         />
       </Draggable>

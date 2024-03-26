@@ -1,15 +1,13 @@
-import { Draggable } from "../Draggable"
 import { Droppable } from "../Droppable"
-import { DroppedTask } from "../DroppedTask"
 import { Stack } from "@mui/material"
 import { useAppSelector } from "../../hooks"
-import { Task as TaskType } from "../../slices/tasks"
 import { Deadlines } from "../Deadlines"
 import { memo } from "react"
 import _, { isEqual } from "lodash"
-import { selectTasksFromCells } from "../../selectors/grid"
+import { selectTaskIdsFromCells } from "../../selectors/grid"
 import { selectFacility } from "../../selectors/facilities"
 import { selectTimestampsFromMapping } from "../../selectors/view"
+import { TaskWithOverlay } from "../TaskWithOverlay"
 
 interface DataCellProps {
   cellWidth: number
@@ -31,6 +29,11 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
     isEqual,
   )
 
+  const projectId = useAppSelector(
+    (state) => state.user.user?.openProjectId,
+    isEqual,
+  )
+
   const facility = useAppSelector(
     (state) => selectFacility(state, workspaceId, rowId as string),
     isEqual,
@@ -42,40 +45,10 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
     isEqual,
   )
 
-  const tasks = useAppSelector((state) =>
-    selectTasksFromCells(state, workspaceId, facility?.id, taskTimestamps),
+  const taskIds = useAppSelector((state) =>
+    selectTaskIdsFromCells(state, workspaceId, facility?.id, taskTimestamps),
   )
 
-  const renderTask = (task: TaskType, idx: number) => {
-    return (
-      <>
-        <Draggable
-          id={cellKey}
-          data={{
-            task,
-            sourceId: cellKey,
-          }}
-        >
-          <Stack height="100%" width={cellWidth}>
-            <DroppedTask
-              task={task}
-              cellWidth={cellWidth}
-              rowId={rowId}
-              colId={time}
-              isOverlay={false}
-            />
-          </Stack>
-        </Draggable>
-        <DroppedTask
-          task={task}
-          cellWidth={cellWidth}
-          rowId={rowId}
-          colId={time}
-          isOverlay
-        />
-      </>
-    )
-  }
   return (
     <Stack
       alignItems="center"
@@ -94,9 +67,19 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
     >
       <Droppable id={cellKey}>
         <>
-          {tasks && !_.isEmpty(tasks)
-            ? Object.values(tasks).map((task, idx) => {
-                return renderTask(task, idx)
+          {taskIds && taskIds.length > 0 && projectId
+            ? taskIds.map((taskId, idx) => {
+                return (
+                  <TaskWithOverlay
+                    key={idx}
+                    taskId={taskId}
+                    cellKey={cellKey}
+                    cellWidth={cellWidth}
+                    rowId={rowId as string}
+                    time={time}
+                    projectId={projectId}
+                  />
+                )
               })
             : null}
         </>

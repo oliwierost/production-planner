@@ -17,6 +17,7 @@ export interface Task {
   projectId: projectId
   workspaceId: workspaceId
   requiredTasks: taskId[]
+  requiredByTasks: taskId[]
 }
 
 // Define the state structure for tasks
@@ -109,6 +110,47 @@ export const tasksSlice = createSlice({
       const { task, dropped } = action.payload
       if (task) {
         state.tasks[task.projectId][task.id].dropped = dropped
+      }
+    },
+    updateRequiredTasks: (
+      state,
+      action: PayloadAction<{
+        taskId: taskId
+        requiredTasks: taskId[]
+        projectId: projectId
+      }>,
+    ) => {
+      const { taskId, requiredTasks, projectId } = action.payload
+      if (projectId && taskId) {
+        requiredTasks.forEach((requiredTaskId) => {
+          const requiredByTasks =
+            state.tasks[projectId][requiredTaskId].requiredByTasks
+          if (!requiredByTasks.includes(taskId)) {
+            state.tasks[projectId][taskId].requiredByTasks.push(taskId)
+          }
+        })
+      }
+    },
+    updateRequiredByTasks: (
+      state,
+      action: PayloadAction<{
+        taskId: taskId
+        requiredByTasks: taskId[]
+        projectId: projectId
+      }>,
+    ) => {
+      const { taskId, requiredByTasks, projectId } = action.payload
+      if (projectId && taskId) {
+        requiredByTasks.forEach((requiredByTaskId) => {
+          const requiredTasks =
+            state.tasks[projectId][requiredByTaskId].requiredTasks
+          if (requiredTasks.includes(taskId)) {
+            const index = requiredTasks.indexOf(taskId)
+            if (index !== -1) {
+              requiredTasks.splice(index, 1)
+            }
+          }
+        })
       }
     },
     setTasks(
@@ -238,6 +280,8 @@ export const {
   moveTaskStart,
   undropMultipleTasks,
   deleteTaskStart,
+  updateRequiredByTasks,
+  updateRequiredTasks,
   updateTaskStart,
   setTaskDroppedStart,
   resizeTaskStart,

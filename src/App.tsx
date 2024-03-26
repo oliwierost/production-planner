@@ -44,6 +44,7 @@ import {
   generateMonthMapping,
   generateWeekMapping,
 } from "./components/ToggleView/generateTimeMappings"
+import { snapCenterToCursor } from "@dnd-kit/modifiers"
 
 export const NUM_OF_DAYS = 100
 export const START_DATE = new Date(2024, 1, 1, 0, 0)
@@ -107,11 +108,12 @@ function App() {
       manpower: facility.manpower,
       duration: task.duration,
     })
+
     for (let i = 0; i < actualDuration * increment; i += increment) {
       const cellId = `${rowId}-${Number(colId) + i}`
       if (cellId in grid.cells) {
         const cell = grid.cells[cellId]!
-        if (Object.keys(cell.tasks).some((tid) => tid !== task.id)) {
+        if (cell.taskId !== task.id) {
           dispatch(
             setTaskDraggedStart({
               task: active.data.current?.task,
@@ -244,6 +246,7 @@ function App() {
               onDragCancel={handleDragCancel}
               onDragOver={handleDragOver}
               autoScroll={{ enabled: false }}
+              modifiers={[snapCenterToCursor]}
             >
               <TaskSlider />
               <TimelineToolbar />
