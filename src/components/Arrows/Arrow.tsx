@@ -45,7 +45,12 @@ export function Arrow({
   if (!view) return
 
   return (
-    <a>
+    <Box
+      sx={{
+        position: "absolute",
+        top: "50%",
+      }}
+    >
       <SvgArrow
         startPoint={{
           x:
@@ -69,6 +74,6 @@ export function Arrow({
           dotEndingRadius: 5,
         }}
       />
-    </a>
+    </Box>
   )
 }

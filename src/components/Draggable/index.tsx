@@ -26,7 +26,7 @@ export function Draggable({ children, id, data }: DraggableProps) {
   const style = transform
     ? {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        transition: "transform 0.07s ease-out",
+        transition: "transform 0.1s linear",
       }
     : undefined
 
@@ -42,7 +42,7 @@ export function Draggable({ children, id, data }: DraggableProps) {
             !data.task.locked &&
             !draggedTask
               ? "grab"
-              : "none",
+              : "initial",
           zIndex: draggedTask?.id === data.task.id ? 100 : 30,
           position: transform ? "fixed" : "initial",
           ...style,

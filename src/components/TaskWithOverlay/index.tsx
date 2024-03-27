@@ -31,8 +31,13 @@ export function TaskWithOverlay({
 
   if (!task) return null
   return (
-    <Box>
-      <Stack position="absolute" height="100%" top="50%" maxWidth={cellWidth}>
+    <Box height="100%">
+      <Stack
+        position="absolute"
+        height="100%"
+        maxWidth={cellWidth}
+        justifyContent="center"
+      >
         <Draggable
           id={taskId + "-cell"}
           data={{
@@ -40,12 +45,7 @@ export function TaskWithOverlay({
             sourceId: cellKey,
           }}
         >
-          <Box
-            maxWidth={cellWidth}
-            sx={{
-              border: "1px solid red",
-            }}
-          >
+          <Box maxWidth={cellWidth} height="100%">
             <DroppedTask
               isResized={isResized}
               setIsResized={setIsResized}
@@ -58,7 +58,13 @@ export function TaskWithOverlay({
           </Box>
         </Draggable>
       </Stack>
-      <Box position="absolute" zIndex={20} height="100%" top="50%">
+      <Stack
+        position="absolute"
+        height="100%"
+        maxWidth={cellWidth}
+        justifyContent="center"
+        zIndex={20}
+      >
         <DroppedTask
           isResized={isResized}
           setIsResized={setIsResized}
@@ -68,7 +74,7 @@ export function TaskWithOverlay({
           colId={time}
           isOverlay
         />
-      </Box>
+      </Stack>
     </Box>
   )
 }

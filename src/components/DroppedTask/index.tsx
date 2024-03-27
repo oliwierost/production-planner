@@ -335,7 +335,7 @@ export const DroppedTask = memo(function DroppedTask({
                   : "none",
               opacity: isOverlay ? 0.5 : 1,
               zIndex: isOverlay ? 10 : 30,
-              transform: `translateX(${leftOffset}px) translateY(-50%)`,
+              transform: `translateX(${leftOffset}px)`,
             }}
           >
             {task.title &&
