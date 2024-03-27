@@ -20,6 +20,7 @@ import {
   facilityId,
   upsertFacility,
   removeFacility,
+  updateFacility,
 } from "../slices/facilities"
 import {
   arrayRemove,
@@ -140,15 +141,17 @@ export const removeTaskFromFacilityInFirestore = async (
 }
 
 export function* updateFacilitySaga(
-  action: PayloadAction<{ id: facilityId; data: any }>,
+  action: PayloadAction<{ facility: Facility; data: any }>,
 ): Generator<any, void, any> {
   try {
-    const { id, data } = action.payload
+    const { facility, data } = action.payload
+    const facilityId: facilityId = facility.id
     const userId: userId = yield select((state) => state.user.user?.id)
     const workspaceId: workspaceId = yield select(
       (state) => state.user.user?.openWorkspaceId,
     )
-    yield call(updateFacilityInFirestore, userId, id, data, workspaceId)
+    yield put(updateFacility({ facility, data }))
+    yield call(updateFacilityInFirestore, userId, facilityId, data, workspaceId)
     yield put(
       setToastOpen({
         message: "Zaktualizowano stanowisko",

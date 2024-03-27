@@ -4,13 +4,14 @@ import {
   Active,
   DndContext,
   DragEndEvent,
-  DragMoveEvent,
   DragOverEvent,
   DragStartEvent,
+  MouseSensor,
   Over,
+  useSensor,
 } from "@dnd-kit/core"
 import { Toolbar } from "./components/Toolbar"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { DataGrid } from "./components/DataGrid"
 import { ThemeProvider } from "@mui/material/styles"
 import { theme } from "../theme"
@@ -19,7 +20,6 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { generateMonthView } from "./generateView"
 import {
   moveTaskStart,
-  setTaskDraggedStart,
   setTaskDroppedStart,
   syncTasksStart,
 } from "./slices/tasks"
@@ -37,7 +37,7 @@ import { syncUserStart } from "./slices/user"
 import { auth } from "../firebase.config"
 import { DataPanel } from "./components/DataPanel"
 import { selectGrid } from "./selectors/grid"
-import { setDelta, setDraggedTask, setOverFacilityId } from "./slices/drag"
+import { setDraggedTask, setOverFacilityId } from "./slices/drag"
 import { selectFacilities } from "./selectors/facilities"
 import { calculateTaskDurationHelper } from "./components/DataGrid/calculateTaskDurationHelper"
 import {
@@ -60,6 +60,7 @@ function App() {
   const facilities = useAppSelector((state) =>
     selectFacilities(state, user?.openWorkspaceId),
   )
+  const rootRef = useRef<HTMLDivElement>(null)
   const currentUser = auth.currentUser
 
   useEffect(() => {
@@ -115,13 +116,6 @@ function App() {
         const cell = grid.cells[cellId]!
         if (cell.taskId !== task.id) {
           dispatch(
-            setTaskDraggedStart({
-              task: active.data.current?.task,
-              dragged: false,
-              cellId: active.id as string,
-            }),
-          )
-          dispatch(
             setToastOpen({
               message: "Wykryto kolizję",
               severity: "error",
@@ -152,8 +146,8 @@ function App() {
   const handleDragEndBetweenCells = (over: Over, active: Active) => {
     const startCellId = over.id as string
     const task = active.data.current?.task
+    const sourceId = active.data.current?.sourceId
     const [rowId, colId] = startCellId.split("-")
-    const sourceId = active.id as string
     const [sourceRowId, sourceColId] = sourceId.split("-")
     dispatch(
       moveTaskStart({
@@ -167,13 +161,9 @@ function App() {
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    dispatch(setDelta({ x: 0, y: 0 }))
-    dispatch(setDraggedTask(null))
     dispatch(
-      setTaskDraggedStart({
-        task: event.active.data.current?.task,
-        dragged: false,
-        cellId: event.active.id as string,
+      setDraggedTask({
+        task: null,
       }),
     )
     if (!event.over) {
@@ -190,34 +180,13 @@ function App() {
   }
 
   const handleDragStart = (event: DragStartEvent) => {
-    dispatch(setDraggedTask(event.active.data.current?.task))
-    dispatch(
-      setTaskDraggedStart({
-        task: event.active.data.current?.task,
-        dragged: true,
-        cellId: event.active.id as string,
-      }),
-    )
+    dispatch(setDraggedTask({ task: event.active.data.current?.task }))
   }
 
   const handleDragCancel = (event: DragStartEvent) => {
-    dispatch(setDraggedTask(null))
-    dispatch(setDelta({ x: 0, y: 0 }))
     dispatch(
-      setTaskDraggedStart({
-        task: event.active.data.current?.task,
-        dragged: false,
-        cellId: event.active.id as string,
-      }),
-    )
-  }
-
-  const handleDragMove = (event: DragMoveEvent) => {
-    if (event.active.data?.current?.sourceId === null) return
-    dispatch(
-      setDelta({
-        x: event.delta.x,
-        y: event.delta.y,
+      setDraggedTask({
+        task: null,
       }),
     )
   }
@@ -227,26 +196,42 @@ function App() {
       dispatch(setOverFacilityId(null))
     } else {
       const cellId = event.over.id as string
-      const facilityId = cellId.split("-")[0]
+      const delimiterIndex = cellId.indexOf("-")
+      const facilityId =
+        delimiterIndex !== -1 ? cellId.substring(0, delimiterIndex) : cellId
+
       dispatch(setOverFacilityId(facilityId))
     }
   }
 
+  //create mouse sensor
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 3,
+    },
+  })
+
   return (
-    <div style={{ maxHeight: "100vh", maxWidth: "100vw", overflow: "hidden" }}>
+    <div
+      style={{
+        maxHeight: "100vh",
+        maxWidth: "100vw",
+        overflow: "hidden",
+      }}
+    >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={theme}>
           <Stack width="100vw" height="100vh">
             <AuthModal open={isAuthModalOpen} />
             <Toolbar />
             <DndContext
-              onDragMove={handleDragMove}
               onDragEnd={handleDragEnd}
               onDragStart={handleDragStart}
               onDragCancel={handleDragCancel}
               onDragOver={handleDragOver}
               autoScroll={{ enabled: false }}
               modifiers={[snapCenterToCursor]}
+              sensors={[mouseSensor]}
             >
               <TaskSlider />
               <TimelineToolbar />

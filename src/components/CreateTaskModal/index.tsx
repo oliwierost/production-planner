@@ -42,6 +42,7 @@ interface FormData {
   bgcolor: string
   requiredTasks: string[]
   requiredByTasks: string[]
+  locked: boolean
 }
 
 const colorOptions = [
@@ -78,6 +79,7 @@ const initialValues = {
   bgcolor: "",
   requiredTasks: [] as taskId[],
   requiredByTasks: [] as taskId[],
+  locked: false,
 }
 
 export function CreateTaskModal({

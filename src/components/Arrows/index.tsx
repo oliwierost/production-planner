@@ -17,19 +17,17 @@ export function Arrows({
   overFacility,
 }: ArrowsProps) {
   return (
-    <>
+    <a>
       {Object.values(requiredTasks).map((requiredTask) => {
         return (
-          <Box sx={{ position: "absolute", top: "50%" }}>
-            <Arrow
-              fromTask={requiredTask}
-              toTask={task}
-              taskWidth={taskWidth}
-              overFacility={overFacility}
-            />
-          </Box>
+          <Arrow
+            fromTask={requiredTask}
+            toTask={task}
+            taskWidth={taskWidth}
+            overFacility={overFacility}
+          />
         )
       })}
-    </>
+    </a>
   )
 }

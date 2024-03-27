@@ -13,11 +13,11 @@ export interface Task {
   dropped: boolean // Indicates if the task has been placed on the grid
   facilityId: string | null
   startTime: number | null
-  dragged?: boolean
   projectId: projectId
   workspaceId: workspaceId
   requiredTasks: taskId[]
   requiredByTasks: taskId[]
+  locked: boolean
 }
 
 // Define the state structure for tasks
@@ -74,18 +74,7 @@ export const tasksSlice = createSlice({
         state.tasks[task.projectId][task.id] = { ...task, ...data }
       }
     },
-    setTaskDragged: (
-      state,
-      action: PayloadAction<{
-        task: Task
-        dragged: boolean
-      }>,
-    ) => {
-      const { task, dragged } = action.payload
-      if (task) {
-        state.tasks[task.projectId][task.id].dragged = dragged
-      }
-    },
+
     undropMultipleTasks: (
       state,
       action: PayloadAction<{ tasks: { [id: taskId]: Task } }>,
@@ -95,7 +84,6 @@ export const tasksSlice = createSlice({
         state.tasks[task.projectId][task.id] = {
           ...task,
           dropped: false,
-          dragged: false,
           startTime: null,
           facilityId: null,
         }
@@ -143,8 +131,8 @@ export const tasksSlice = createSlice({
       if (projectId && taskId) {
         requiredByTasks.forEach((requiredByTaskId) => {
           const requiredTasks =
-            state.tasks[projectId][requiredByTaskId].requiredTasks
-          if (requiredTasks.includes(taskId)) {
+            state.tasks[projectId][requiredByTaskId]?.requiredTasks
+          if (requiredTasks && requiredTasks.includes(taskId)) {
             const index = requiredTasks.indexOf(taskId)
             if (index !== -1) {
               requiredTasks.splice(index, 1)
@@ -207,17 +195,16 @@ export const tasksSlice = createSlice({
       state.error = null
       console.info("resizeTaskStart", action.payload)
     },
-    setTaskDraggedStart(
+    setTaskLockedStart(
       state,
       action: PayloadAction<{
         task: Task
-        dragged: boolean
-        cellId?: string
+        locked: boolean
       }>,
     ) {
       state.loading = true
       state.error = null
-      console.info("setTaskDraggedStart", action.payload)
+      console.info("setTaskLockedStart", action.payload)
     },
     moveTaskStart(
       state,
@@ -279,6 +266,7 @@ export const {
   addTaskStart,
   moveTaskStart,
   undropMultipleTasks,
+  setTaskLockedStart,
   deleteTaskStart,
   updateRequiredByTasks,
   updateRequiredTasks,
@@ -286,8 +274,6 @@ export const {
   setTaskDroppedStart,
   resizeTaskStart,
   syncTasksStart,
-  setTaskDragged,
-  setTaskDraggedStart,
 } = tasksSlice.actions
 
 // Export the reducer

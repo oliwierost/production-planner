@@ -26,15 +26,6 @@ export function ResizeHandle({
         position: "relative",
         minWidth: "10px",
         height: "22px",
-        mr: 1,
-
-        display:
-          isHovered &&
-          !isResized &&
-          task.projectId === projectId &&
-          draggedTask?.id !== task.id
-            ? "block"
-            : "none",
       }}
     >
       <Draggable
@@ -58,6 +49,14 @@ export function ResizeHandle({
             border: "1px solid black",
             boxSizing: "border-box",
             cursor: "col-resize",
+            display:
+              isHovered &&
+              !isResized &&
+              task.projectId === projectId &&
+              draggedTask?.id !== task.id &&
+              !task.locked
+                ? "block"
+                : "none",
           }}
         />
       </Draggable>

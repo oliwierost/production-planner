@@ -1,21 +1,27 @@
 import EditIcon from "@mui/icons-material/Edit"
 import DeleteIcon from "@mui/icons-material/Delete"
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
-import { Stack, Typography } from "@mui/material"
+import { IconButton, Stack, Typography } from "@mui/material"
 import {
   Task,
   deleteTaskStart,
   resizeTaskStart,
   setTaskDroppedStart,
+  setTaskLockedStart,
 } from "../../slices/tasks"
 import { ContextMenu } from "../ContextMenu"
-import { memo, useEffect, useState } from "react"
+import React, { memo, useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { setDragDisabled } from "../../slices/drag"
-import { DndContext, DragMoveEvent } from "@dnd-kit/core"
+import { setDragDisabled, setDraggedTask } from "../../slices/drag"
+import {
+  DndContext,
+  DragMoveEvent,
+  MouseSensor,
+  useSensor,
+} from "@dnd-kit/core"
 
 import { isEqual } from "lodash"
-import { selectCell } from "../../selectors/grid"
+import { getDaysToNextDefinedCell, selectCell } from "../../selectors/grid"
 import { selectTask, selectTasksByIds } from "../../selectors/tasks"
 
 import { Arrows } from "../Arrows"
@@ -26,6 +32,7 @@ import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
 import { ResizeHandle } from "../ResizeHandle"
 import { calculateTaskLeftOffsetHelper } from "../DataGrid/calculateTaskLeftOffsetHelper"
 import { current } from "@reduxjs/toolkit"
+import { Lock, LockOpen } from "@mui/icons-material"
 
 interface DroppedTaskProps {
   isResized: boolean
@@ -219,6 +226,14 @@ export const DroppedTask = memo(function DroppedTask({
     setIsGridUpdated(true)
   }
 
+  const handleDragStart = () => {
+    setIsResized(true)
+  }
+
+  const handleDragCancel = () => {
+    setIsResized(false)
+  }
+
   const getTaskWidth = () => {
     if (!view) return 0
     if (
@@ -260,16 +275,31 @@ export const DroppedTask = memo(function DroppedTask({
     setTaskDuration(task.duration)
   }, [task.duration])
 
+  const handleLock = () => {
+    dispatch(
+      setTaskLockedStart({
+        task: task,
+        locked: !task.locked,
+      }),
+    )
+  }
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 3,
+    },
+  })
+
   if (!projectId) return null
 
   return (
     <>
       {task ? (
         <DndContext
-          onDragStart={() => setIsResized(true)}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          onDragCancel={() => setIsResized(false)}
+          onDragCancel={handleDragCancel}
           onDragMove={handleDragMove}
+          sensors={[mouseSensor]}
         >
           {requiredTasks &&
           isOverlay &&
@@ -282,7 +312,6 @@ export const DroppedTask = memo(function DroppedTask({
               overFacility={overFacility}
             />
           ) : null}
-
           <Stack
             onContextMenu={(e) => handleRightClick(e)}
             key={task.id}
@@ -294,6 +323,7 @@ export const DroppedTask = memo(function DroppedTask({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             sx={{
+              transition: "width 0.1s ease", // Apply transition inline
               bgcolor: task.projectId === projectId ? task.bgcolor : "grey.400",
               color: "background.default",
               borderRadius: 1,
@@ -304,11 +334,13 @@ export const DroppedTask = memo(function DroppedTask({
                   ? "flex"
                   : "none",
               opacity: isOverlay ? 0.5 : 1,
-              zIndex: isOverlay ? 10 : 20,
-              transform: `translateX(${leftOffset}px)`,
+              zIndex: isOverlay ? 10 : 30,
+              transform: `translateX(${leftOffset}px) translateY(-50%)`,
             }}
           >
-            {task.title ? (
+            {task.title &&
+            view?.name !== "1 rok" &&
+            task.duration > currentFacility.manpower ? (
               <Typography
                 variant="body2"
                 fontWeight={700}
@@ -337,14 +369,37 @@ export const DroppedTask = memo(function DroppedTask({
               }}
               item={task}
             />
-
             {view?.name == "1 mies." ? (
-              <ResizeHandle
-                task={task}
-                isResized={isResized}
-                isHovered={isHovered}
-                projectId={projectId}
-              />
+              <Stack
+                direction="row"
+                mr={1}
+                height="100%"
+                alignItems="center"
+                justifySelf="flex-end"
+              >
+                <IconButton
+                  sx={{
+                    color: "white",
+                    "&:focus": {
+                      outline: "none",
+                    },
+                  }}
+                  onClick={handleLock}
+                >
+                  {task.locked ? (
+                    <Lock fontSize="small" />
+                  ) : (
+                    <LockOpen fontSize="small" />
+                  )}
+                </IconButton>
+
+                <ResizeHandle
+                  task={task}
+                  isResized={isResized}
+                  isHovered={isHovered}
+                  projectId={projectId}
+                />
+              </Stack>
             ) : null}
           </Stack>
         </DndContext>

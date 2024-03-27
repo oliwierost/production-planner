@@ -1,5 +1,5 @@
 import { Droppable } from "../Droppable"
-import { Stack } from "@mui/material"
+import { Box, Stack } from "@mui/material"
 import { useAppSelector } from "../../hooks"
 import { Deadlines } from "../Deadlines"
 import { memo } from "react"
@@ -56,7 +56,6 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
       sx={{
         width: cellWidth,
         height: 50,
-        position: "relative",
         backgroundColor: "white",
         boxSizing: "border-box",
         borderRight: "1px solid #D9D9D9",
@@ -66,7 +65,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
       }}
     >
       <Droppable id={cellKey}>
-        <>
+        <Box position="relative" height="100%">
           {taskIds && taskIds.length > 0 && projectId
             ? taskIds.map((taskId, idx) => {
                 return (
@@ -82,7 +81,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
                 )
               })
             : null}
-        </>
+        </Box>
       </Droppable>
       <Deadlines time={time} rowIndex={rowIndex} lastIndex={facilitiesCount} />
     </Stack>

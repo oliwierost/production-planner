@@ -61,6 +61,21 @@ export const facilitiesSlice = createSlice({
       const { facilityId, workspaceId } = action.payload
       delete state.facilities[workspaceId][facilityId]
     },
+    updateFacility: (
+      state,
+      action: PayloadAction<{
+        facility: Facility
+        data: any
+      }>,
+    ) => {
+      const { facility, data } = action.payload
+      if (facility) {
+        state.facilities[facility.workspaceId][facility.id] = {
+          ...facility,
+          ...data,
+        }
+      }
+    },
     // Action to assign a task to a facility
     assignTaskToFacility: (
       state,
@@ -127,7 +142,7 @@ export const facilitiesSlice = createSlice({
     },
     updateFacilityStart(
       state,
-      action: PayloadAction<{ id: string; data: any }>,
+      action: PayloadAction<{ facility: Facility; data: any }>,
     ) {
       state.loading = true
       state.error = null
@@ -149,6 +164,7 @@ export const {
   fetchFacilitiesStart,
   taskOperationFailed,
   updateFacilitiesStart,
+  updateFacility,
   addFacilityStart,
   deleteFacilityStart,
   updateFacilityStart,

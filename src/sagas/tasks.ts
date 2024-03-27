@@ -35,8 +35,6 @@ import {
   setTaskDroppedStart,
   updateTaskStart,
   moveTaskStart,
-  setTaskDragged,
-  setTaskDraggedStart,
   updateTask,
   upsertTask,
   resizeTaskStart,
@@ -44,6 +42,7 @@ import {
   removeTask,
   updateRequiredTasks,
   updateRequiredByTasks,
+  setTaskLockedStart,
 } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
 import {
@@ -345,7 +344,7 @@ export function* deleteTaskSaga(
       setToastOpen({ message: "Usunięto zadanie", severity: "success" }),
     )
   } catch (error) {
-    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
+    yield put(setToastOpen({ message: error.message, severity: "error" }))
   }
 }
 
@@ -526,13 +525,6 @@ export function* resizeTaskSaga(
   }
 }
 
-export function* setTaskDraggedSaga(
-  action: PayloadAction<{ task: Task; cellId?: string; dragged: boolean }>,
-): Generator<any, void, any> {
-  const { task, dragged } = action.payload
-  yield put(setTaskDragged({ task, dragged }))
-}
-
 export function* updateTaskSaga(
   action: PayloadAction<{ task: Task; data: any; workspaceId: workspaceId }>,
 ): Generator<any, void, any> {
@@ -573,6 +565,25 @@ export function* updateTaskSaga(
     )
   } catch (error) {
     yield put(setToastOpen({ message: error.message, severity: "error" }))
+  }
+}
+
+export function* setTaskLockedSaga(
+  action: PayloadAction<{ task: Task; locked: boolean }>,
+) {
+  const { task, locked } = action.payload
+  const userId: string = yield select((state) => state.user.user?.id)
+  try {
+    yield put(updateTask({ task, data: { locked } }))
+    yield call(
+      updateTaskInFirestore,
+      userId,
+      task.id,
+      { locked },
+      task.workspaceId,
+    )
+  } catch (error) {
+    console.info(error)
   }
 }
 
@@ -652,8 +663,8 @@ function* watchResizeTask() {
   yield takeLatest(resizeTaskStart.type, resizeTaskSaga)
 }
 
-function* watchSetTaskDragged() {
-  yield takeLatest(setTaskDraggedStart.type, setTaskDraggedSaga)
+function* watchSetTaskLocked() {
+  yield takeLatest(setTaskLockedStart.type, setTaskLockedSaga)
 }
 
 function* watchSyncTasks() {
@@ -667,8 +678,8 @@ export default function* taskSagas() {
     watchSyncTasks(),
     watchSetTaskDropped(),
     watchMoveTask(),
+    watchSetTaskLocked(),
     watchResizeTask(),
-    watchSetTaskDragged(),
     watchUpdateTask(),
   ])
 }

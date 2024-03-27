@@ -20,12 +20,13 @@ export function Draggable({ children, id, data }: DraggableProps) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
     data: data,
-    disabled: disabled || data.task.projectId !== projectId,
+    disabled: disabled || data.task.projectId !== projectId || data.task.locked,
   })
 
   const style = transform
     ? {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        transition: "transform 0.07s ease-out",
       }
     : undefined
 
@@ -36,9 +37,12 @@ export function Draggable({ children, id, data }: DraggableProps) {
         style={{
           all: "unset",
           cursor:
-            data.task.projectId === projectId && view?.isEditable
+            data.task.projectId === projectId &&
+            view?.isEditable &&
+            !data.task.locked &&
+            !draggedTask
               ? "grab"
-              : "default",
+              : "none",
           zIndex: draggedTask?.id === data.task.id ? 100 : 30,
           position: transform ? "fixed" : "initial",
           ...style,

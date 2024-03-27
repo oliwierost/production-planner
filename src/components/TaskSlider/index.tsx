@@ -8,6 +8,7 @@ import _ from "lodash"
 export function TaskSlider() {
   const projectId = useAppSelector((state) => state.user.user?.openProjectId)
   const tasks = useAppSelector((state) => selectTasks(state, projectId))
+  const draggedTask = useAppSelector((state) => state.drag.draggedTask)
 
   return (
     <Stack width="100%">
@@ -16,6 +17,7 @@ export function TaskSlider() {
         px={2}
         py={1}
         minHeight={80}
+        maxHeight={80}
         overflow="scroll"
         borderTop="1px solid #000000"
         borderBottom="1px solid #000000"
@@ -36,29 +38,33 @@ export function TaskSlider() {
           },
         }}
       >
-        <Stack
-          direction="row"
-          divider={<Divider orientation="vertical" flexItem />}
-          minHeight={60}
-          spacing={2}
-        >
+        <Stack direction="row" minHeight={60} spacing={2}>
           {!_.isEmpty(tasks)
-            ? Object.values(tasks).map((task) => (
-                <Box key={task.id}>
-                  {!task.startTime || !task.facilityId ? (
-                    <Box key={task.id}>
+            ? Object.values(tasks)
+                .filter((task) => !task.startTime && !task.facilityId)
+                .map((task) => (
+                  <Box key={task.id}>
+                    <Box key={task.id} position="relative">
                       <Draggable id={task.id} data={{ task, sourceId: null }}>
                         <Task task={task} />
                       </Draggable>
-                      {task.dragged ? (
-                        <Box sx={{ opacity: 0.5 }}>
+                      {task.id === draggedTask?.id ? (
+                        <Box
+                          sx={{
+                            opacity: 0.5,
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        >
                           <Task task={task} />
                         </Box>
                       ) : null}
                     </Box>
-                  ) : null}
-                </Box>
-              ))
+                  </Box>
+                ))
             : null}
         </Stack>
       </Stack>

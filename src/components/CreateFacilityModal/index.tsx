@@ -127,7 +127,7 @@ export function CreateFacilityModal({
       } else {
         dispatch(
           updateFacilityStart({
-            id: facility.id,
+            facility: facility,
             data: { ...values, title: values.location + " " + values.activity },
           }),
         )
