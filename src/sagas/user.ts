@@ -77,22 +77,13 @@ export const signUpWithFirebase = async (
 export const signInUserWithFirebase = async (
   credentials: Credentials,
 ): Promise<UserCredential | null> => {
-  try {
-    const { email, password } = credentials
-    const user = await signInWithEmailAndPassword(auth, email, password)
-    return user
-  } catch (error) {
-    console.error("Error signing in with Firebase:", error)
-    return null
-  }
+  const { email, password } = credentials
+  const user = await signInWithEmailAndPassword(auth, email, password)
+  return user
 }
 
 export const signOutUserWithFirebase = async (): Promise<void> => {
-  try {
-    await auth.signOut()
-  } catch (error) {
-    console.error("Error signing out with Firebase:", error)
-  }
+  await auth.signOut()
 }
 
 function* initializeUserSaga(action: PayloadAction<Credentials>) {

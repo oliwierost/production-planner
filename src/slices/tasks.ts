@@ -112,7 +112,7 @@ export const tasksSlice = createSlice({
       if (projectId && taskId) {
         requiredTasks.forEach((requiredTaskId) => {
           const requiredByTasks =
-            state.tasks[projectId][requiredTaskId].requiredByTasks
+            state.tasks[projectId][requiredTaskId]?.requiredByTasks
           if (!requiredByTasks.includes(taskId)) {
             state.tasks[projectId][taskId].requiredByTasks.push(taskId)
           }

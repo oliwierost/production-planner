@@ -33,8 +33,7 @@ const taskSchema = {
 }
 
 const facilitySchema = {
-  location: Yup.string().required("Lokalizacja jest wymagana"),
-  activity: Yup.string().required("Czynność jest wymagana"),
+  title: Yup.string().required("Nazwa jest wymagana"),
   manpower: Yup.number().min(1, "Minimalna liczba pracowników to 1"),
   bgcolor: Yup.string().required("Kolor jest wymagany"),
 }

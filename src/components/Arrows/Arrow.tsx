@@ -6,6 +6,8 @@ import { getCoordsHelper } from "../DroppedTask/getCoordsHelper"
 import { Facility } from "../../slices/facilities"
 import { Box } from "@mui/material"
 import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
+import { useEffect, useState } from "react"
+import { isEqual } from "lodash"
 
 interface ArrowProps {
   fromTask: Task
@@ -20,19 +22,44 @@ export function Arrow({
   taskWidth,
   overFacility,
 }: ArrowProps) {
+  const [coords, setCoords] = useState({ x: 0, y: 0 })
   const fromFacility = useAppSelector((state) =>
     selectFacility(state, fromTask.workspaceId, fromTask.facilityId),
   )
   const toFacility = useAppSelector((state) =>
     selectFacility(state, toTask.workspaceId, toTask.facilityId),
   )
+  const facilities = useAppSelector(
+    (state) => state.facilities.facilities,
+    isEqual,
+  )
 
   const view = useAppSelector((state) => state.view.view)
 
-  if (!fromFacility || !toFacility) {
-    return null
-  }
-  const coords = getCoordsHelper({
+  useEffect(() => {
+    if (!view || !fromFacility || !toFacility) return
+    console.log(fromFacility, toFacility)
+    const startCoords = getCoordsHelper({
+      fromFacility,
+      toFacility,
+      fromTask,
+      toTask,
+      taskWidth,
+      view,
+      overFacility,
+    })
+    const newTaskWidth = calculateTaskWidthHelper({
+      duration: fromTask.duration,
+      cellWidth: view?.cellWidth,
+      manpower: fromFacility?.manpower,
+      daysInCell: view?.daysInCell,
+    })
+
+    setCoords({
+      x: startCoords.x + newTaskWidth,
+      y: startCoords.y,
+    })
+  }, [
     fromFacility,
     toFacility,
     fromTask,
@@ -40,9 +67,8 @@ export function Arrow({
     taskWidth,
     view,
     overFacility,
-  })
-
-  if (!view) return
+    facilities,
+  ])
 
   return (
     <Box
@@ -52,17 +78,7 @@ export function Arrow({
       }}
     >
       <SvgArrow
-        startPoint={{
-          x:
-            coords.x +
-            calculateTaskWidthHelper({
-              duration: fromTask.duration,
-              cellWidth: view?.cellWidth,
-              manpower: fromFacility?.manpower,
-              daysInCell: view?.daysInCell,
-            }),
-          y: coords.y,
-        }}
+        startPoint={coords}
         endPoint={{
           x: 0,
           y: 0,

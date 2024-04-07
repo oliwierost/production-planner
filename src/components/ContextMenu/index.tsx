@@ -19,8 +19,6 @@ interface ContextMenuProps {
   onClose: () => void
   modal: Modal | null
   setModal: React.Dispatch<React.SetStateAction<Modal | null>>
-  isGridUpdated: boolean
-  setIsGridUpdated: React.Dispatch<React.SetStateAction<boolean>>
   item: Task | Facility
   cursorPosition: { top: number; left: number }
   options: { title: string; onClick: () => void; icon: JSX.Element }[]
@@ -32,30 +30,19 @@ export function ContextMenu({
   item,
   cursorPosition,
   options,
-  isGridUpdated,
-  setIsGridUpdated,
   modal,
   setModal,
 }: ContextMenuProps) {
-  const dispatch = useAppDispatch()
   const projectId = useAppSelector((state) => state.user.user?.openProjectId)
   const workspaceId = useAppSelector(
     (state) => state.user.user?.openWorkspaceId,
   )
-  const grid = useAppSelector((state) => selectGrid(state, workspaceId))
 
   useEffect(() => {
     if (modal) {
       onClose()
     }
   }, [modal, onClose])
-
-  useEffect(() => {
-    if (isGridUpdated && grid) {
-      dispatch(updateGridStart(grid))
-      setIsGridUpdated(false)
-    }
-  }, [isGridUpdated, dispatch, setIsGridUpdated, grid])
 
   if (!projectId || !workspaceId) return null
 

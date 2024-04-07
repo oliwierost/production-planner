@@ -274,8 +274,8 @@ export function CreateTaskModal({
                           </Stack>
                           {taskId && task?.dropped ? (
                             <Typography variant="body2" color="error">
-                              Aby zmienić czas trwania, usuń zadanie z
-                              harmonogramu
+                              Aby zmienić czas trwania, datę rozpoczęcia lub
+                              stanowisko usuń zadanie z harmonogramu
                             </Typography>
                           ) : null}
                           <Stack
@@ -315,7 +315,9 @@ export function CreateTaskModal({
                                 }
                                 name="duration"
                                 disabled={
-                                  taskId && task?.dropped ? true : false
+                                  taskId && task?.startTime && task?.facilityId
+                                    ? true
+                                    : false
                                 }
                               />
                             </Stack>
@@ -334,6 +336,11 @@ export function CreateTaskModal({
                                 value={values.startTime}
                                 setFieldValue={setFieldValue}
                                 name="startTime"
+                                disabled={
+                                  taskId && task?.startTime && task?.facilityId
+                                    ? true
+                                    : false
+                                }
                               />
                             </Stack>
                           </Stack>
@@ -352,6 +359,11 @@ export function CreateTaskModal({
                                 setFieldValue={setFieldValue}
                                 name="facilityId"
                                 options={facilitiesOptions}
+                                disabled={
+                                  taskId && task?.startTime && task?.facilityId
+                                    ? true
+                                    : false
+                                }
                               />
                             </Stack>
                           </Stack>

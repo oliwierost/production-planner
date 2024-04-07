@@ -3,10 +3,12 @@ import { Task, taskId } from "./tasks"
 import { workspaceId } from "./workspaces"
 import { Facility, facilityId } from "./facilities"
 import { calculateTaskDurationHelper } from "../components/DataGrid/calculateTaskDurationHelper"
+import { projectId } from "./projects"
 
 export interface Cell {
   state: string
   taskId: taskId | null
+  projectId: projectId
   source: string
 }
 
@@ -92,6 +94,7 @@ const gridSlice = createSlice({
       state.grid[workspaceId].cells[cellId] = {
         state: "occupied-start",
         taskId: task.id,
+        projectId: task.projectId,
         source: cellId,
       }
       if (actualDuration > 1) {
@@ -102,6 +105,7 @@ const gridSlice = createSlice({
           state.grid[workspaceId].cells[`${rowId}-${nextDateTime}`] = {
             state: "occupied",
             taskId: task.id,
+            projectId: task.projectId,
             source: cellId,
           }
         }
@@ -111,6 +115,7 @@ const gridSlice = createSlice({
         state.grid[workspaceId].cells[`${rowId}-${lastDateTime}`] = {
           state: "occupied-end",
           taskId: task.id,
+          projectId: task.projectId,
           source: cellId,
         }
       }

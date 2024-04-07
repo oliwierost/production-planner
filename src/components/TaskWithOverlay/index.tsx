@@ -1,12 +1,11 @@
 import { Box, Stack } from "@mui/material"
 import { Draggable } from "../Draggable"
 import { DroppedTask } from "../DroppedTask"
-import { Task, taskId } from "../../slices/tasks"
+import { taskId } from "../../slices/tasks"
 import { useState } from "react"
 import { useAppSelector } from "../../hooks"
 import { selectTask } from "../../selectors/tasks"
 import { facilityId } from "../../slices/facilities"
-import { projectId } from "../../slices/projects"
 
 interface TaskWithOverlayProps {
   taskId: taskId
@@ -14,7 +13,7 @@ interface TaskWithOverlayProps {
   cellWidth: number
   rowId: facilityId
   time: number
-  projectId: projectId
+  projectId: string
 }
 
 export function TaskWithOverlay({
@@ -30,8 +29,9 @@ export function TaskWithOverlay({
   const task = useAppSelector((state) => selectTask(state, taskId, projectId))
 
   if (!task) return null
+
   return (
-    <Box height="100%">
+    <Box height="100%" position="absolute" left={0}>
       <Stack
         position="absolute"
         height="100%"

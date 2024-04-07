@@ -4,6 +4,7 @@ import { Stack, Typography } from "@mui/material"
 import {
   Facility as FacilityType,
   deleteFacilityStart,
+  undropTasksFromFacilityStart,
 } from "../../slices/facilities"
 import { ContextMenu } from "../ContextMenu"
 import { useEffect, useState } from "react"
@@ -13,6 +14,7 @@ import { updateGridStart } from "../../slices/grid"
 import PersonIcon from "@mui/icons-material/Person"
 import { Modal } from "../DataPanel"
 import { selectGrid } from "../../selectors/grid"
+import { GridDeleteIcon } from "@mui/x-data-grid"
 
 interface FacilityProps {
   facility: FacilityType
@@ -20,7 +22,6 @@ interface FacilityProps {
 
 export function Facility({ facility }: FacilityProps) {
   const [modal, setModal] = useState<Modal | null>(null)
-  const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
 
@@ -68,21 +69,21 @@ export function Facility({ facility }: FacilityProps) {
       title: "Usuń",
       onClick: () => {
         dispatch(deleteFacilityStart(facility))
-        setIsGridUpdated(true)
         handleClose()
       },
       icon: (
         <DeleteForeverIcon fontSize="small" sx={{ color: "primary.dark" }} />
       ),
     },
+    {
+      title: "Usuń zadania z osi czasu",
+      onClick: () => {
+        dispatch(undropTasksFromFacilityStart(facility))
+        handleClose()
+      },
+      icon: <GridDeleteIcon fontSize="small" sx={{ color: "primary.dark" }} />,
+    },
   ]
-
-  useEffect(() => {
-    if (isGridUpdated && grid) {
-      dispatch(updateGridStart(grid))
-      setIsGridUpdated(false)
-    }
-  }, [isGridUpdated, dispatch, grid])
 
   return (
     <>
@@ -107,8 +108,6 @@ export function Facility({ facility }: FacilityProps) {
             item={facility}
             cursorPosition={cursorPosition}
             options={contextMenuOptions}
-            isGridUpdated={isGridUpdated}
-            setIsGridUpdated={setIsGridUpdated}
             modal={modal}
             setModal={setModal}
           />

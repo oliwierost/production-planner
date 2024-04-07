@@ -53,7 +53,9 @@ export function CreateWorkspaceModal({
     resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     try {
+      console.log("elo")
       if (!user) return
+      console.log("elo")
       const id = doc(collection(firestore, `users/${user.id}/workspaces`)).id
       dispatch(
         upsertWorkspaceStart({

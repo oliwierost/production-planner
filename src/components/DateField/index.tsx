@@ -10,9 +10,15 @@ interface DateFieldProps {
   value: number | null
   name?: string
   setFieldValue: (name: string, value: number) => void
+  disabled?: boolean
 }
 
-export function DateField({ name, setFieldValue, value }: DateFieldProps) {
+export function DateField({
+  name,
+  setFieldValue,
+  value,
+  disabled = false,
+}: DateFieldProps) {
   const [open, setOpen] = useState(false)
   const handleChange = (date: Dayjs | null) => {
     if (date && name) {
@@ -34,6 +40,7 @@ export function DateField({ name, setFieldValue, value }: DateFieldProps) {
       <DatePicker
         onChange={handleChange}
         open={open}
+        disabled={disabled}
         value={dayjs(value)}
         onClose={() => setOpen(false)}
         sx={{

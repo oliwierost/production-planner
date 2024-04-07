@@ -53,13 +53,13 @@ export const selectTaskIdsFromCells = createSelector(
     const workspaceCells = grid[workspaceId]?.cells
     if (!workspaceCells) return null
 
-    const tasks = [] as taskId[]
+    const tasks = [] as { taskId: taskId; projectId: string }[]
     timestamps.forEach((timestamp) => {
       const cellKey = `${facilityId}-${timestamp}`
       const cell = workspaceCells[cellKey]
 
       if (cell && cell.state === "occupied-start" && cell.taskId) {
-        tasks.push(cell.taskId)
+        tasks.push({ taskId: cell.taskId, projectId: cell.projectId })
       }
     })
 

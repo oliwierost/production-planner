@@ -10,9 +10,9 @@ import {
   setTaskLockedStart,
 } from "../../slices/tasks"
 import { ContextMenu } from "../ContextMenu"
-import React, { memo, useEffect, useState } from "react"
+import React, { memo, useCallback, useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { setDragDisabled, setDraggedTask } from "../../slices/drag"
+import { setDragDisabled } from "../../slices/drag"
 import {
   DndContext,
   DragMoveEvent,
@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/core"
 
 import { isEqual } from "lodash"
-import { getDaysToNextDefinedCell, selectCell } from "../../selectors/grid"
+import { selectCell } from "../../selectors/grid"
 import { selectTask, selectTasksByIds } from "../../selectors/tasks"
 
 import { Arrows } from "../Arrows"
@@ -31,7 +31,7 @@ import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
 
 import { ResizeHandle } from "../ResizeHandle"
 import { calculateTaskLeftOffsetHelper } from "../DataGrid/calculateTaskLeftOffsetHelper"
-import { current } from "@reduxjs/toolkit"
+
 import { Lock, LockOpen } from "@mui/icons-material"
 
 interface DroppedTaskProps {
@@ -41,7 +41,7 @@ interface DroppedTaskProps {
   cellWidth: number
   rowId: string | number
   colId: number
-  isOverlay: boolean
+  isOverlay?: boolean
 }
 
 export const DroppedTask = memo(function DroppedTask({
@@ -51,7 +51,7 @@ export const DroppedTask = memo(function DroppedTask({
   cellWidth,
   rowId,
   colId,
-  isOverlay,
+  isOverlay = false,
 }: DroppedTaskProps) {
   const projectId = useAppSelector(
     (state) => state.user.user?.openProjectId,
@@ -81,30 +81,28 @@ export const DroppedTask = memo(function DroppedTask({
     isEqual,
   )
 
-  if (!droppedTask) return null
   const draggedTask = useAppSelector((state) => state.drag.draggedTask)
 
-  const requiredTasksIds = droppedTask!.requiredTasks
+  const requiredTasksIds = droppedTask!?.requiredTasks
   const requiredTasks = useAppSelector((state) =>
     selectTasksByIds(state, projectId, requiredTasksIds),
   )
 
   const [modal, setModal] = useState<Modal | null>(null)
-  const [taskDuration, setTaskDuration] = useState<number>(task?.duration)
+  const [taskDuration, setTaskDuration] = useState<number>(
+    Number(task?.duration),
+  )
   const [isHovered, setIsHovered] = useState(false)
-  const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
   const dispatch = useAppDispatch()
   const view = useAppSelector((state) => state.view.view, isEqual)
 
-  if (!currentFacility) return null
-
   const nextCellKey = `${rowId}-${
-    colId + (taskDuration * 86400000) / currentFacility.manpower
+    colId + (taskDuration * 86400000) / currentFacility!.manpower
   }`
   const prevCellKey = `${rowId}-${
-    colId + ((taskDuration - 1) * 86400000) / currentFacility.manpower
+    colId + ((taskDuration - 1) * 86400000) / currentFacility!.manpower
   }`
 
   const nextCell = useAppSelector(
@@ -160,7 +158,6 @@ export const DroppedTask = memo(function DroppedTask({
             colId,
           }),
         )
-        setIsGridUpdated(true)
         dispatch(setDragDisabled(false))
         handleClose()
       },
@@ -177,7 +174,6 @@ export const DroppedTask = memo(function DroppedTask({
             cellSpan,
           }),
         )
-        setIsGridUpdated(true)
         dispatch(setDragDisabled(false))
         handleClose()
       },
@@ -187,32 +183,52 @@ export const DroppedTask = memo(function DroppedTask({
     },
   ]
 
-  const handleDragMove = (event: DragMoveEvent) => {
-    const { delta } = event
-    const gridSize = cellWidth
-    const newX = Math.round(delta.x / gridSize) * gridSize
-    const taskDurationNum = Number(task.duration)
-    const daysDiff = (newX / cellWidth) * currentFacility!.manpower
-    const newDuration = daysDiff + taskDurationNum
-
-    const newDurationRounded =
-      Math.round(newDuration / currentFacility!.manpower) *
-      currentFacility!.manpower
-
-    const nextCellState = nextCell?.state
-
-    if (newDurationRounded <= currentFacility!.manpower) {
-      setTaskDuration(currentFacility!.manpower)
-    } else if (taskDuration < newDurationRounded) {
-      nextCellState == "occupied-start"
-        ? null
-        : setTaskDuration(newDurationRounded)
-    } else if (taskDuration > newDurationRounded) {
-      prevCell?.state == "occupied-start"
-        ? null
-        : setTaskDuration(newDurationRounded)
+  const debounce = (func: Function, delay: number) => {
+    let timeoutId: NodeJS.Timeout
+    return (...args: any[]) => {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        func(...args) // Call func with spread args directly
+      }, delay)
     }
   }
+
+  const handleDragMove = useCallback(
+    debounce((event: DragMoveEvent) => {
+      const { delta } = event
+
+      const gridSize = cellWidth
+      const newX = Math.round(delta.x / gridSize) * gridSize
+      const taskDurationNum = Number(task.duration)
+      const daysDiff = (newX / cellWidth) * currentFacility!.manpower
+      const newDuration = daysDiff + taskDurationNum
+
+      const newDurationRounded =
+        Math.round(newDuration / currentFacility!.manpower) *
+        currentFacility!.manpower
+
+      if (newDurationRounded <= currentFacility!.manpower) {
+        setTaskDuration(currentFacility!.manpower)
+      } else if (taskDuration < newDurationRounded) {
+        nextCell?.state == "occupied-start"
+          ? null
+          : setTaskDuration(newDurationRounded)
+      } else if (taskDuration > newDurationRounded) {
+        prevCell?.state == "occupied-start"
+          ? null
+          : setTaskDuration(newDurationRounded)
+      }
+    }, 5),
+    [
+      cellWidth,
+      currentFacility,
+      nextCell,
+      prevCell,
+      setTaskDuration,
+      task.duration,
+      taskDuration,
+    ],
+  )
 
   const handleDragEnd = () => {
     setIsResized(false)
@@ -223,7 +239,6 @@ export const DroppedTask = memo(function DroppedTask({
         newDuration: taskDuration,
       }),
     )
-    setIsGridUpdated(true)
   }
 
   const handleDragStart = () => {
@@ -269,7 +284,13 @@ export const DroppedTask = memo(function DroppedTask({
   )
   useEffect(() => {
     setTaskWidth(getTaskWidth())
-  }, [currentFacility, overFacility, drag.draggedTask, taskDuration])
+  }, [
+    currentFacility,
+    overFacility,
+    drag.draggedTask,
+    taskDuration,
+    view?.name,
+  ])
 
   useEffect(() => {
     setTaskDuration(task.duration)
@@ -340,7 +361,7 @@ export const DroppedTask = memo(function DroppedTask({
           >
             {task.title &&
             view?.name !== "1 rok" &&
-            task.duration > currentFacility.manpower ? (
+            Number(task.duration) > currentFacility!.manpower ? (
               <Typography
                 variant="body2"
                 fontWeight={700}
@@ -360,8 +381,6 @@ export const DroppedTask = memo(function DroppedTask({
               options={contextMenuOptions}
               modal={modal}
               setModal={setModal}
-              isGridUpdated={isGridUpdated}
-              setIsGridUpdated={setIsGridUpdated}
               open={open}
               cursorPosition={cursorPosition}
               onClose={() => {
@@ -369,7 +388,7 @@ export const DroppedTask = memo(function DroppedTask({
               }}
               item={task}
             />
-            {view?.name == "1 mies." ? (
+            {view?.name == "1 mies." && task.projectId === projectId ? (
               <Stack
                 direction="row"
                 mr={1}

@@ -28,7 +28,12 @@ import {
   updateDeadlineStart,
   syncDeadlinesStart,
   addDeadlineStart,
+  addDeadline,
+  deadlineId,
+  updateDeadline,
 } from "../slices/deadlines"
+import { projectId } from "../slices/projects"
+import { workspaceId } from "../slices/workspaces"
 
 const addDeadlineToFirestore = async (
   userId: string,
@@ -39,7 +44,7 @@ const addDeadlineToFirestore = async (
   await setDoc(
     doc(
       firestore,
-      `users/${userId}/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadline.id}`,
+      `users/${userId}/workspaces/${workspaceId}/deadlines/${deadline.id}`,
     ),
     deadline,
   )
@@ -55,7 +60,7 @@ const updateDeadlineInFirestore = async (
   await updateDoc(
     doc(
       firestore,
-      `users/${userId}/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadlineId}`,
+      `users/${userId}/workspaces/${workspaceId}/deadlines/${deadlineId}`,
     ),
     updateData,
   )
@@ -70,26 +75,22 @@ const deleteDeadlineFromFirestore = async (
   await deleteDoc(
     doc(
       firestore,
-      `users/${userId}/workspaces/${workspaceId}/projects/${projectId}/deadlines/${deadlineId}`,
+      `users/${userId}/workspaces/${workspaceId}/deadlines/${deadlineId}`,
     ),
   )
 }
 
 export function* addDeadlineSaga(action: PayloadAction<Deadline>) {
   try {
+    const deadline = action.payload
     const userId: string = yield select((state) => state.user.user?.id)
-    const selectedWorkspace: string = yield select(
-      (state) => state.workspaces.selectedWorkspace,
-    )
-    const selectedProject: string = yield select(
-      (state) => state.projects.selectedProject,
-    )
+    yield put(addDeadline(deadline))
     yield call(
       addDeadlineToFirestore,
       userId,
-      action.payload,
-      selectedWorkspace,
-      selectedProject,
+      deadline,
+      deadline.workspaceId,
+      deadline.projectId,
     )
     yield put(setToastOpen({ message: "Dodano deadline", severity: "success" }))
   } catch (error) {
@@ -98,27 +99,19 @@ export function* addDeadlineSaga(action: PayloadAction<Deadline>) {
 }
 
 export function* deleteDeadlineSaga(
-  action: PayloadAction<{
-    deadlineId: string
-  }>,
+  action: PayloadAction<Deadline>,
 ): Generator<any, void, any> {
   try {
-    const deadlineId = action.payload.deadlineId
+    const deadline = action.payload
     const userId: string = yield select((state) => state.user.user?.id)
-    const selectedWorkspace: string = yield select(
-      (state) => state.workspaces.selectedWorkspace,
-    )
-    const selectedProject: string = yield select(
-      (state) => state.projects.selectedProject,
-    )
+    yield put(removeDeadline(deadline))
     yield call(
       deleteDeadlineFromFirestore,
       userId,
-      deadlineId,
-      selectedWorkspace,
-      selectedProject,
+      deadline.id,
+      deadline.workspaceId,
+      deadline.projectId,
     )
-    yield put(removeDeadline(deadlineId))
     yield put(
       setToastOpen({ message: "Usunięto deadline", severity: "success" }),
     )
@@ -128,23 +121,23 @@ export function* deleteDeadlineSaga(
 }
 
 export function* updateDeadlineSaga(
-  action: PayloadAction<{ deadlineId: string; data: any }>,
+  action: PayloadAction<{
+    deadlineId: string
+    data: any
+    workspaceId: workspaceId
+    projectId: projectId
+  }>,
 ): Generator<any, void, any> {
   try {
-    const { deadlineId, data } = action.payload
+    const { deadlineId, data, projectId, workspaceId } = action.payload
     const userId: string = yield select((state) => state.user.user?.id)
-    const selectedWorkspace: string = yield select(
-      (state) => state.workspaces.selectedWorkspace,
-    )
-    const selectedProject: string = yield select(
-      (state) => state.projects.selectedProject,
-    )
+    yield put(updateDeadline(data))
     yield call(
       updateDeadlineInFirestore,
       userId,
       deadlineId,
-      selectedWorkspace,
-      selectedProject,
+      workspaceId,
+      projectId,
       data,
     )
     yield put(
@@ -157,29 +150,35 @@ export function* updateDeadlineSaga(
 
 export function* syncDeadlinesSaga() {
   const userId: string = yield select((state) => state.user.user?.id)
-  const selectedWorkspace: string = yield select(
-    (state) => state.workspaces.selectedWorkspace,
+  const prevDeadlines: { [key: string]: Deadline } = yield select(
+    (state) => state.deadlines.deadlines,
   )
-  const selectedProject: string = yield select(
-    (state) => state.projects.selectedProject,
-  )
-  if (!userId || !selectedWorkspace || !selectedProject) return
+  if (!userId) return
   const channel = eventChannel((emitter) => {
-    const colRef = collection(
-      firestore,
-      `users/${userId}/workspaces/${selectedWorkspace}/projects/${selectedProject}/deadlines`,
-    )
-    const unsubscribe = onSnapshot(colRef, async () => {
-      const snapshot = await getDocs(colRef)
-      const deadlines = {} as { [key: string]: Deadline }
-      snapshot.forEach(
-        (doc) =>
-          (deadlines[doc.id] = {
-            id: doc.id,
-            ...doc.data(),
-          } as Deadline),
-      )
-      emitter(deadlines)
+    const colRef = collection(firestore, `users/${userId}/workspaces`)
+
+    const unsubscribe = onSnapshot(colRef, async (snapshot) => {
+      snapshot.forEach((workspaceDoc) => {
+        const workspaceId = workspaceDoc.id
+        const projectsRef = collection(
+          firestore,
+          `users/${userId}/workspaces/${workspaceId}/deadlines`,
+        )
+        onSnapshot(projectsRef, async (projectsSnapshot) => {
+          const newDeadlines = { ...prevDeadlines }
+          projectsSnapshot.forEach((doc) => {
+            const deadline = doc.data() as Deadline
+            if (!newDeadlines[deadline.projectId]) {
+              newDeadlines[deadline.projectId] = {} as Deadline
+            }
+            newDeadlines[deadline.projectId] = {
+              ...newDeadlines[deadline.projectId],
+              [deadline.id]: deadline,
+            }
+          })
+          emitter(newDeadlines)
+        })
+      })
     })
 
     return unsubscribe
@@ -187,7 +186,8 @@ export function* syncDeadlinesSaga() {
 
   try {
     while (true) {
-      const deadlines: { [key: string]: Deadline } = yield take(channel)
+      const deadlines: { [id: projectId]: { [id: deadlineId]: Deadline } } =
+        yield take(channel)
       yield put(setDeadlines(deadlines))
     }
   } finally {

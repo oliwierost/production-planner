@@ -11,21 +11,25 @@ import { doc, collection } from "firebase/firestore"
 import { firestore } from "../../../firebase.config"
 import { Form, Formik, FormikHelpers } from "formik"
 import { DateField } from "../DateField"
-import { useAppDispatch } from "../../hooks"
-import { addDeadlineStart } from "../../slices/deadlines"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { addDeadlineStart, updateDeadlineStart } from "../../slices/deadlines"
 import { deadlineModalSchema } from "../../../validationSchema"
 import { Modal as ModalType } from "../DataPanel"
+import { selectDeadline } from "../../selectors/deadlines"
 
 interface CreateDeadlineModalProps {
   open: boolean
   setModal: React.Dispatch<React.SetStateAction<ModalType | null>>
   workspaceId: string
   projectId: string
+  deadlineId: string | undefined
 }
 
 interface FormData {
   id: string
   title: string
+  projectId: string
+  workspaceId: string
   description: string
   date: number | null
 }
@@ -33,6 +37,8 @@ interface FormData {
 const initialValues = {
   id: "",
   title: "",
+  projectId: "",
+  workspaceId: "",
   description: "",
   date: null,
 }
@@ -42,8 +48,14 @@ export function CreateDeadlineModal({
   setModal,
   workspaceId,
   projectId,
+  deadlineId,
 }: CreateDeadlineModalProps) {
   const dispatch = useAppDispatch()
+
+  const user = useAppSelector((state) => state.user.user)
+  const deadline = useAppSelector((state) =>
+    selectDeadline(state, deadlineId, projectId),
+  )
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -72,22 +84,44 @@ export function CreateDeadlineModal({
     const monthTimestamp = yearDate.getTime()
 
     try {
-      if (workspaceId && projectId) {
-        const id = doc(
-          collection(
-            firestore,
-            `users/first-user/workspaces/${workspaceId}/projects/${projectId}/deadlines`,
-          ),
-        ).id
+      if (!deadlineId) {
+        if (workspaceId && projectId && user) {
+          const id = doc(
+            collection(
+              firestore,
+              `users/${user.id}/workspaces/${workspaceId}/deadlines`,
+            ),
+          ).id
+          dispatch(
+            addDeadlineStart({
+              ...rest,
+              id,
+              projectId,
+              workspaceId,
+              timestamp: {
+                day: timestamp,
+                week: weekTimestamp,
+                month: monthTimestamp,
+              },
+            }),
+          )
+        }
+      } else {
         dispatch(
-          addDeadlineStart({
-            ...rest,
-            id,
-            timestamp: {
-              day: timestamp,
-              week: weekTimestamp,
-              month: monthTimestamp,
+          updateDeadlineStart({
+            data: {
+              ...rest,
+              workspaceId,
+              projectId,
+              timestamp: {
+                day: timestamp,
+                week: weekTimestamp,
+                month: monthTimestamp,
+              },
             },
+            deadlineId,
+            projectId,
+            workspaceId,
           }),
         )
       }
@@ -104,7 +138,9 @@ export function CreateDeadlineModal({
   }
   return (
     <Formik
-      initialValues={initialValues}
+      initialValues={
+        deadline ? { ...deadline, date: deadline.timestamp.day } : initialValues
+      }
       validationSchema={deadlineModalSchema}
       onSubmit={(values: FormData, { resetForm }) =>
         handleSubmit(values, resetForm)

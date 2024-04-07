@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { workspaceId } from "./workspaces"
 import { Task } from "./tasks"
-
 // Define the Facility interface
 
 export type facilityId = string
@@ -10,8 +9,6 @@ export interface Facility {
   workspaceId: workspaceId
   index?: number
   title: string
-  location: string
-  activity: string
   description: string
   bgcolor: string
   tasks: string[] // Array of task IDs
@@ -76,6 +73,34 @@ export const facilitiesSlice = createSlice({
         }
       }
     },
+    sortFacilities: (
+      state,
+      action: PayloadAction<{
+        facilities: {
+          [id: workspaceId]: {
+            [id: facilityId]: Facility
+          }
+        }
+        workspaceId: workspaceId
+      }>,
+    ) => {
+      const { facilities, workspaceId } = action.payload
+      const workspaceFacilities = Object.values(facilities[workspaceId])
+      const sortedFacilities = workspaceFacilities.sort((a, b) =>
+        a.bgcolor.localeCompare(b.bgcolor),
+      )
+      const sortedFacilitiesObject = sortedFacilities.reduce(
+        (acc, facility, index) => {
+          // Create a new object with index property added
+          const facilityWithIndex = { ...facility, index }
+          acc[facility.id] = facilityWithIndex
+          return acc
+        },
+        {} as { [id: facilityId]: Facility },
+      )
+      state.facilities[workspaceId] = sortedFacilitiesObject
+    },
+
     // Action to assign a task to a facility
     assignTaskToFacility: (
       state,
@@ -132,13 +157,21 @@ export const facilitiesSlice = createSlice({
       state.loading = true
       state.error = null
     },
+    undropTasksFromFacilityStart(state, action: PayloadAction<Facility>) {
+      state.loading = true
+      state.error = null
+      console.info("undropTasksFromFacilityStart", action.payload)
+    },
+
     addFacilityStart(state, action: PayloadAction<Facility>) {
       state.loading = true
       state.error = null
+      console.info("addFacilityStart", action.payload)
     },
     deleteFacilityStart(state, action: PayloadAction<Facility>) {
       state.loading = true
       state.error = null
+      console.info("deleteFacilityStart", action.payload)
     },
     updateFacilityStart(
       state,
@@ -146,6 +179,7 @@ export const facilitiesSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
+      console.info("updateFacilityStart", action.payload)
     },
     syncFacilitiesStart(state /*action: PayloadAction<GridType>*/) {
       state.loading = true
@@ -162,7 +196,9 @@ export const {
   removeTaskFromFacility,
   setFacilities,
   fetchFacilitiesStart,
+  sortFacilities,
   taskOperationFailed,
+  undropTasksFromFacilityStart,
   updateFacilitiesStart,
   updateFacility,
   addFacilityStart,

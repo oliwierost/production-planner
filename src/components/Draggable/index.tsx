@@ -26,7 +26,6 @@ export function Draggable({ children, id, data }: DraggableProps) {
   const style = transform
     ? {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        transition: "transform 0.1s linear",
       }
     : undefined
 

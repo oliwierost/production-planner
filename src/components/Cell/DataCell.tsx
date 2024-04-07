@@ -45,7 +45,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
     isEqual,
   )
 
-  const taskIds = useAppSelector((state) =>
+  const tasks = useAppSelector((state) =>
     selectTaskIdsFromCells(state, workspaceId, facility?.id, taskTimestamps),
   )
 
@@ -66,24 +66,25 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
     >
       <Droppable id={cellKey}>
         <Box position="relative" height="100%">
-          {taskIds && taskIds.length > 0 && projectId
-            ? taskIds.map((taskId, idx) => {
+          {tasks && tasks.length > 0 && projectId
+            ? tasks.map((task, idx) => {
                 return (
-                  <TaskWithOverlay
-                    key={idx}
-                    taskId={taskId}
-                    cellKey={cellKey}
-                    cellWidth={cellWidth}
-                    rowId={rowId as string}
-                    time={time}
-                    projectId={projectId}
-                  />
+                  <Box>
+                    <TaskWithOverlay
+                      key={idx}
+                      taskId={task.taskId}
+                      cellKey={cellKey}
+                      cellWidth={cellWidth}
+                      rowId={rowId as string}
+                      time={time}
+                      projectId={task.projectId}
+                    />
+                  </Box>
                 )
               })
             : null}
         </Box>
       </Droppable>
-      <Deadlines time={time} rowIndex={rowIndex} lastIndex={facilitiesCount} />
     </Stack>
   )
 })

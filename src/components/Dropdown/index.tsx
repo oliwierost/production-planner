@@ -13,6 +13,7 @@ interface TextFieldProps {
   setFieldValue?: (name: string, value: string) => void
   onChange?: (event: SelectChangeEvent<string>) => void
   width?: number | string
+  disabled?: boolean
 }
 
 export function Dropdown({
@@ -24,6 +25,7 @@ export function Dropdown({
   options,
   onChange,
   width = 339,
+  disabled = false,
 }: TextFieldProps) {
   const [open, setOpen] = useState(false)
 
@@ -38,6 +40,7 @@ export function Dropdown({
   return (
     <Stack height={45} width="fit-content" direction="row">
       <Select
+        disabled={disabled}
         defaultValue={""}
         value={value}
         onChange={(e) => handleChange(e)}

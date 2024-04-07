@@ -10,6 +10,7 @@ import { CreateDeadlineModal } from "../CreateDeadlineModal"
 import { CreateWorkspaceModal } from "../CreateWorkspaceModal"
 import { CreateProjectModal } from "../CreateProjectModal"
 import { deleteTaskStart } from "../../slices/tasks"
+import { removeDeadlineStart } from "../../slices/deadlines"
 
 export type Item =
   | ""
@@ -40,6 +41,7 @@ export function DataPanel() {
   const projects = useAppSelector((state) => state.projects.projects)
   const tasks = useAppSelector((state) => state.tasks.tasks)
   const facilities = useAppSelector((state) => state.facilities.facilities)
+  const deadlines = useAppSelector((state) => state.deadlines.deadlines)
 
   const renderModal = () => {
     if (!modal) return null
@@ -81,6 +83,7 @@ export function DataPanel() {
             open={true}
             workspaceId={modal.workspaceId}
             projectId={modal.projectId}
+            deadlineId={modal.itemId}
           />
         )
 
@@ -243,7 +246,64 @@ export function DataPanel() {
                               projectId={project.id}
                               workspaceId={workspace.id}
                             >
-                              <div />
+                              {deadlines[project.id]
+                                ? Object.values(deadlines[project.id]).map(
+                                    (deadline) => (
+                                      <Stack
+                                        direction="row"
+                                        justifyContent="space-between"
+                                        alignItems="center"
+                                        key={deadline.id}
+                                      >
+                                        <Typography
+                                          pl={3}
+                                          py={1.2}
+                                          key={deadline.id}
+                                          noWrap
+                                          variant="body2"
+                                        >
+                                          {deadline.title}
+                                        </Typography>
+                                        <Stack direction="row">
+                                          <IconButton
+                                            onClick={() =>
+                                              setModal({
+                                                open: true,
+                                                item: "deadline",
+                                                itemId: deadline.id,
+                                                projectId: project.id,
+                                                workspaceId: workspace.id,
+                                              })
+                                            }
+                                            sx={{
+                                              "&:focus": {
+                                                outline: "none",
+                                              },
+                                              height: "fit-content",
+                                            }}
+                                          >
+                                            <Edit sx={{ fontSize: "14px" }} />
+                                          </IconButton>
+                                          <IconButton
+                                            onClick={() =>
+                                              dispatch(
+                                                removeDeadlineStart(deadline),
+                                              )
+                                            }
+                                            sx={{
+                                              "&:focus": {
+                                                outline: "none",
+                                              },
+                                              height: "fit-content",
+                                            }}
+                                          >
+                                            <Delete sx={{ fontSize: "14px" }} />
+                                          </IconButton>
+                                        </Stack>
+                                      </Stack>
+                                    ),
+                                  )
+                                : null}
                             </Accordion>
                           </Accordion>
                         ))

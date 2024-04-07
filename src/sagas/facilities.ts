@@ -21,6 +21,8 @@ import {
   upsertFacility,
   removeFacility,
   updateFacility,
+  undropTasksFromFacilityStart,
+  sortFacilities,
 } from "../slices/facilities"
 import {
   arrayRemove,
@@ -29,7 +31,6 @@ import {
   deleteDoc,
   doc,
   DocumentData,
-  getDocs,
   onSnapshot,
   setDoc,
   updateDoc,
@@ -42,11 +43,9 @@ import { userId } from "../slices/user"
 import { workspaceId } from "../slices/workspaces"
 import { projectId } from "../slices/projects"
 import { Task, taskId, undropMultipleTasks } from "../slices/tasks"
-import {
-  selectTasks,
-  selectTasksByIds,
-  selectTasksByIdsInWorkspace,
-} from "../selectors/tasks"
+import { selectTasksByIdsInWorkspace } from "../selectors/tasks"
+import { selectGrid } from "../selectors/grid"
+import { updateGridInFirestore } from "./grid"
 
 function stableStringify(obj: object) {
   const allKeys: string[] = []
@@ -151,6 +150,17 @@ export function* updateFacilitySaga(
       (state) => state.user.user?.openWorkspaceId,
     )
     yield put(updateFacility({ facility, data }))
+    const facilities: {
+      [id: workspaceId]: {
+        [id: facilityId]: Facility
+      }
+    } = yield select((state) => state.facilities.facilities)
+    yield put(
+      sortFacilities({
+        facilities: facilities,
+        workspaceId: facility.workspaceId,
+      }),
+    )
     yield call(updateFacilityInFirestore, userId, facilityId, data, workspaceId)
     yield put(
       setToastOpen({
@@ -166,8 +176,20 @@ export function* updateFacilitySaga(
 export function* addFacilitySaga(action: PayloadAction<Facility>) {
   try {
     const userId: userId = yield select((state) => state.user.user?.id)
-    yield put(upsertFacility(action.payload))
-    yield call(addFacilityToFirestore, userId, action.payload)
+    const facility = action.payload
+    yield put(upsertFacility(facility))
+    yield call(addFacilityToFirestore, userId, facility)
+    const facilities: {
+      [id: workspaceId]: {
+        [id: facilityId]: Facility
+      }
+    } = yield select((state) => state.facilities.facilities)
+    yield put(
+      sortFacilities({
+        facilities: facilities,
+        workspaceId: facility.workspaceId,
+      }),
+    )
     yield put(
       setToastOpen({
         message: "Facility added successfully",
@@ -178,6 +200,47 @@ export function* addFacilitySaga(action: PayloadAction<Facility>) {
     yield put(
       setToastOpen({
         message: "Error adding facility",
+        severity: "error",
+      }),
+    )
+  }
+}
+
+export function* undropTasksFromFacilitySaga(
+  action: PayloadAction<Facility>,
+): Generator<any, void, any> {
+  try {
+    const facility: Facility = action.payload
+    const userId: userId = yield select((state) => state.user.user?.id)
+    const workspaceId: workspaceId = yield select(
+      (state) => state.user.user?.openWorkspaceId,
+    )
+    const tasks: { [id: taskId]: Task } = yield select((state) =>
+      selectTasksByIdsInWorkspace(state, workspaceId, facility.tasks),
+    )
+    yield put(updateFacility({ facility, data: { tasks: [] } }))
+    yield put(removeFacilityFromGrid({ facilityId: facility.id, workspaceId }))
+    yield put(undropMultipleTasks({ tasks }))
+    const updatedGrid = yield select((state) => selectGrid(state, workspaceId))
+    yield call(
+      updateFacilityInFirestore,
+      userId,
+      facility.id,
+      { tasks: [] },
+      workspaceId,
+    )
+    yield call(updateGridInFirestore, userId, updatedGrid, workspaceId)
+    yield call(undropMultipleTasksInFirestore, userId, tasks)
+    yield put(
+      setToastOpen({
+        message: "Tasks undropped successfully",
+        severity: "success",
+      }),
+    )
+  } catch (error) {
+    yield put(
+      setToastOpen({
+        message: error.message,
         severity: "error",
       }),
     )
@@ -199,6 +262,19 @@ export function* deleteFacilitySaga(
     yield put(undropMultipleTasks({ tasks }))
     yield put(removeFacility({ facilityId: facilityId, workspaceId }))
     yield put(removeFacilityFromGrid({ facilityId, workspaceId }))
+    const updatedGrid = yield select((state) => selectGrid(state, workspaceId))
+    const facilities: {
+      [id: workspaceId]: {
+        [id: facilityId]: Facility
+      }
+    } = yield select((state) => state.facilities.facilities)
+    yield put(
+      sortFacilities({
+        facilities: facilities,
+        workspaceId: workspaceId,
+      }),
+    )
+    yield call(updateGridInFirestore, userId, updatedGrid, workspaceId)
     yield call(undropMultipleTasksInFirestore, userId, tasks)
     yield call(deleteFacilityFromFirestore, userId, facilityId, workspaceId)
     yield put(
@@ -242,18 +318,9 @@ export function* syncFacilitiesSaga() {
                 ...doc.data(),
               } as Facility),
           )
-          const sortedFacilities = Object.values(facilities)
-            .sort((a, b) => a.bgcolor.localeCompare(b.bgcolor))
-            .reduce((acc, facility, index) => {
-              acc[facility.id] = {
-                ...facility,
-                index: index,
-              }
-              return acc
-            }, {} as { [id: facilityId]: Facility })
           const allFacilities = {
             ...prevFacilities,
-            [workspaceId]: sortedFacilities,
+            [workspaceId]: facilities,
           }
           emitter(allFacilities)
         })
@@ -268,6 +335,20 @@ export function* syncFacilitiesSaga() {
       const facilities: { [id: workspaceId]: { [id: projectId]: Facility } } =
         yield take(channel)
       yield put(setFacilities(facilities))
+      const allFacilities: {
+        [id: workspaceId]: { [id: projectId]: Facility }
+      } = yield select((state) => state.facilities.facilities)
+      const workspaceId: workspaceId = yield select(
+        (state) => state.user.user?.openWorkspaceId,
+      )
+      if (workspaceId && allFacilities[workspaceId]) {
+        yield put(
+          sortFacilities({
+            facilities: allFacilities,
+            workspaceId,
+          }),
+        )
+      }
     }
   } finally {
     const isCancelled: boolean = yield cancelled()
@@ -285,6 +366,13 @@ function* watchDeleteFacility() {
   yield takeLatest(deleteFacilityStart.type, deleteFacilitySaga)
 }
 
+function* watchUndropTasksFromFacility() {
+  yield takeLatest(
+    undropTasksFromFacilityStart.type,
+    undropTasksFromFacilitySaga,
+  )
+}
+
 function* watchUpdateFacility() {
   yield takeLatest(updateFacilityStart.type, updateFacilitySaga)
 }
@@ -298,6 +386,7 @@ export default function* facilitiesSagas() {
     watchAddFacility(),
     watchDeleteFacility(),
     watchSyncFacilities(),
+    watchUndropTasksFromFacility(),
     watchUpdateFacility(),
   ])
 }

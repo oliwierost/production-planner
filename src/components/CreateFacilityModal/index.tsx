@@ -17,6 +17,8 @@ import GroupsIcon from "@mui/icons-material/Groups"
 import { facilityModalSchema } from "../../../validationSchema"
 import { Modal as ModalType } from "../DataPanel"
 import { selectFacility } from "../../selectors/facilities"
+import { TextField } from "../TextField"
+import { DriveFileRenameOutline } from "@mui/icons-material"
 
 interface CreateFacilityModalProps {
   open: boolean
@@ -26,8 +28,7 @@ interface CreateFacilityModalProps {
 }
 
 interface FormData {
-  location: string
-  activity: string
+  title: string
   description: string
   manpower: number
   bgcolor: string
@@ -37,8 +38,6 @@ const initialValues = {
   id: "",
   tasks: [],
   title: "",
-  location: "",
-  activity: "",
   description: "",
   manpower: 1,
   bgcolor: "",
@@ -120,7 +119,6 @@ export function CreateFacilityModal({
             ...values,
             id,
             workspaceId,
-            title: values.location + " " + values.activity,
             tasks: [],
           }),
         )
@@ -128,7 +126,7 @@ export function CreateFacilityModal({
         dispatch(
           updateFacilityStart({
             facility: facility,
-            data: { ...values, title: values.location + " " + values.activity },
+            data: { ...values },
           }),
         )
       }
@@ -176,7 +174,7 @@ export function CreateFacilityModal({
                       spacing={5}
                       alignItems="center"
                     >
-                      <Typography variant="body1">Lokalizacja</Typography>
+                      <Typography variant="body1">Nazwa</Typography>
                       <Stack direction="row" alignItems="center">
                         <Box
                           position="absolute"
@@ -184,8 +182,8 @@ export function CreateFacilityModal({
                             transform: "translateX(-30px)",
                           }}
                         >
-                          {errors.location && touched.location ? (
-                            <Tooltip title={errors.location} arrow>
+                          {errors.title && touched.title ? (
+                            <Tooltip title={errors.title} arrow>
                               <PriorityHighIcon
                                 color="error"
                                 fontSize="large"
@@ -193,44 +191,12 @@ export function CreateFacilityModal({
                             </Tooltip>
                           ) : null}
                         </Box>
-                        <Dropdown
-                          options={locations}
-                          placeholder="Wybierz lokalizacje"
-                          value={values.location}
-                          setFieldValue={setFieldValue}
-                          name="location"
-                        />
-                      </Stack>
-                    </Stack>
-                    <Stack
-                      direction="row"
-                      justifyContent="space-between"
-                      spacing={5}
-                      alignItems="center"
-                    >
-                      <Typography variant="body1">Czynność</Typography>
-                      <Stack direction="row" alignItems="center">
-                        <Box
-                          position="absolute"
-                          sx={{
-                            transform: "translateX(-30px)",
-                          }}
-                        >
-                          {errors.activity && touched.activity ? (
-                            <Tooltip title={errors.activity} arrow>
-                              <PriorityHighIcon
-                                color="error"
-                                fontSize="large"
-                              />
-                            </Tooltip>
-                          ) : null}
-                        </Box>
-                        <Dropdown
-                          options={activities}
-                          placeholder="Wybierz czynność"
-                          value={values.activity}
-                          setFieldValue={setFieldValue}
-                          name="activity"
+                        <TextField
+                          placeholder="Nazwa"
+                          icon={<DriveFileRenameOutline />}
+                          value={values.title}
+                          onChange={(e) => handleInputChange(e, setFieldValue)}
+                          name="title"
                         />
                       </Stack>
                     </Stack>
@@ -247,6 +213,12 @@ export function CreateFacilityModal({
                         name="description"
                       />
                     </Stack>
+                    {facilityId ? (
+                      <Typography variant="body2" color="error">
+                        Aby zmienić siłę roboczą, usuń wszystkie zadania ze
+                        stanowiska.
+                      </Typography>
+                    ) : null}
                     <Stack direction="row" spacing={5} alignItems="center">
                       <Typography variant="body1" width={100}>
                         Siła robocza
@@ -273,6 +245,9 @@ export function CreateFacilityModal({
                           value={values.manpower}
                           onChange={(e) => handleInputChange(e, setFieldValue)}
                           name="manpower"
+                          disabled={
+                            facility && facility.tasks.length > 0 ? true : false
+                          }
                         />
                       </Stack>
                     </Stack>

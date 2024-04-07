@@ -1,15 +1,17 @@
-import { Stack, Divider, Box } from "@mui/material"
+import { Stack, Box } from "@mui/material"
 import { Draggable } from "../Draggable"
 import { useAppSelector } from "../../hooks"
 import { Task } from "../Task"
 import { selectTasks } from "../../selectors/tasks"
 import _ from "lodash"
+import { DraggedTask } from "../DraggedTask"
 
 export function TaskSlider() {
   const projectId = useAppSelector((state) => state.user.user?.openProjectId)
   const tasks = useAppSelector((state) => selectTasks(state, projectId))
   const draggedTask = useAppSelector((state) => state.drag.draggedTask)
-
+  const cellWidth = useAppSelector((state) => state.view.view?.cellWidth)
+  console.log(tasks)
   return (
     <Stack width="100%">
       <Stack
@@ -41,12 +43,18 @@ export function TaskSlider() {
         <Stack direction="row" minHeight={60} spacing={2}>
           {!_.isEmpty(tasks)
             ? Object.values(tasks)
-                .filter((task) => !task.startTime && !task.facilityId)
+                .filter((task) => !task.startTime || !task.facilityId)
                 .map((task) => (
                   <Box key={task.id}>
                     <Box key={task.id} position="relative">
                       <Draggable id={task.id} data={{ task, sourceId: null }}>
-                        <Task task={task} />
+                        {draggedTask?.id !== task.id ? (
+                          <Task task={task} />
+                        ) : (
+                          <Box maxWidth={cellWidth}>
+                            <DraggedTask task={task} />
+                          </Box>
+                        )}
                       </Draggable>
                       {task.id === draggedTask?.id ? (
                         <Box
