@@ -192,14 +192,14 @@ export function* addFacilitySaga(action: PayloadAction<Facility>) {
     )
     yield put(
       setToastOpen({
-        message: "Facility added successfully",
+        message: "Dodano stanowisko",
         severity: "success",
       }),
     )
   } catch (error) {
     yield put(
       setToastOpen({
-        message: "Error adding facility",
+        message: "Wystąpił błąd podczas dodawania stanowiska",
         severity: "error",
       }),
     )
@@ -233,14 +233,14 @@ export function* undropTasksFromFacilitySaga(
     yield call(undropMultipleTasksInFirestore, userId, tasks)
     yield put(
       setToastOpen({
-        message: "Tasks undropped successfully",
+        message: "Zadania usunięte z powodzeniem",
         severity: "success",
       }),
     )
   } catch (error) {
     yield put(
       setToastOpen({
-        message: error.message,
+        message: "Błąd podczas usuwania zadań",
         severity: "error",
       }),
     )
@@ -279,14 +279,14 @@ export function* deleteFacilitySaga(
     yield call(deleteFacilityFromFirestore, userId, facilityId, workspaceId)
     yield put(
       setToastOpen({
-        message: "Facility deleted successfully",
+        message: "Usunięto stanowisko z powodzeniem",
         severity: "success",
       }),
     )
   } catch (error) {
     yield put(
       setToastOpen({
-        message: error.message,
+        message: "Błąd podczas usuwania stanowiska",
         severity: "error",
       }),
     )

@@ -14,7 +14,6 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDocs,
   onSnapshot,
   setDoc,
   updateDoc,
@@ -39,7 +38,6 @@ const addDeadlineToFirestore = async (
   userId: string,
   deadline: Deadline,
   workspaceId: string,
-  projectId: string,
 ) => {
   await setDoc(
     doc(
@@ -54,7 +52,7 @@ const updateDeadlineInFirestore = async (
   userId: string,
   deadlineId: string,
   workspaceId: string,
-  projectId: string,
+
   updateData: { [key: string]: any },
 ) => {
   await updateDoc(
@@ -70,7 +68,6 @@ const deleteDeadlineFromFirestore = async (
   userId: string,
   deadlineId: string,
   workspaceId: string,
-  projectId: string,
 ) => {
   await deleteDoc(
     doc(
@@ -85,13 +82,7 @@ export function* addDeadlineSaga(action: PayloadAction<Deadline>) {
     const deadline = action.payload
     const userId: string = yield select((state) => state.user.user?.id)
     yield put(addDeadline(deadline))
-    yield call(
-      addDeadlineToFirestore,
-      userId,
-      deadline,
-      deadline.workspaceId,
-      deadline.projectId,
-    )
+    yield call(addDeadlineToFirestore, userId, deadline, deadline.workspaceId)
     yield put(setToastOpen({ message: "Dodano deadline", severity: "success" }))
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
@@ -110,7 +101,6 @@ export function* deleteDeadlineSaga(
       userId,
       deadline.id,
       deadline.workspaceId,
-      deadline.projectId,
     )
     yield put(
       setToastOpen({ message: "Usunięto deadline", severity: "success" }),
@@ -129,17 +119,10 @@ export function* updateDeadlineSaga(
   }>,
 ): Generator<any, void, any> {
   try {
-    const { deadlineId, data, projectId, workspaceId } = action.payload
+    const { deadlineId, data, workspaceId } = action.payload
     const userId: string = yield select((state) => state.user.user?.id)
     yield put(updateDeadline(data))
-    yield call(
-      updateDeadlineInFirestore,
-      userId,
-      deadlineId,
-      workspaceId,
-      projectId,
-      data,
-    )
+    yield call(updateDeadlineInFirestore, userId, deadlineId, workspaceId, data)
     yield put(
       setToastOpen({ message: "Zaktualizowano deadline", severity: "success" }),
     )

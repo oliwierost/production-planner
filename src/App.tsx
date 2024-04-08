@@ -60,7 +60,7 @@ function App() {
   const facilities = useAppSelector((state) =>
     selectFacilities(state, user?.openWorkspaceId),
   )
-  const rootRef = useRef<HTMLDivElement>(null)
+
   const currentUser = auth.currentUser
 
   useEffect(() => {
@@ -183,7 +183,7 @@ function App() {
     dispatch(setDraggedTask({ task: event.active.data.current?.task }))
   }
 
-  const handleDragCancel = (event: DragStartEvent) => {
+  const handleDragCancel = () => {
     dispatch(
       setDraggedTask({
         task: null,
