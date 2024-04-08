@@ -344,7 +344,7 @@ export function* deleteTaskSaga(
       setToastOpen({ message: "Usunięto zadanie", severity: "success" }),
     )
   } catch (error) {
-    yield put(setToastOpen({ message: error.message, severity: "error" }))
+    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
 }
 
@@ -564,7 +564,7 @@ export function* updateTaskSaga(
       }),
     )
   } catch (error) {
-    yield put(setToastOpen({ message: error.message, severity: "error" }))
+    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
 }
 
