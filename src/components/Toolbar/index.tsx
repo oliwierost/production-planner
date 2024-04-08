@@ -1,22 +1,12 @@
-import { Box, Stack, ToggleButton, Typography } from "@mui/material"
-import { useEffect, useState } from "react"
-import { CreateTaskModal } from "../CreateTaskModal"
-import { CreateActivityModal } from "../CreateActivityModal"
-import { CreateLocationModal } from "../CreateLocationModal"
-import { CreateFacilityModal } from "../CreateFacilityModal"
-import { CreateDeadlineModal } from "../CreateDeadlineModal"
-import { CreateGroupModal } from "../CreateGroupModal"
-import { CreateWorkspaceModal } from "../CreateWorkspaceModal"
-import { useAppDispatch, useAppSelector } from "../../hooks"
-import { CreateProjectModal } from "../CreateProjectModal"
 import { Logout } from "@mui/icons-material"
-import { signOutStart } from "../../slices/user"
+import { Stack, ToggleButton, Typography } from "@mui/material"
+import { useEffect, useState } from "react"
+import { useAppDispatch, useAppSelector } from "../../hooks"
 import { Project } from "../../slices/projects"
+import { signOutStart } from "../../slices/user"
 import { Workspace } from "../../slices/workspaces"
-import _ from "lodash"
 
 export function Toolbar() {
-  const [modalOpen, setModalOpen] = useState<string | null>(null)
   const [project, setProject] = useState<Project>()
   const [workspace, setWorkspace] = useState<Workspace>()
   const dispatch = useAppDispatch()

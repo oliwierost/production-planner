@@ -1,6 +1,6 @@
 import { createSelector } from "reselect"
+import { taskId } from "../slices/tasks"
 import { RootState } from "../store"
-import { Task, taskId } from "../slices/tasks"
 
 export const selectGrid = createSelector(
   [

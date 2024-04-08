@@ -1,5 +1,3 @@
-import { Alert, Box, Snackbar, Stack } from "@mui/material"
-import { TaskSlider } from "./components/TaskSlider"
 import {
   Active,
   DndContext,
@@ -10,41 +8,43 @@ import {
   Over,
   useSensor,
 } from "@dnd-kit/core"
-import { Toolbar } from "./components/Toolbar"
-import { useEffect, useRef, useState } from "react"
-import { DataGrid } from "./components/DataGrid"
+import { snapCenterToCursor } from "@dnd-kit/modifiers"
+import { Alert, Box, Snackbar, Stack } from "@mui/material"
 import { ThemeProvider } from "@mui/material/styles"
-import { theme } from "../theme"
 import { LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
+import { useEffect, useState } from "react"
+import { auth } from "../firebase.config"
+import { theme } from "../theme"
+import { AuthModal } from "./components/AuthModal"
+import { DataGrid } from "./components/DataGrid"
+import { calculateTaskDurationHelper } from "./components/DataGrid/calculateTaskDurationHelper"
+import { DataPanel } from "./components/DataPanel"
+import { TaskSlider } from "./components/TaskSlider"
+import { TimelineToolbar } from "./components/TimelineToolbar"
+import {
+  generateMonthMapping,
+  generateWeekMapping,
+} from "./components/ToggleView/generateTimeMappings"
+import { Toolbar } from "./components/Toolbar"
 import { generateMonthView } from "./generateView"
+import { useAppDispatch, useAppSelector } from "./hooks"
+import { selectFacilities } from "./selectors/facilities"
+import { selectGrid } from "./selectors/grid"
+import { syncDeadlinesStart } from "./slices/deadlines"
+import { setDraggedTask, setOverFacilityId } from "./slices/drag"
+import { syncFacilitiesStart } from "./slices/facilities"
+import { initializeGridStart, syncGridStart } from "./slices/grid"
+import { syncProjectsStart } from "./slices/projects"
 import {
   moveTaskStart,
   setTaskDroppedStart,
   syncTasksStart,
 } from "./slices/tasks"
-import { useAppDispatch, useAppSelector } from "./hooks"
 import { setToastClose, setToastOpen } from "./slices/toast"
-import { initializeMappings, setMonthView } from "./slices/view"
-import { TimelineToolbar } from "./components/TimelineToolbar"
-import { syncFacilitiesStart } from "./slices/facilities"
-import { initializeGridStart, syncGridStart } from "./slices/grid"
-import { syncDeadlinesStart } from "./slices/deadlines"
-import { syncWorkspacesStart } from "./slices/workspaces"
-import { syncProjectsStart } from "./slices/projects"
-import { AuthModal } from "./components/AuthModal"
 import { syncUserStart } from "./slices/user"
-import { auth } from "../firebase.config"
-import { DataPanel } from "./components/DataPanel"
-import { selectGrid } from "./selectors/grid"
-import { setDraggedTask, setOverFacilityId } from "./slices/drag"
-import { selectFacilities } from "./selectors/facilities"
-import { calculateTaskDurationHelper } from "./components/DataGrid/calculateTaskDurationHelper"
-import {
-  generateMonthMapping,
-  generateWeekMapping,
-} from "./components/ToggleView/generateTimeMappings"
-import { snapCenterToCursor } from "@dnd-kit/modifiers"
+import { initializeMappings, setMonthView } from "./slices/view"
+import { syncWorkspacesStart } from "./slices/workspaces"
 
 export const NUM_OF_DAYS = 100
 export const START_DATE = new Date(2024, 1, 1, 0, 0)

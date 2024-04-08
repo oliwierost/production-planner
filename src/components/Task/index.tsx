@@ -15,7 +15,6 @@ interface TaskProps {
 
 export function Task({ task }: TaskProps) {
   const [modal, setModal] = useState<Modal | null>(null)
-  const [isGridUpdated, setIsGridUpdated] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
   const view = useAppSelector((state) => state.view.view)
@@ -103,8 +102,6 @@ export function Task({ task }: TaskProps) {
         item={task}
         cursorPosition={cursorPosition}
         options={contextMenuOptions}
-        isGridUpdated={isGridUpdated}
-        setIsGridUpdated={setIsGridUpdated}
         modal={modal}
         setModal={setModal}
       />

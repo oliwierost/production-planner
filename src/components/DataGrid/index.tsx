@@ -66,8 +66,6 @@ export function DataGrid() {
         top: [
           {
             id: "0",
-            activity: "",
-            location: "",
             manpower: 0,
             title: "",
             description: "",

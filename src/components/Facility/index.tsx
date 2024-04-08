@@ -1,23 +1,21 @@
-import EditIcon from "@mui/icons-material/Edit"
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
+import EditIcon from "@mui/icons-material/Edit"
+import PersonIcon from "@mui/icons-material/Person"
 import { Stack, Typography } from "@mui/material"
+import { GridDeleteIcon } from "@mui/x-data-grid"
+import { useState } from "react"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { setDragDisabled } from "../../slices/drag"
 import {
   Facility as FacilityType,
   deleteFacilityStart,
   undropTasksFromFacilityStart,
 } from "../../slices/facilities"
 import { ContextMenu } from "../ContextMenu"
-import { useEffect, useState } from "react"
-import { useAppDispatch, useAppSelector } from "../../hooks"
-import { setDragDisabled } from "../../slices/drag"
-import { updateGridStart } from "../../slices/grid"
-import PersonIcon from "@mui/icons-material/Person"
 import { Modal } from "../DataPanel"
-import { selectGrid } from "../../selectors/grid"
-import { GridDeleteIcon } from "@mui/x-data-grid"
 
 interface FacilityProps {
-  facility: FacilityType
+  facility: FacilityType | null
 }
 
 export function Facility({ facility }: FacilityProps) {
@@ -31,7 +29,6 @@ export function Facility({ facility }: FacilityProps) {
     (state) => state.user.user?.openWorkspaceId,
   )
   const projectId = useAppSelector((state) => state.user.user?.openProjectId)
-  const grid = useAppSelector((state) => selectGrid(state, workspaceId))
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
@@ -68,6 +65,7 @@ export function Facility({ facility }: FacilityProps) {
     {
       title: "Usuń",
       onClick: () => {
+        if (!facility) return
         dispatch(deleteFacilityStart(facility))
         handleClose()
       },
@@ -78,6 +76,7 @@ export function Facility({ facility }: FacilityProps) {
     {
       title: "Usuń zadania z osi czasu",
       onClick: () => {
+        if (!facility) return
         dispatch(undropTasksFromFacilityStart(facility))
         handleClose()
       },

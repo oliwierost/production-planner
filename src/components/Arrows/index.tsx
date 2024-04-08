@@ -1,4 +1,3 @@
-import { Box } from "@mui/material"
 import { Task, taskId } from "../../slices/tasks"
 import { Arrow } from "./Arrow"
 import { Facility } from "../../slices/facilities"
