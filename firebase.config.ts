@@ -4,7 +4,7 @@ import { getFirestore } from "firebase/firestore"
 import { getAuth } from "firebase/auth"
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyCwxoDPzfXr6IkCTHLpW5MCqlVRK3_tvfI",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "production-schedule-3033a.firebaseapp.com",
   projectId: "production-schedule-3033a",
   storageBucket: "production-schedule-3033a.appspot.com",
