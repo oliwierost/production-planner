@@ -167,6 +167,7 @@ export const tasksSlice = createSlice({
       state,
       action: PayloadAction<{ task: Task; workspaceId: string }>,
     ) {
+      console.info("addTaskStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -178,6 +179,7 @@ export const tasksSlice = createSlice({
         workspaceId: workspaceId
       }>,
     ) {
+      console.info("updateTaskStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -189,6 +191,7 @@ export const tasksSlice = createSlice({
         newDuration: number
       }>,
     ) {
+      console.info("resizeTaskStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -199,6 +202,7 @@ export const tasksSlice = createSlice({
         locked: boolean
       }>,
     ) {
+      console.info("setTaskLockedStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -212,6 +216,7 @@ export const tasksSlice = createSlice({
         task: Task
       }>,
     ) {
+      console.info("moveTaskStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -224,6 +229,7 @@ export const tasksSlice = createSlice({
         cellSpan?: number
       }>,
     ) {
+      console.info("deleteTaskStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -236,6 +242,7 @@ export const tasksSlice = createSlice({
         task: Task
       }>,
     ) {
+      console.info("setTaskDroppedStart", action.payload)
       state.loading = true
       state.error = null
     },

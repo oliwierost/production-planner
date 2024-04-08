@@ -50,14 +50,17 @@ export const userSlice = createSlice({
       }
     },
     initializeUserStart: (state, action: PayloadAction<Credentials>) => {
+      console.info("initializeUserStart", action.payload)
       state.loading = true
       state.error = null
     },
     syncUserStart: (state, action: PayloadAction<string | undefined>) => {
+      console.info("syncUserStart", action.payload)
       state.loading = true
       state.error = null
     },
     signInStart: (state, action: PayloadAction<Credentials>) => {
+      console.info("signInStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -66,10 +69,12 @@ export const userSlice = createSlice({
       state.error = null
     },
     setProjectOpenStart: (state, action: PayloadAction<string>) => {
+      console.info("setProjectOpenStart", action.payload)
       state.loading = true
       state.error = null
     },
     setWorkspaceOpenStart: (state, action: PayloadAction<string>) => {
+      console.info("setWorkspaceOpenStart", action.payload)
       state.loading = true
       state.error = null
     },

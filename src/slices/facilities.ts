@@ -139,10 +139,6 @@ export const facilitiesSlice = createSlice({
       state.loading = false
       state.error = null
     },
-    setTotal(
-      state,
-      action: PayloadAction<{ total: number; workspaceId: workspaceId }>,
-    ) {},
     fetchFacilitiesStart(state) {
       state.loading = true
       state.error = null
@@ -158,15 +154,18 @@ export const facilitiesSlice = createSlice({
       state.error = null
     },
     undropTasksFromFacilityStart(state, action: PayloadAction<Facility>) {
+      console.info("undropTasksFromFacilityStart", action.payload)
       state.loading = true
       state.error = null
     },
 
     addFacilityStart(state, action: PayloadAction<Facility>) {
+      console.info("addFacilityStart", action.payload)
       state.loading = true
       state.error = null
     },
     deleteFacilityStart(state, action: PayloadAction<Facility>) {
+      console.info("deleteFacilityStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -174,6 +173,7 @@ export const facilitiesSlice = createSlice({
       state,
       action: PayloadAction<{ facility: Facility; data: any }>,
     ) {
+      console.info("updateFacilityStart", action.payload)
       state.loading = true
       state.error = null
     },

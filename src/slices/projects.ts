@@ -54,6 +54,7 @@ export const projectsSlice = createSlice({
       state,
       action: PayloadAction<{ workspaceId: workspaceId; project: Project }>,
     ) => {
+      console.info("upsertProjectStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -61,6 +62,7 @@ export const projectsSlice = createSlice({
       state,
       action: PayloadAction<{ [id: string]: Project }>,
     ) => {
+      console.info("setProjectsStart", action.payload)
       state.loading = true
       state.error = null
     },

@@ -82,10 +82,12 @@ export const deadlinesSlice = createSlice({
         }
       }>,
     ) => {
+      console.info("addDeadlineStart", action.payload)
       state.loading = true
       state.error = null
     },
     removeDeadlineStart: (state, action: PayloadAction<Deadline>) => {
+      console.info("removeDeadlineStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -98,10 +100,12 @@ export const deadlinesSlice = createSlice({
         workspaceId: string
       }>,
     ) => {
+      console.info("updateDeadlineStart", action.payload)
       state.loading = true
       state.error = null
     },
     setDeadlinesStart: (state, action: PayloadAction<Deadline[]>) => {
+      console.info("setDeadlinesStart", action.payload)
       state.loading = true
       state.error = null
     },
