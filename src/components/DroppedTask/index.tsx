@@ -273,15 +273,18 @@ export const DroppedTask = memo(function DroppedTask({
     }
   }
 
-  const [taskWidth, setTaskWidth] = useState(getTaskWidth())
-  const [leftOffset, _] = useState(
-    calculateTaskLeftOffsetHelper(
+  const getLeftOffset = () => {
+    return calculateTaskLeftOffsetHelper(
       task.startTime!,
       colId,
       cellWidth,
       view?.daysInCell!,
-    ),
-  )
+    )
+  }
+
+  const [taskWidth, setTaskWidth] = useState(getTaskWidth())
+  const [leftOffset, setTaskLeftOffset] = useState(getLeftOffset())
+
   useEffect(() => {
     setTaskWidth(getTaskWidth())
   }, [
@@ -291,6 +294,10 @@ export const DroppedTask = memo(function DroppedTask({
     taskDuration,
     view?.name,
   ])
+
+  useEffect(() => {
+    setTaskLeftOffset(getLeftOffset())
+  }, [task.startTime, colId, cellWidth, view?.daysInCell])
 
   useEffect(() => {
     setTaskDuration(task.duration)

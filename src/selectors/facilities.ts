@@ -33,3 +33,14 @@ export const selectFacility = createSelector(
     return workspaceFacilities[facilityId] || null
   },
 )
+
+export const selectFacilitiesCount = createSelector(
+  [
+    (state: RootState) => state.facilities.facilities,
+    (_: RootState, workspaceId: string | null | undefined) => workspaceId,
+  ],
+  (facilities, workspaceId) => {
+    if (!facilities || !workspaceId) return 0
+    return Object.keys(facilities[workspaceId] || {}).length
+  },
+)

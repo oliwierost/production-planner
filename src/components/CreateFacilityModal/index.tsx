@@ -8,7 +8,6 @@ import { PrimaryButton } from "../PrimaryButton"
 import { doc, collection } from "firebase/firestore"
 import { firestore } from "../../../firebase.config"
 import { Form, Formik, FormikHelpers } from "formik"
-import { Dropdown } from "../Dropdown"
 import { ColorField } from "../ColorField"
 import { NumberField } from "../NumberField"
 import { useAppDispatch, useAppSelector } from "../../hooks"
@@ -42,21 +41,6 @@ const initialValues = {
   manpower: 1,
   bgcolor: "",
 }
-
-const locations = [
-  { value: "BOP_GA", label: "BOP_GA" },
-  { value: "BOP_GD", label: "BOP_GD" },
-]
-
-const activities = [
-  { value: "CUTTING", label: "CUTTING" },
-  { value: "PREFABRICATION", label: "PREFABRICATION" },
-  { value: "TRANSPORT", label: "TRANSPORT" },
-  { value: "ASSEMBLY", label: "ASSEMBLY" },
-  { value: "QUALITY CONTROL", label: "QUALITY CONTROL" },
-  { value: "PAINTING", label: "PAINTING" },
-  { value: "INSTALLATION", label: "INSTALLATION" },
-]
 
 const colorOptions = [
   {
@@ -213,7 +197,7 @@ export function CreateFacilityModal({
                         name="description"
                       />
                     </Stack>
-                    {facilityId ? (
+                    {facilityId && facility && facility.tasks.length > 0 ? (
                       <Typography variant="body2" color="error">
                         Aby zmienić siłę roboczą, usuń wszystkie zadania ze
                         stanowiska.

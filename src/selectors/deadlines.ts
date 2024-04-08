@@ -1,6 +1,17 @@
 import { createSelector } from "reselect"
 import { RootState } from "../store"
 
+export const selectDeadlines = createSelector(
+  [
+    (state: RootState) => state.deadlines.deadlines,
+    (_: RootState, projectId: string | null | undefined) => projectId,
+  ],
+  (deadlines, projectId) => {
+    if (!deadlines || !projectId) return null
+    return deadlines[projectId] || null
+  },
+)
+
 export const selectDeadline = createSelector(
   [
     (state: RootState) => state.tasks.tasks,

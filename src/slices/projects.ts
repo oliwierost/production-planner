@@ -56,7 +56,6 @@ export const projectsSlice = createSlice({
     ) => {
       state.loading = true
       state.error = null
-      console.info("upsertProjectStart", action.payload)
     },
     setProjectsStart: (
       state,
@@ -64,7 +63,6 @@ export const projectsSlice = createSlice({
     ) => {
       state.loading = true
       state.error = null
-      console.info("setProjectsStart", action.payload)
     },
     syncProjectsStart: (state) => {
       state.loading = true

@@ -22,7 +22,6 @@ interface FacilitiesState {
       [id: facilityId]: Facility
     }
   }
-  total: number
   loading: boolean
   error: string | null
 }
@@ -30,7 +29,6 @@ interface FacilitiesState {
 // Initial state for the facilities slice
 const initialState: FacilitiesState = {
   facilities: {},
-  total: 0,
   loading: false,
   error: null,
 }
@@ -137,12 +135,14 @@ export const facilitiesSlice = createSlice({
 
       const facilities = action.payload
       //sort facilities by bgcolor and add index property then convert to object
-      const facilitiesArray = Object.values(facilities)
       state.facilities = { ...facilities, ...state.facilities }
-      state.total = facilitiesArray.length - 1
       state.loading = false
       state.error = null
     },
+    setTotal(
+      state,
+      action: PayloadAction<{ total: number; workspaceId: workspaceId }>,
+    ) {},
     fetchFacilitiesStart(state) {
       state.loading = true
       state.error = null
@@ -160,18 +160,15 @@ export const facilitiesSlice = createSlice({
     undropTasksFromFacilityStart(state, action: PayloadAction<Facility>) {
       state.loading = true
       state.error = null
-      console.info("undropTasksFromFacilityStart", action.payload)
     },
 
     addFacilityStart(state, action: PayloadAction<Facility>) {
       state.loading = true
       state.error = null
-      console.info("addFacilityStart", action.payload)
     },
     deleteFacilityStart(state, action: PayloadAction<Facility>) {
       state.loading = true
       state.error = null
-      console.info("deleteFacilityStart", action.payload)
     },
     updateFacilityStart(
       state,
@@ -179,7 +176,6 @@ export const facilitiesSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
-      console.info("updateFacilityStart", action.payload)
     },
     syncFacilitiesStart(state /*action: PayloadAction<GridType>*/) {
       state.loading = true

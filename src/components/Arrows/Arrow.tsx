@@ -38,7 +38,6 @@ export function Arrow({
 
   useEffect(() => {
     if (!view || !fromFacility || !toFacility) return
-    console.log(fromFacility, toFacility)
     const startCoords = getCoordsHelper({
       fromFacility,
       toFacility,

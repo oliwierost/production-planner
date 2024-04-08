@@ -169,7 +169,6 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
-      console.info("addTaskStart", action.payload)
     },
     updateTaskStart(
       state,
@@ -181,7 +180,6 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
-      console.info("updateTaskStart", action.payload)
     },
     resizeTaskStart(
       state,
@@ -193,7 +191,6 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
-      console.info("resizeTaskStart", action.payload)
     },
     setTaskLockedStart(
       state,
@@ -204,7 +201,6 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
-      console.info("setTaskLockedStart", action.payload)
     },
     moveTaskStart(
       state,
@@ -218,7 +214,6 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
-      console.info("moveTaskStart", action.payload)
     },
     deleteTaskStart(
       state,
@@ -231,7 +226,6 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
-      console.info("deleteTaskStart", action.payload)
     },
     setTaskDroppedStart(
       state,
@@ -244,7 +238,6 @@ export const tasksSlice = createSlice({
     ) {
       state.loading = true
       state.error = null
-      console.info("setTaskDroppedStart", action.payload)
     },
     syncTasksStart(state /*action: PayloadAction<GridType>*/) {
       state.loading = true

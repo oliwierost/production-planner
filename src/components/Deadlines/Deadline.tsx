@@ -84,6 +84,7 @@ export function Deadline({
                   borderColor: "transparent transparent red transparent",
                 }}
               />
+
               <Typography
                 sx={{
                   position: "absolute",

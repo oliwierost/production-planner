@@ -11,7 +11,7 @@ export function TaskSlider() {
   const tasks = useAppSelector((state) => selectTasks(state, projectId))
   const draggedTask = useAppSelector((state) => state.drag.draggedTask)
   const cellWidth = useAppSelector((state) => state.view.view?.cellWidth)
-  console.log(tasks)
+
   return (
     <Stack width="100%">
       <Stack
@@ -44,6 +44,16 @@ export function TaskSlider() {
           {!_.isEmpty(tasks)
             ? Object.values(tasks)
                 .filter((task) => !task.startTime || !task.facilityId)
+                .sort((a, b) => {
+                  //sort by color
+                  if (a.bgcolor < b.bgcolor) {
+                    return -1
+                  }
+                  if (a.bgcolor > b.bgcolor) {
+                    return 1
+                  }
+                  return 0
+                })
                 .map((task) => (
                   <Box key={task.id}>
                     <Box key={task.id} position="relative">

@@ -39,7 +39,6 @@ export const workspacesSlice = createSlice({
     upsertWorkspaceStart: (state, action: PayloadAction<Workspace>) => {
       state.loading = true
       state.error = null
-      console.info("upsertWorkspaceStart", action.payload)
     },
     setWorkspacesStart: (
       state,
@@ -47,7 +46,6 @@ export const workspacesSlice = createSlice({
     ) => {
       state.loading = true
       state.error = null
-      console.info("setWorkspacesStart", action.payload)
     },
     syncWorkspacesStart: (state) => {
       state.loading = true

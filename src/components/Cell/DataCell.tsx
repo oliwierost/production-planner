@@ -5,7 +5,10 @@ import { Deadlines } from "../Deadlines"
 import { memo } from "react"
 import _, { isEqual } from "lodash"
 import { selectTaskIdsFromCells } from "../../selectors/grid"
-import { selectFacility } from "../../selectors/facilities"
+import {
+  selectFacilitiesCount,
+  selectFacility,
+} from "../../selectors/facilities"
 import { selectTimestampsFromMapping } from "../../selectors/view"
 import { TaskWithOverlay } from "../TaskWithOverlay"
 
@@ -19,13 +22,13 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
   const time = new Date(date).getTime()
   const cellKey = `${rowId}-${time}`
 
-  const facilitiesCount = useAppSelector(
-    (state) => state.facilities.total,
+  const workspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
     isEqual,
   )
 
-  const workspaceId = useAppSelector(
-    (state) => state.user.user?.openWorkspaceId,
+  const facilitiesCount = useAppSelector(
+    (state) => selectFacilitiesCount(state, workspaceId),
     isEqual,
   )
 
@@ -53,6 +56,7 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
     <Stack
       alignItems="center"
       justifyContent="center"
+      position="relative"
       sx={{
         width: cellWidth,
         height: 50,
@@ -85,6 +89,11 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
             : null}
         </Box>
       </Droppable>
+      <Deadlines
+        time={time}
+        rowIndex={rowIndex}
+        lastIndex={facilitiesCount - 1}
+      />
     </Stack>
   )
 })

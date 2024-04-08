@@ -66,6 +66,7 @@ const colorOptions = [
     bgcolor: "#8e44ad",
     color: "#000000",
   },
+  { bgcolor: "#ff1493", color: "#FFFFFF" },
 ]
 
 const initialValues = {
@@ -194,7 +195,7 @@ export function CreateTaskModal({
             <Modal open={open} onClose={() => handleClose(resetForm)}>
               <Stack alignItems="center" justifyContent="center">
                 <TitleBar onClose={() => handleClose(resetForm)} />
-                <Stack p={2} bgcolor="white" width="fit-content" spacing={4}>
+                <Stack p={2} bgcolor="white" spacing={4}>
                   <Typography variant="h6">
                     {taskId ? "Edytuj" : "Dodaj"} zadanie
                   </Typography>
@@ -219,7 +220,7 @@ export function CreateTaskModal({
                       ))}
                     </Tabs>
                   </Box>
-                  <Stack spacing={2}>
+                  <Stack spacing={2} minWidth="700px">
                     {tab === 0 ? (
                       <>
                         <Stack spacing={2}>
@@ -282,6 +283,7 @@ export function CreateTaskModal({
                             direction="row"
                             spacing={5}
                             alignItems="center"
+                            justifyContent="space-between"
                           >
                             <Typography variant="body1" width={100}>
                               Czas trwania
@@ -326,6 +328,7 @@ export function CreateTaskModal({
                             direction="row"
                             spacing={5}
                             alignItems="center"
+                            justifyContent="space-between"
                           >
                             <Typography variant="body1" width={100}>
                               Data rozpoczęcia*
@@ -348,6 +351,7 @@ export function CreateTaskModal({
                             direction="row"
                             spacing={5}
                             alignItems="center"
+                            justifyContent="space-between"
                           >
                             <Typography variant="body1" width={100}>
                               Stanowisko
@@ -414,10 +418,9 @@ export function CreateTaskModal({
                             spacing={1}
                             alignItems="center"
                           >
-                            <Stack
+                            <Box
                               sx={{
                                 border: "1px solid black",
-                                width: "50%",
                                 height: 300,
                                 overflow: "auto",
                                 p: 1,
@@ -434,6 +437,10 @@ export function CreateTaskModal({
                                     .map((task) => (
                                       <Typography
                                         variant="body1"
+                                        sx={{
+                                          whiteSpace: "nowrap",
+                                          width: "100%",
+                                        }}
                                         key={task.id}
                                         pl={0.5}
                                         bgcolor={
@@ -454,7 +461,7 @@ export function CreateTaskModal({
                                       </Typography>
                                     ))
                                 : null}
-                            </Stack>
+                            </Box>
                             <Stack alignItems="center" spacing={1}>
                               <ArrowRightAlt fontSize="large" />
                               <PrimaryButton
@@ -507,7 +514,7 @@ export function CreateTaskModal({
                             <Stack
                               sx={{
                                 border: "1px solid black",
-                                width: "50%",
+                                flex: 1,
                                 height: 300,
                                 overflow: "auto",
                                 p: 1,

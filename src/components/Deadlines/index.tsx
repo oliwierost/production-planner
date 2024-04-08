@@ -1,4 +1,5 @@
 import { useAppSelector } from "../../hooks"
+import { selectDeadlines } from "../../selectors/deadlines"
 import { Deadline } from "./Deadline"
 
 interface DeadlinesProps {
@@ -8,21 +9,24 @@ interface DeadlinesProps {
 }
 
 export function Deadlines({ time, rowIndex, lastIndex }: DeadlinesProps) {
-  const deadlines = useAppSelector((state) => state.deadlines.deadlines)
+  const projectId = useAppSelector((state) => state.user.user?.openProjectId)
+  const deadlines = useAppSelector((state) => selectDeadlines(state, projectId))
 
   return (
     <>
-      {Object.values(deadlines).map((deadline) => {
-        return (
-          <Deadline
-            key={deadline.id}
-            time={time}
-            rowIndex={rowIndex}
-            lastIndex={lastIndex}
-            deadline={deadline}
-          />
-        )
-      })}
+      {deadlines
+        ? Object.values(deadlines).map((deadline) => {
+            return (
+              <Deadline
+                key={deadline.id}
+                time={time}
+                rowIndex={rowIndex}
+                lastIndex={lastIndex}
+                deadline={deadline}
+              />
+            )
+          })
+        : null}
     </>
   )
 }
