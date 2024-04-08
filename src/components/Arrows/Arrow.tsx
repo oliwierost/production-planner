@@ -69,6 +69,8 @@ export function Arrow({
     facilities,
   ])
 
+  if (!fromTask.facilityId || !fromTask.startTime) return null
+
   return (
     <Box
       sx={{
