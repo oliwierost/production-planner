@@ -4,7 +4,6 @@ import { workspaceId } from "./workspaces"
 import { Facility, facilityId } from "./facilities"
 import { calculateTaskDurationHelper } from "../components/DataGrid/calculateTaskDurationHelper"
 import { projectId } from "./projects"
-import { ConstructionOutlined } from "@mui/icons-material"
 
 export interface Cell {
   state: string
