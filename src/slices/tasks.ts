@@ -1,6 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { projectId } from "./projects"
 import { workspaceId } from "./workspaces"
+import React from "react"
+import { Modal } from "../components/DataPanel"
+import { FormikHelpers } from "formik"
+import { TaskFormData } from "../components/CreateTaskModal"
 
 // Define the Task interface
 export type taskId = string
@@ -10,7 +14,6 @@ export interface Task {
   description: string
   bgcolor: string // Background color
   duration: number
-  dropped: boolean // Indicates if the task has been placed on the grid
   facilityId: string | null
   startTime: number | null
   projectId: projectId
@@ -83,23 +86,12 @@ export const tasksSlice = createSlice({
       Object.values(tasks).forEach((task) => {
         state.tasks[task.projectId][task.id] = {
           ...task,
-          dropped: false,
           startTime: null,
           facilityId: null,
         }
       })
     },
 
-    // You can add more actions here as needed, for example, to mark a task as dropped
-    setTaskDropped: (
-      state,
-      action: PayloadAction<{ task: Task; dropped: boolean }>,
-    ) => {
-      const { task, dropped } = action.payload
-      if (task) {
-        state.tasks[task.projectId][task.id].dropped = dropped
-      }
-    },
     updateRequiredTasks: (
       state,
       action: PayloadAction<{
@@ -165,7 +157,12 @@ export const tasksSlice = createSlice({
     },
     addTaskStart(
       state,
-      action: PayloadAction<{ task: Task; workspaceId: string }>,
+      action: PayloadAction<{
+        task: Task
+        workspaceId: string
+        setModal: React.Dispatch<React.SetStateAction<Modal | null>>
+        resetForm: FormikHelpers<TaskFormData>["resetForm"]
+      }>,
     ) {
       console.info("addTaskStart", action.payload)
       state.loading = true
@@ -177,6 +174,8 @@ export const tasksSlice = createSlice({
         task: Task
         data: any
         workspaceId: workspaceId
+        setModal: React.Dispatch<React.SetStateAction<Modal | null>>
+        resetForm: FormikHelpers<TaskFormData>["resetForm"]
       }>,
     ) {
       console.info("updateTaskStart", action.payload)
@@ -257,7 +256,6 @@ export const tasksSlice = createSlice({
 export const {
   upsertTask,
   removeTask,
-  setTaskDropped,
   fetchTasksStart,
   updateTask,
   setTasks,

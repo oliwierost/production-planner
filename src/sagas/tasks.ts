@@ -56,8 +56,39 @@ import { userId } from "../slices/user"
 import { projectId } from "../slices/projects"
 import { selectGrid } from "../selectors/grid"
 import { workspaceId } from "../slices/workspaces"
-
 import { selectFacility } from "../selectors/facilities"
+import { calculateTaskDurationHelper } from "../components/DataGrid/calculateTaskDurationHelper"
+import { FormikHelpers } from "formik"
+import React from "react"
+import { Modal } from "../components/DataPanel"
+import { TaskFormData } from "../components/CreateTaskModal"
+import { setDragDisabled } from "../slices/drag"
+import { updateGridInFirestore } from "./grid"
+
+interface CustomError extends Error {
+  statusCode?: number
+}
+
+const checkCanDropTask = (grid: GridType, facility: Facility, task: Task) => {
+  const actualDuration = calculateTaskDurationHelper({
+    manpower: facility.manpower,
+    duration: task.duration,
+  })
+
+  const increment = 1000 * 60 * 60 * 24
+  const cells = grid.cells
+  for (let i = 0; i < actualDuration * increment; i += increment) {
+    const cellId = `${facility.id}-${Number(task.startTime) + i}`
+    if (cellId in cells) {
+      const cell = cells[cellId]!
+      if (cell.taskId !== task.id) {
+        return false
+      }
+    }
+  }
+
+  return true
+}
 
 const addTaskToFirestore = async ({
   userId,
@@ -266,11 +297,43 @@ const deleteTaskFromFirestore = async (
 }
 
 export function* addTaskSaga(
-  action: PayloadAction<{ task: Task; workspaceId: string }>,
+  action: PayloadAction<{
+    task: Task
+    workspaceId: string
+    resetForm: FormikHelpers<TaskFormData>["resetForm"]
+    setModal: React.Dispatch<React.SetStateAction<Modal | null>>
+  }>,
 ) {
   try {
-    const { task, workspaceId } = action.payload
+    const { task, workspaceId, setModal, resetForm } = action.payload
     const userId: string = yield select((state) => state.user.user.id)
+
+    const grid: GridType = yield select((state) =>
+      selectGrid(state, workspaceId),
+    )
+    const facility: Facility = yield select((state) =>
+      selectFacility(state, workspaceId, task.facilityId),
+    )
+    if (facility) {
+      const canDrop = checkCanDropTask(grid, facility, task)
+      if (!canDrop) {
+        throw Object.assign(new Error("Wykryto kolizję"), { statusCode: 110 })
+      } else if (task.startTime && task.facilityId && facility) {
+        yield put(
+          setCellsOccupied({
+            facility,
+            colId: task.startTime,
+            task: task,
+            workspaceId,
+          }),
+        )
+        const gridState: GridType = yield select((state) =>
+          selectGrid(state, workspaceId),
+        )
+
+        yield call(updateGridInFirestore, userId, gridState, workspaceId)
+      }
+    }
     yield put(upsertTask(task))
     if (task.requiredTasks.length > 0) {
       yield put(
@@ -295,9 +358,27 @@ export function* addTaskSaga(
         task.id,
       )
     }
+    setModal(null)
+    resetForm()
+    yield put(setDragDisabled(false))
     yield put(setToastOpen({ message: "Dodano zadanie", severity: "success" }))
   } catch (error) {
-    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
+    const customError = error as { statusCode?: number }
+    if (customError.statusCode === 110) {
+      yield put(
+        setToastOpen({
+          message: "Nie można dodać zadania, wykryto kolizję",
+          severity: "error",
+        }),
+      )
+    } else {
+      yield put(
+        setToastOpen({
+          message: "Nie udało się dodać zadania",
+          severity: "error",
+        }),
+      )
+    }
   }
 }
 
@@ -370,7 +451,11 @@ export function* setTaskDroppedSaga(
       yield put(
         updateTask({
           task,
-          data: { dropped, facilityId: rowId, startTime: Number(colId) },
+          data: {
+            dropped,
+            facilityId: rowId,
+            startTime: Number(colId),
+          },
         }),
       )
     } else {
@@ -379,7 +464,11 @@ export function* setTaskDroppedSaga(
       yield put(
         updateTask({
           task,
-          data: { dropped, facilityId: null, startTime: null },
+          data: {
+            dropped,
+            facilityId: null,
+            startTime: null,
+          },
         }),
       )
     }
@@ -501,7 +590,6 @@ export function* resizeTaskSaga(
         task: {
           ...task,
           duration: newDuration,
-          dropped: true,
         },
         workspaceId,
       }),
@@ -526,13 +614,63 @@ export function* resizeTaskSaga(
 }
 
 export function* updateTaskSaga(
-  action: PayloadAction<{ task: Task; data: any; workspaceId: workspaceId }>,
+  action: PayloadAction<{
+    task: Task
+    data: any
+    workspaceId: workspaceId
+    setModal: React.Dispatch<React.SetStateAction<Modal | null>>
+    resetForm: FormikHelpers<TaskFormData>["resetForm"]
+  }>,
 ): Generator<any, void, any> {
   try {
-    const { task, data, workspaceId } = action.payload
+    const { task, data, workspaceId, setModal, resetForm } = action.payload
     const id = task.id
     const requiredTasks = data.requiredTasks
     const userId: string = yield select((state) => state.user.user?.id)
+    const prevGrid: GridType = yield select((state) =>
+      selectGrid(state, workspaceId),
+    )
+    const prevFacility: Facility = yield select((state) =>
+      selectFacility(state, workspaceId, task.facilityId),
+    )
+    const newFacility: Facility = yield select((state) =>
+      selectFacility(state, workspaceId, data.facilityId),
+    )
+
+    if (
+      task.startTime &&
+      task.facilityId &&
+      (data.startTime !== task.startTime || data.facilityId !== task.facilityId)
+    ) {
+      yield put(
+        removeCells({
+          facility: prevFacility,
+          colId: task.startTime,
+          duration: task.duration,
+          workspaceId,
+        }),
+      )
+    }
+    if (newFacility) {
+      const canDrop = checkCanDropTask(prevGrid, newFacility, data)
+      if (!canDrop)
+        throw Object.assign(new Error("Wykryto kolizję"), { statusCode: 110 })
+      if (
+        data.facilityId &&
+        data.startTime &&
+        (data.startTime !== task.startTime ||
+          data.facilityId !== task.facilityId)
+      ) {
+        yield put(
+          setCellsOccupied({
+            facility: newFacility,
+            colId: data.startTime,
+            task: data,
+            workspaceId,
+          }),
+        )
+      }
+    }
     yield put(updateTask({ task, data }))
     if (requiredTasks.length > 0) {
       yield put(
@@ -557,6 +695,9 @@ export function* updateTaskSaga(
         task.id,
       )
     }
+    resetForm()
+    setModal(null)
+    yield put(setDragDisabled(false))
     yield put(
       setToastOpen({
         message: "Zaktualizowano zadanie",
@@ -564,7 +705,22 @@ export function* updateTaskSaga(
       }),
     )
   } catch (error) {
-    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
+    const customError = error as CustomError
+    if (customError.statusCode === 110) {
+      yield put(
+        setToastOpen({
+          message: "Nie można zaktualizować zadania, wykryto kolizję",
+          severity: "error",
+        }),
+      )
+    } else {
+      yield put(
+        setToastOpen({
+          message: customError.message,
+          severity: "error",
+        }),
+      )
+    }
   }
 }
 

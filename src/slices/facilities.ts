@@ -84,9 +84,13 @@ export const facilitiesSlice = createSlice({
     ) => {
       const { facilities, workspaceId } = action.payload
       const workspaceFacilities = Object.values(facilities[workspaceId])
-      const sortedFacilities = workspaceFacilities.sort((a, b) =>
-        a.bgcolor.localeCompare(b.bgcolor),
-      )
+      const sortedFacilities = workspaceFacilities.sort((a, b) => {
+        if (a.bgcolor === b.bgcolor) {
+          return a.title.localeCompare(b.title)
+        } else {
+          return a.bgcolor.localeCompare(b.bgcolor)
+        }
+      })
       const sortedFacilitiesObject = sortedFacilities.reduce(
         (acc, facility, index) => {
           // Create a new object with index property added

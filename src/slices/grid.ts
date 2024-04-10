@@ -73,7 +73,7 @@ const gridSlice = createSlice({
       state,
       action: PayloadAction<{
         facility: Facility
-        colId: string
+        colId: string | number
         task: Task
         workspaceId: workspaceId
       }>,
@@ -153,7 +153,7 @@ const gridSlice = createSlice({
       state,
       action: PayloadAction<{
         facility: Facility
-        colId: string
+        colId: string | number
         duration: number
         workspaceId: workspaceId
       }>,

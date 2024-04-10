@@ -118,7 +118,7 @@ export const DroppedTask = memo(function DroppedTask({
   const cellSpan = task.duration
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
-    if (view?.name !== "1 mies.") return
+    if (view?.name !== "1 mies." || projectId !== task.projectId) return
     if (!anchorEl) {
       setCursorPosition({ left: event.clientX - 2, top: event.clientY - 4 })
       setAnchorEl(event.currentTarget)

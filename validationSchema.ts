@@ -30,6 +30,7 @@ const taskSchema = {
     .min(1, "Minimalna długość to 1")
     .required("Długość jest wymagana"),
   bgcolor: Yup.string().required("Kolor jest wymagany"),
+  //if positioning is set, then facilityId and startTime are required
 }
 
 const facilitySchema = {

@@ -1,5 +1,6 @@
+import { Close } from "@mui/icons-material"
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday"
-import { Stack } from "@mui/material"
+import { IconButton, Stack } from "@mui/material"
 import { DatePicker } from "@mui/x-date-pickers"
 import { Dayjs } from "dayjs"
 import dayjs from "dayjs"
@@ -9,7 +10,7 @@ interface DateFieldProps {
   placeholder: string
   value: number | null
   name?: string
-  setFieldValue: (name: string, value: number) => void
+  setFieldValue: (name: string, value: number | null) => void
   disabled?: boolean
 }
 
@@ -25,6 +26,11 @@ export function DateField({
       const actualDate = dayjs(date).startOf("day")
       setFieldValue(name, Number(actualDate))
     }
+  }
+
+  const handleClear = () => {
+    if (!name) return
+    setFieldValue(name, null)
   }
 
   return (
@@ -56,7 +62,18 @@ export function DateField({
             variant: "standard",
             fullWidth: true,
             InputProps: {
-              endAdornment: null,
+              endAdornment: (
+                <IconButton
+                  onClick={() => handleClear()}
+                  sx={{
+                    "&:focus": {
+                      outline: "none",
+                    },
+                  }}
+                >
+                  <Close />
+                </IconButton>
+              ),
               disableUnderline: true,
             },
             sx: {

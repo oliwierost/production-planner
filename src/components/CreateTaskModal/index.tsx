@@ -13,7 +13,7 @@ import { Form, Formik, FormikHelpers } from "formik"
 import { ColorField } from "../ColorField"
 import { NumberField } from "../NumberField"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { addTaskStart, taskId, updateTaskStart } from "../../slices/tasks"
+import { addTaskStart, Task, taskId, updateTaskStart } from "../../slices/tasks"
 import { useState } from "react"
 import { setDragDisabled } from "../../slices/drag"
 import { taskModalSchema } from "../../../validationSchema"
@@ -33,7 +33,7 @@ interface CreateTaskModalProps {
   workspaceId?: string
 }
 
-interface FormData {
+export interface TaskFormData {
   title: string
   description: string
   duration: number
@@ -69,18 +69,19 @@ const colorOptions = [
   { bgcolor: "#ff1493", color: "#FFFFFF" },
 ]
 
-const initialValues = {
+const initialValues: Task = {
   id: "",
   title: "",
-  dropped: false,
   description: "",
   duration: 1,
   startTime: null,
-  facilityId: null,
+  facilityId: "none",
   bgcolor: "",
   requiredTasks: [] as taskId[],
   requiredByTasks: [] as taskId[],
   locked: false,
+  projectId: "",
+  workspaceId: "",
 }
 
 export function CreateTaskModal({
@@ -91,6 +92,7 @@ export function CreateTaskModal({
   workspaceId,
 }: CreateTaskModalProps) {
   const [tab, setTab] = useState(0)
+
   const [highlightedTaskId, setHighlightedTaskId] = useState<taskId>("")
   const tasks = useAppSelector((state) => selectTasks(state, projectId))
   const task = useAppSelector((state) => selectTask(state, taskId, projectId))
@@ -101,12 +103,13 @@ export function CreateTaskModal({
     label: facility.title,
     value: facility.id,
   }))
+
   const dispatch = useAppDispatch()
   const user = useAppSelector((state) => state.user.user)
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: FormikHelpers<FormData>["setFieldValue"],
+    setFieldValue: FormikHelpers<TaskFormData>["setFieldValue"],
   ) => {
     const { name, value } = e.target
     setFieldValue(name, value)
@@ -120,43 +123,49 @@ export function CreateTaskModal({
   }
 
   const handleSubmit = async (
-    values: FormData,
-    resetForm: FormikHelpers<FormData>["resetForm"],
+    values: TaskFormData,
+    resetForm: FormikHelpers<TaskFormData>["resetForm"],
   ) => {
-    try {
-      if (!task) {
-        const id = doc(
-          collection(
-            firestore,
-            `users/${user?.id}/workspaces/${workspaceId}/tasks`,
-          ),
-        ).id
-        if (!projectId || !workspaceId) return
-        dispatch(
-          addTaskStart({
-            task: {
-              ...values,
-              dropped: false,
-              projectId: projectId,
-              workspaceId: workspaceId,
-              id,
-            },
+    if (!task) {
+      const id = doc(
+        collection(
+          firestore,
+          `users/${user?.id}/workspaces/${workspaceId}/tasks`,
+        ),
+      ).id
+      if (!projectId || !workspaceId) return
+      dispatch(
+        addTaskStart({
+          task: {
+            ...values,
+            facilityId: values.facilityId == "none" ? null : values.facilityId,
+            projectId: projectId,
             workspaceId: workspaceId,
-          }),
-        )
-      } else {
-        if (!workspaceId) return
-        dispatch(updateTaskStart({ task: task, data: values, workspaceId }))
-      }
-      setModal(null)
-      resetForm()
-      dispatch(setDragDisabled(false))
-    } catch (error) {
-      resetForm()
+            id,
+          },
+          workspaceId: workspaceId,
+          resetForm: resetForm,
+          setModal: setModal,
+        }),
+      )
+    } else {
+      if (!workspaceId) return
+      dispatch(
+        updateTaskStart({
+          task: task,
+          data: {
+            ...values,
+            facilityId: values.facilityId == "none" ? null : values.facilityId,
+          },
+          workspaceId,
+          resetForm: resetForm,
+          setModal: setModal,
+        }),
+      )
     }
   }
 
-  const handleClose = (resetForm: FormikHelpers<FormData>["resetForm"]) => {
+  const handleClose = (resetForm: FormikHelpers<TaskFormData>["resetForm"]) => {
     setModal(null)
     resetForm()
     dispatch(setDragDisabled(false))
@@ -172,13 +181,19 @@ export function CreateTaskModal({
       value: 1,
     },
   ]
-
   return (
     <Formik
-      initialValues={task ? task : initialValues}
+      initialValues={
+        task
+          ? {
+              ...task,
+              facilityId: !task.facilityId ? "none" : task.facilityId,
+            }
+          : initialValues
+      }
       validationSchema={taskModalSchema}
       enableReinitialize
-      onSubmit={(values: FormData, { resetForm }) =>
+      onSubmit={(values: TaskFormData, { resetForm }) =>
         handleSubmit(values, resetForm)
       }
     >
@@ -273,102 +288,123 @@ export function CreateTaskModal({
                               name="description"
                             />
                           </Stack>
-                          {taskId && task?.dropped ? (
-                            <Typography variant="body2" color="error">
-                              Aby zmienić czas trwania, datę rozpoczęcia lub
-                              stanowisko usuń zadanie z harmonogramu
-                            </Typography>
-                          ) : null}
-                          <Stack
-                            direction="row"
-                            spacing={5}
-                            alignItems="center"
-                            justifyContent="space-between"
-                          >
-                            <Typography variant="body1" width={100}>
-                              Czas trwania
-                            </Typography>
-                            <Stack direction="row" alignItems="center">
-                              <Box
-                                position="absolute"
-                                sx={{
-                                  transform: "translateX(-30px)",
-                                }}
+                          <Stack spacing={2}>
+                            <Stack
+                              direction="row"
+                              spacing={5}
+                              alignItems="center"
+                              justifyContent="space-between"
+                            >
+                              <Typography variant="body1" width={100}>
+                                Czas trwania
+                              </Typography>
+                              <Stack direction="row" alignItems="center">
+                                <Box
+                                  position="absolute"
+                                  sx={{
+                                    transform: "translateX(-30px)",
+                                  }}
+                                >
+                                  {errors.duration && touched.duration ? (
+                                    <Tooltip title={errors.duration} arrow>
+                                      <PriorityHighIcon
+                                        color="error"
+                                        fontSize="large"
+                                      />
+                                    </Tooltip>
+                                  ) : null}
+                                </Box>
+                                <NumberField
+                                  placeholder="Czas"
+                                  icon={
+                                    <Typography
+                                      fontWeight={600}
+                                      fontSize="14px"
+                                    >
+                                      [dni/os]
+                                    </Typography>
+                                  }
+                                  value={values.duration}
+                                  onChange={(e) =>
+                                    handleInputChange(e, setFieldValue)
+                                  }
+                                  name="duration"
+                                />
+                              </Stack>
+                            </Stack>
+
+                            <Stack spacing={2}>
+                              <Stack
+                                direction="row"
+                                spacing={5}
+                                alignItems="center"
+                                justifyContent="space-between"
                               >
-                                {errors.duration && touched.duration ? (
-                                  <Tooltip title={errors.duration} arrow>
-                                    <PriorityHighIcon
-                                      color="error"
-                                      fontSize="large"
-                                    />
-                                  </Tooltip>
-                                ) : null}
-                              </Box>
-                              <NumberField
-                                placeholder="Czas"
-                                icon={
-                                  <Typography fontWeight={600} fontSize="14px">
-                                    [dni/os]
-                                  </Typography>
-                                }
-                                value={values.duration}
-                                onChange={(e) =>
-                                  handleInputChange(e, setFieldValue)
-                                }
-                                name="duration"
-                                disabled={
-                                  taskId && task?.startTime && task?.facilityId
-                                    ? true
-                                    : false
-                                }
-                              />
-                            </Stack>
-                          </Stack>
-                          <Stack
-                            direction="row"
-                            spacing={5}
-                            alignItems="center"
-                            justifyContent="space-between"
-                          >
-                            <Typography variant="body1" width={100}>
-                              Data rozpoczęcia*
-                            </Typography>
-                            <Stack direction="row" alignItems="center">
-                              <DateField
-                                placeholder="Data rozpoczęcia"
-                                value={values.startTime}
-                                setFieldValue={setFieldValue}
-                                name="startTime"
-                                disabled={
-                                  taskId && task?.startTime && task?.facilityId
-                                    ? true
-                                    : false
-                                }
-                              />
-                            </Stack>
-                          </Stack>
-                          <Stack
-                            direction="row"
-                            spacing={5}
-                            alignItems="center"
-                            justifyContent="space-between"
-                          >
-                            <Typography variant="body1" width={100}>
-                              Stanowisko
-                            </Typography>
-                            <Stack direction="row" alignItems="center">
-                              <Dropdown
-                                placeholder="Stanowisko"
-                                value={values.facilityId || ""}
-                                setFieldValue={setFieldValue}
-                                name="facilityId"
-                                options={facilitiesOptions}
-                                disabled={
-                                  taskId && task?.startTime && task?.facilityId
-                                    ? true
-                                    : false
-                                }
-                              />
+                                <Typography variant="body1" width={100}>
+                                  Data rozpoczęcia*
+                                </Typography>
+                                <Stack direction="row" alignItems="center">
+                                  <Box
+                                    position="absolute"
+                                    sx={{
+                                      transform: "translateX(-30px)",
+                                    }}
+                                  >
+                                    {errors.startTime && touched.startTime ? (
+                                      <Tooltip title={errors.duration} arrow>
+                                        <PriorityHighIcon
+                                          color="error"
+                                          fontSize="large"
+                                        />
+                                      </Tooltip>
+                                    ) : null}
+                                  </Box>
+                                  <DateField
+                                    placeholder="Data rozpoczęcia"
+                                    value={values.startTime}
+                                    setFieldValue={setFieldValue}
+                                    name="startTime"
+                                  />
+                                </Stack>
+                              </Stack>
+
+                              <Stack
+                                direction="row"
+                                spacing={5}
+                                alignItems="center"
+                                justifyContent="space-between"
+                              >
+                                <Typography variant="body1" width={100}>
+                                  Stanowisko
+                                </Typography>
+                                <Stack direction="row" alignItems="center">
+                                  <Box
+                                    position="absolute"
+                                    sx={{
+                                      transform: "translateX(-30px)",
+                                    }}
+                                  >
+                                    {errors.facilityId && touched.facilityId ? (
+                                      <Tooltip title={errors.duration} arrow>
+                                        <PriorityHighIcon
+                                          color="error"
+                                          fontSize="large"
+                                        />
+                                      </Tooltip>
+                                    ) : null}
+                                  </Box>
+                                  <Dropdown
+                                    placeholder="Stanowisko"
+                                    value={values.facilityId || ""}
+                                    setFieldValue={setFieldValue}
+                                    name="facilityId"
+                                    options={[
+                                      { value: "none", label: "Nie wybrano" },
+                                      ...facilitiesOptions,
+                                    ]}
+                                  />
+                                </Stack>
+                              </Stack>
                             </Stack>
                           </Stack>
                           <Stack
