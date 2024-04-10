@@ -118,7 +118,7 @@ export const undropMultipleTasksInFirestore = async (
       firestore,
       `users/${userId}/workspaces/${task.workspaceId}/tasks/${task.id}`,
     )
-    batch.update(docRef, { startTime: null, facilityId: null, dropped: false })
+    batch.update(docRef, { startTime: null, facilityId: null })
   }
   await batch.commit()
 }
@@ -452,11 +452,17 @@ export function* setTaskDroppedSaga(
         updateTask({
           task,
           data: {
-            dropped,
             facilityId: rowId,
             startTime: Number(colId),
           },
         }),
+      )
+      yield call(
+        updateTaskInFirestore,
+        userId,
+        task.id,
+        { facilityId: rowId, startTime: Number(colId) },
+        workspaceId,
       )
     } else {
       yield put(removeCells({ facility, colId, duration, workspaceId }))
@@ -465,11 +471,17 @@ export function* setTaskDroppedSaga(
         updateTask({
           task,
           data: {
-            dropped,
             facilityId: null,
             startTime: null,
           },
         }),
+      )
+      yield call(
+        updateTaskInFirestore,
+        userId,
+        task.id,
+        { facilityId: null, startTime: null },
+        workspaceId,
       )
     }
     const gridState: GridType = yield select((state) =>
