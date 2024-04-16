@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { workspaceId } from "./workspaces"
 import { Task } from "./tasks"
+import { inviteId } from "./invites"
 // Define the Facility interface
 
 export type facilityId = string
@@ -13,6 +14,7 @@ export interface Facility {
   bgcolor: string
   tasks: string[] // Array of task IDs
   manpower: number
+  inviteId?: inviteId
 }
 
 // Define the state structure for facilities
@@ -43,6 +45,9 @@ export const facilitiesSlice = createSlice({
       const facility = action.payload
       // Initialize tasks array if not provided
       if (!facility.tasks) facility.tasks = []
+      if (!state.facilities[facility.workspaceId]) {
+        state.facilities[facility.workspaceId] = {}
+      }
       state.facilities[facility.workspaceId][facility.id] = facility
     },
     // Action to remove a facility by its ID
@@ -131,6 +136,16 @@ export const facilitiesSlice = createSlice({
         facility.tasks = facility.tasks.filter((id) => id !== task.id)
       }
     },
+    setCollabFacilities(state, action: PayloadAction<Facility[]>) {
+      const facilities = action.payload
+      for (const facility of facilities) {
+        if (!state.facilities[facility.workspaceId]) {
+          state.facilities[facility.workspaceId] = {}
+        }
+        state.facilities[facility.workspaceId][facility.id] = facility
+      }
+      state.loading = false
+    },
     setFacilities(
       state,
       action: PayloadAction<{ [id: workspaceId]: { [id: string]: Facility } }>,
@@ -185,6 +200,10 @@ export const facilitiesSlice = createSlice({
       state.loading = true
       state.error = null
     },
+    syncCollabFacilitiesStart(state /*action: PayloadAction<GridType>*/) {
+      state.loading = true
+      state.error = null
+    },
   },
 })
 
@@ -201,10 +220,12 @@ export const {
   undropTasksFromFacilityStart,
   updateFacilitiesStart,
   updateFacility,
+  setCollabFacilities,
   addFacilityStart,
   deleteFacilityStart,
   updateFacilityStart,
   syncFacilitiesStart,
+  syncCollabFacilitiesStart,
 } = facilitiesSlice.actions
 
 // Export the reducer

@@ -31,20 +31,35 @@ import { generateMonthView } from "./generateView"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import { selectFacilities } from "./selectors/facilities"
 import { selectGrid } from "./selectors/grid"
-import { syncDeadlinesStart } from "./slices/deadlines"
+import {
+  syncCollabDeadlinesStart,
+  syncDeadlinesStart,
+} from "./slices/deadlines"
 import { setDraggedTask, setOverFacilityId } from "./slices/drag"
-import { syncFacilitiesStart } from "./slices/facilities"
-import { initializeGridStart, syncGridStart } from "./slices/grid"
+import {
+  syncCollabFacilitiesStart,
+  syncFacilitiesStart,
+} from "./slices/facilities"
+import {
+  initializeGridStart,
+  syncCollabGridStart,
+  syncGridStart,
+} from "./slices/grid"
 import { syncProjectsStart } from "./slices/projects"
 import {
   moveTaskStart,
   setTaskDroppedStart,
+  syncCollabTasksStart,
   syncTasksStart,
 } from "./slices/tasks"
 import { setToastClose, setToastOpen } from "./slices/toast"
 import { syncUserStart } from "./slices/user"
 import { initializeMappings, setMonthView } from "./slices/view"
 import { syncWorkspacesStart } from "./slices/workspaces"
+import { syncInvitesStart } from "./slices/invites"
+import { syncCollabWorkspacesStart } from "./slices/workspaces"
+import { syncCollabProjectsStart } from "./slices/projects"
+import { syncCollabRaportsStart, syncRaportsStart } from "./slices/raports"
 
 export const NUM_OF_DAYS = 100
 export const START_DATE = new Date(2024, 1, 1, 0, 0)
@@ -60,6 +75,7 @@ function App() {
   const facilities = useAppSelector((state) =>
     selectFacilities(state, user?.openWorkspaceId),
   )
+  const invites = useAppSelector((state) => state.invites.invites)
 
   const currentUser = auth.currentUser
 
@@ -87,7 +103,19 @@ function App() {
     dispatch(syncGridStart())
     dispatch(syncDeadlinesStart())
     dispatch(initializeGridStart())
+    dispatch(syncInvitesStart())
+    dispatch(syncRaportsStart())
   }, [user, user?.openWorkspaceId, user?.openProjectId])
+
+  useEffect(() => {
+    dispatch(syncCollabWorkspacesStart())
+    dispatch(syncCollabProjectsStart())
+    dispatch(syncCollabFacilitiesStart())
+    dispatch(syncCollabGridStart())
+    dispatch(syncCollabTasksStart())
+    dispatch(syncCollabDeadlinesStart())
+    dispatch(syncCollabRaportsStart())
+  }, [user, invites])
 
   const toastState = useAppSelector((state) => state.toast)
   const grid = useAppSelector((state) =>

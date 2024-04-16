@@ -8,6 +8,8 @@ import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
 import AccessTimeIcon from "@mui/icons-material/AccessTime"
 import { Modal } from "../DataPanel"
+import { selectInvite } from "../../selectors/invites"
+import { selectProject } from "../../selectors/projects"
 
 interface TaskProps {
   task: TaskType
@@ -22,6 +24,13 @@ export function Task({ task }: TaskProps) {
     (state) => state.user.user?.openWorkspaceId,
   )
   const projectId = useAppSelector((state) => state.user.user?.openProjectId)
+  const project = useAppSelector((state) =>
+    selectProject(state, workspaceId, projectId),
+  )
+
+  const invite = useAppSelector((state) =>
+    selectInvite(state, project?.inviteId),
+  )
 
   const dispatch = useAppDispatch()
   const open = Boolean(anchorEl)
@@ -32,7 +41,11 @@ export function Task({ task }: TaskProps) {
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
-    if (view?.name !== "1 mies.") return
+    if (
+      view?.name !== "1 mies." ||
+      (invite && invite?.permissions !== "edycja" ? true : false)
+    )
+      return
     if (!anchorEl) {
       setCursorPosition({ left: event.clientX - 2, top: event.clientY - 4 })
       setAnchorEl(event.currentTarget)

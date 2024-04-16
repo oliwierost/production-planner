@@ -1,27 +1,35 @@
+import { Add, KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material"
 import {
   AccordionDetails,
   AccordionSummary,
-  Typography,
+  Checkbox,
+  IconButton,
   Accordion as MuiAccordion,
   Stack,
-  IconButton,
-  Checkbox,
+  Typography,
 } from "@mui/material"
 import { useState } from "react"
-import { Add, KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material"
 import { useAppDispatch, useAppSelector } from "../../hooks"
-import { setProjectOpenStart, setWorkspaceOpenStart } from "../../slices/user"
+import { setOpenStart, userId } from "../../slices/user"
 import { Modal } from "../DataPanel"
 
 interface AccordionProps {
   summary: string
   children: React.ReactNode
   variant?: "collection" | "document"
-  item: "workspace" | "project" | "task" | "deadline" | "facility"
+  item:
+    | "workspace"
+    | "project"
+    | "task"
+    | "deadline"
+    | "facility"
+    | "collaborator"
   projectId?: string
   workspaceId?: string
   setModal?: React.Dispatch<React.SetStateAction<Modal | null>>
   border?: boolean
+  userId?: userId
+  displayAdd?: boolean
 }
 
 export function Accordion({
@@ -33,12 +41,15 @@ export function Accordion({
   workspaceId,
   setModal,
   border = true,
+  userId,
+  displayAdd = true,
 }: AccordionProps) {
   const [expanded, setExpanded] = useState<boolean>(false)
   const dispatch = useAppDispatch()
   const openProjectId = useAppSelector(
     (state) => state.user.user?.openProjectId,
   )
+
   const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
     if (setModal) {
@@ -52,9 +63,14 @@ export function Accordion({
   }
 
   const handleCheck = () => {
-    if (workspaceId && projectId) {
-      dispatch(setWorkspaceOpenStart(workspaceId))
-      dispatch(setProjectOpenStart(projectId))
+    if (workspaceId && projectId && userId) {
+      dispatch(
+        setOpenStart({
+          workspaceId: workspaceId,
+          projectId: projectId,
+          userId: userId,
+        }),
+      )
     }
   }
 
@@ -120,7 +136,7 @@ export function Accordion({
               size="small"
             />
           ) : null}
-          {variant == "collection" ? (
+          {variant == "collection" && displayAdd ? (
             <IconButton
               onClick={(e) => handleAdd(e)}
               sx={{

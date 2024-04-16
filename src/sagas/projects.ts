@@ -7,21 +7,25 @@ import {
   select,
   take,
   cancelled,
+  race,
 } from "redux-saga/effects"
 import { firestore } from "../../firebase.config"
-import { collection, doc, onSnapshot, setDoc } from "firebase/firestore"
+import { collection, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore"
 import { setToastOpen } from "../slices/toast"
-import { eventChannel } from "redux-saga"
+import { EventChannel, eventChannel } from "redux-saga"
 import {
   Project,
   projectId,
+  setProject,
   setProjects,
+  syncCollabProjectsStart,
   syncProjectsStart,
   upsertProject,
   upsertProjectStart,
 } from "../slices/projects"
 import { workspaceId } from "../slices/workspaces"
 import { userId } from "../slices/user"
+import { Invite } from "../slices/invites"
 
 const addProjectToFirestore = async (
   userId: userId,
@@ -103,6 +107,55 @@ export function* syncProjectsSaga() {
   }
 }
 
+export function* syncCollabProjectsSaga() {
+  const userId: string = yield select((state) => state.user.user?.id)
+  const invites: { [key: string]: Invite } = yield select(
+    (state) => state.invites.invites,
+  )
+
+  if (!userId || Object.keys(invites).length === 0) return
+
+  const channels: EventChannel<Project>[] = Object.values(invites).map(
+    (invite) => {
+      return eventChannel((emitter) => {
+        const docRef = doc(
+          firestore,
+          `users/${invite.invitingUserId}/workspaces/${invite.workspaceId}/projects/${invite.projectId}`,
+        )
+        const unsubscribe = onSnapshot(docRef, async () => {
+          const snapshot = await getDoc(docRef)
+          const project = {
+            ...snapshot.data(),
+            inviteId: invite.id,
+            workspaceId: invite.workspaceId,
+          } as Project
+          emitter(project)
+        })
+        return unsubscribe
+      })
+    },
+  )
+
+  try {
+    while (true) {
+      const results: Project[] = yield race(
+        channels.map((channel) => take(channel)),
+      )
+      for (const result of results) {
+        if (result) {
+          const collabProject: Project = result
+          yield put(setProject(collabProject))
+        }
+      }
+    }
+  } finally {
+    const isCancelled: boolean = yield cancelled()
+    if (isCancelled) {
+      channels.forEach((channel) => channel.close())
+    }
+  }
+}
+
 function* watchUpsertProjects() {
   yield takeLatest(upsertProjectStart.type, upsertProjectSaga)
 }
@@ -111,6 +164,14 @@ function* watchSyncProjects() {
   yield takeLatest(syncProjectsStart.type, syncProjectsSaga)
 }
 
+function* watchSyncCollabProjects() {
+  yield takeLatest(syncCollabProjectsStart.type, syncCollabProjectsSaga)
+}
+
 export default function* projectsSagas() {
-  yield all([watchUpsertProjects(), watchSyncProjects()])
+  yield all([
+    watchUpsertProjects(),
+    watchSyncProjects(),
+    watchSyncCollabProjects(),
+  ])
 }

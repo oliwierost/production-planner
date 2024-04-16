@@ -1,4 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { projectId } from "./projects"
+import { workspaceId } from "./workspaces"
 
 // Define the Task interface
 
@@ -11,8 +13,9 @@ export interface Credentials {
 export interface User {
   id: string
   email: string
-  openProjectId: string | null
-  openWorkspaceId: string | null
+  openUserId: userId | null
+  openProjectId: projectId | null
+  openWorkspaceId: workspaceId | null
 }
 
 // Define the state structure for tasks
@@ -38,6 +41,11 @@ export const userSlice = createSlice({
       const user = action.payload
       state.loading = false
       state.user = user
+    },
+    setUserOpen: (state, action: PayloadAction<string>) => {
+      if (state.user) {
+        state.user.openUserId = action.payload
+      }
     },
     setProjectOpen: (state, action: PayloadAction<string>) => {
       if (state.user) {
@@ -68,13 +76,15 @@ export const userSlice = createSlice({
       state.loading = true
       state.error = null
     },
-    setProjectOpenStart: (state, action: PayloadAction<string>) => {
-      console.info("setProjectOpenStart", action.payload)
-      state.loading = true
-      state.error = null
-    },
-    setWorkspaceOpenStart: (state, action: PayloadAction<string>) => {
-      console.info("setWorkspaceOpenStart", action.payload)
+    setOpenStart: (
+      state,
+      action: PayloadAction<{
+        userId: userId | null
+        projectId: projectId | null
+        workspaceId: workspaceId | null
+      }>,
+    ) => {
+      console.info("setUserOpenStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -84,14 +94,14 @@ export const userSlice = createSlice({
 // Export the actions
 export const {
   setUser,
+  setUserOpen,
   setProjectOpen,
   setWorkspaceOpen,
   initializeUserStart,
   syncUserStart,
   signInStart,
   signOutStart,
-  setProjectOpenStart,
-  setWorkspaceOpenStart,
+  setOpenStart,
 } = userSlice.actions
 
 // Export the reducer

@@ -11,6 +11,7 @@ import {
 } from "../../selectors/facilities"
 import { selectTimestampsFromMapping } from "../../selectors/view"
 import { TaskWithOverlay } from "../TaskWithOverlay"
+import { CurrentDay } from "../CurrentDay"
 
 interface DataCellProps {
   cellWidth: number
@@ -73,9 +74,8 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
           {tasks && tasks.length > 0 && projectId
             ? tasks.map((task, idx) => {
                 return (
-                  <Box>
+                  <Box key={idx}>
                     <TaskWithOverlay
-                      key={idx}
                       taskId={task.taskId}
                       cellKey={cellKey}
                       cellWidth={cellWidth}
@@ -89,6 +89,11 @@ export const DataCell = memo(({ cellWidth, rowId, date }: DataCellProps) => {
             : null}
         </Box>
       </Droppable>
+      <CurrentDay
+        time={time}
+        rowIndex={rowIndex}
+        lastIndex={facilitiesCount - 1}
+      />
       <Deadlines
         time={time}
         rowIndex={rowIndex}

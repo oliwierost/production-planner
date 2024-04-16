@@ -24,12 +24,17 @@ interface CreateWorkspaceModalProps {
 interface FormData {
   title: string
   description: string
+  ownerId: string
+  id: string
+  displayArrows: boolean
 }
 
 const initialValues = {
   id: "",
   title: "",
   description: "",
+  ownerId: "",
+  displayArrows: true,
 }
 
 export function CreateWorkspaceModal({
@@ -59,6 +64,8 @@ export function CreateWorkspaceModal({
         upsertWorkspaceStart({
           ...values,
           id,
+          ownerId: user.id,
+          displayArrows: true,
         }),
       )
       setModal(null)

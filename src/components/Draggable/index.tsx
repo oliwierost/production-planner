@@ -1,6 +1,8 @@
 import { useDraggable } from "@dnd-kit/core"
 import { useAppSelector } from "../../hooks"
 import { Task } from "../../slices/tasks"
+import { selectInvite } from "../../selectors/invites"
+import { selectProject } from "../../selectors/projects"
 
 interface DraggableProps {
   children: React.ReactNode
@@ -15,12 +17,25 @@ export function Draggable({ children, id, data }: DraggableProps) {
   const view = useAppSelector((state) => state.view.view)
   const drag = useAppSelector((state) => state.drag)
   const projectId = useAppSelector((state) => state.user.user?.openProjectId)
+  const workspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
+  )
+  const project = useAppSelector((state) =>
+    selectProject(state, workspaceId, projectId),
+  )
+  const invite = useAppSelector((state) =>
+    selectInvite(state, project?.inviteId),
+  )
   const { disabled, draggedTask } = drag
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: id,
     data: data,
-    disabled: disabled || data.task.projectId !== projectId || data.task.locked,
+    disabled:
+      disabled ||
+      data.task.projectId !== projectId ||
+      data.task.locked ||
+      (invite && invite?.permissions !== "edycja" ? true : false),
   })
 
   const style = transform

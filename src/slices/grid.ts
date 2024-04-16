@@ -12,6 +12,10 @@ export interface Cell {
   source: string
 }
 
+export interface Grid {
+  [key: workspaceId]: GridType
+}
+
 // TODO move to types, clean up types
 export interface GridType {
   cells: {
@@ -20,9 +24,7 @@ export interface GridType {
 }
 
 interface GridState {
-  grid: {
-    [key: workspaceId]: GridType
-  }
+  grid: Grid
   loading: boolean
   error: string | null
 }
@@ -179,11 +181,8 @@ const gridSlice = createSlice({
       state.error = null
     },
     // Triggered when the grid data is successfully fetched or updated
-    setGrid(
-      state,
-      action: PayloadAction<{ grid: { [id: workspaceId]: GridType } }>,
-    ) {
-      const { grid } = action.payload
+    setGrid(state, action: PayloadAction<Grid>) {
+      const grid = action.payload
       state.grid = { ...grid, ...state.grid }
       state.loading = false
     },
@@ -206,6 +205,10 @@ const gridSlice = createSlice({
       state.loading = true
       state.error = null
     },
+    syncCollabGridStart(state) {
+      state.loading = true
+      state.error = null
+    },
   },
 })
 
@@ -222,6 +225,7 @@ export const {
   initializeGridStart,
   removeFacilityFromGrid,
   syncGridStart,
+  syncCollabGridStart,
 } = gridSlice.actions
 
 // Default export the reducer

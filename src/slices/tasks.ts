@@ -5,6 +5,7 @@ import React from "react"
 import { Modal } from "../components/DataPanel"
 import { FormikHelpers } from "formik"
 import { TaskFormData } from "../components/CreateTaskModal"
+import { inviteId } from "./invites"
 
 // Define the Task interface
 export type taskId = string
@@ -21,6 +22,8 @@ export interface Task {
   requiredTasks: taskId[]
   requiredByTasks: taskId[]
   locked: boolean
+  inviteId?: inviteId
+  progress: number
 }
 
 // Define the state structure for tasks
@@ -141,6 +144,16 @@ export const tasksSlice = createSlice({
       state.tasks = { ...tasks, ...state.tasks }
       state.loading = false
     },
+    setCollabTasks(state, action: PayloadAction<Task[]>) {
+      const tasks = action.payload
+      for (const task of tasks) {
+        if (!state.tasks[task.projectId]) {
+          state.tasks[task.projectId] = {}
+        }
+        state.tasks[task.projectId][task.id] = task
+      }
+      state.loading = false
+    },
     fetchTasksStart(state) {
       state.loading = true
       state.error = null
@@ -249,6 +262,10 @@ export const tasksSlice = createSlice({
       state.loading = true
       state.error = null
     },
+    syncCollabTasksStart(state /*action: PayloadAction<GridType>*/) {
+      state.loading = true
+      state.error = null
+    },
   },
 })
 
@@ -272,6 +289,8 @@ export const {
   setTaskDroppedStart,
   resizeTaskStart,
   syncTasksStart,
+  syncCollabTasksStart,
+  setCollabTasks,
 } = tasksSlice.actions
 
 // Export the reducer

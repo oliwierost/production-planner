@@ -48,12 +48,18 @@ const workspaceSchema = {
   title: Yup.string().required("Nazwa jest wymagana"),
 }
 
+const raportSchema = {
+  title: Yup.string().required("Tytuł jest wymagany"),
+  comment: Yup.string().required("Komentarz jest wymagany"),
+}
+
 const taskModalSchema = Yup.object().shape(taskSchema)
 const facilityModalSchema = Yup.object().shape(facilitySchema)
 const deadlineModalSchema = Yup.object().shape(deadlineSchema)
 const workspaceModalSchema = Yup.object().shape(workspaceSchema)
 const signUpModalSchema = Yup.object().shape(signUpSchema)
 const signInModalSchema = Yup.object().shape(signInSchema)
+const raportModalSchema = Yup.object().shape(raportSchema)
 
 export {
   taskModalSchema,
@@ -62,4 +68,5 @@ export {
   workspaceModalSchema,
   signUpModalSchema,
   signInModalSchema,
+  raportModalSchema,
 }

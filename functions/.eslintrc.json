@@ -1,0 +1,33 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2020": true,
+    "node": true // Add this line to recognize Node.js globals
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:storybook/recommended"
+  ],
+  "ignorePatterns": ["dist", ".eslintrc.cjs"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["react-refresh"],
+  "rules": {
+    "react-refresh/only-export-components": [
+      "warn",
+      { "allowConstantExport": true }
+    ],
+    "@typescript-eslint/no-var-requires": "off" // Turn off the rule for 'require' statements
+  },
+  "overrides": [
+    {
+      "files": ["**/*.js"], // Apply specific settings for JavaScript files
+      "rules": {
+        "no-undef": "off", // Turn off 'no-undef' rule for JavaScript files
+        "no-unused-vars": "off" // Turn off 'no-unused-vars' rule for JavaScript files
+      }
+    }
+  ]
+}

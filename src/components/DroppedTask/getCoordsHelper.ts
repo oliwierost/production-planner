@@ -24,6 +24,7 @@ export const getCoordsHelper = ({
   const fromTime = fromTask.startTime!
   const toTime = toTask.startTime!
   const dayInMiliseconds = 60 * 60 * 24 * 1000
+
   const coords = {
     x:
       -((toTime - startTime) / dayInMiliseconds) * view!.cellWidth +

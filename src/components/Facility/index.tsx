@@ -13,6 +13,8 @@ import {
 } from "../../slices/facilities"
 import { ContextMenu } from "../ContextMenu"
 import { Modal } from "../DataPanel"
+import { selectProject } from "../../selectors/projects"
+import { selectInvite } from "../../selectors/invites"
 
 interface FacilityProps {
   facility: FacilityType | null
@@ -29,10 +31,16 @@ export function Facility({ facility }: FacilityProps) {
     (state) => state.user.user?.openWorkspaceId,
   )
   const projectId = useAppSelector((state) => state.user.user?.openProjectId)
+  const project = useAppSelector((state) =>
+    selectProject(state, workspaceId, projectId),
+  )
 
+  const invite = useAppSelector((state) =>
+    selectInvite(state, project?.inviteId),
+  )
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
-    if (view?.name !== "1 mies.") return
+    if (view?.name !== "1 mies." || invite) return
     if (!anchorEl) {
       setCursorPosition({ left: event.clientX - 2, top: event.clientY - 4 })
       setAnchorEl(event.currentTarget)

@@ -14,20 +14,20 @@ export const selectDeadlines = createSelector(
 
 export const selectDeadline = createSelector(
   [
-    (state: RootState) => state.tasks.tasks,
+    (state: RootState) => state.deadlines.deadlines,
     (
       state: RootState,
-      taskId: string | null | undefined,
       projectId: string | null | undefined,
+      deadlineId: string | null | undefined,
     ) => {
       const deadlines = state.deadlines.deadlines
-      if (!deadlines || !taskId || !projectId) return null
-      return deadlines[projectId] ? deadlines[projectId][taskId] : null
+      if (!deadlines || !deadlineId || !projectId) return null
+      return deadlines[projectId] ? deadlines[projectId][deadlineId] : null
     },
   ],
 
-  (deadlines, task) => {
-    if (!deadlines || !task) return null
-    return task
+  (deadlines, deadline) => {
+    if (!deadlines || !deadline) return null
+    return deadline
   },
 )

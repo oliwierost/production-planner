@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { userId } from "./user"
 
 export type workspaceId = string
 
@@ -6,6 +7,9 @@ export interface Workspace {
   id: workspaceId
   title: string
   description: string
+  inviteId?: string
+  ownerId: userId
+  displayArrows: boolean
 }
 
 interface WorkspacesState {
@@ -32,8 +36,19 @@ export const workspacesSlice = createSlice({
       const workspace = action.payload
       state.workspaces[workspace.id] = workspace
     },
+
     setWorkspaces(state, action: PayloadAction<{ [id: string]: Workspace }>) {
-      state.workspaces = action.payload
+      state.workspaces = {
+        ...state.workspaces,
+        ...action.payload,
+      }
+      state.loading = false
+    },
+    setWorkspace(state, action: PayloadAction<Workspace>) {
+      const workspace = action.payload
+      if (!state.workspaces[workspace.id]) {
+        state.workspaces[workspace.id] = workspace
+      }
       state.loading = false
     },
     upsertWorkspaceStart: (state, action: PayloadAction<Workspace>) => {
@@ -49,7 +64,32 @@ export const workspacesSlice = createSlice({
       state.loading = true
       state.error = null
     },
+    setDisplayArrows: (
+      state,
+      action: PayloadAction<{
+        workspaceId: workspaceId
+        displayArrows: boolean
+      }>,
+    ) => {
+      const { workspaceId, displayArrows } = action.payload
+      state.workspaces[workspaceId].displayArrows = displayArrows
+    },
+    setDisplayArrowsStart: (
+      state,
+      action: PayloadAction<{
+        workspaceId: workspaceId
+        displayArrows: boolean
+      }>,
+    ) => {
+      console.info("setDisplayArrowsStart", action.payload)
+      state.loading = true
+      state.error = null
+    },
     syncWorkspacesStart: (state) => {
+      state.loading = true
+      state.error = null
+    },
+    syncCollabWorkspacesStart: (state) => {
       state.loading = true
       state.error = null
     },
@@ -59,9 +99,13 @@ export const workspacesSlice = createSlice({
 // Export the actions
 export const {
   upsertWorkspace,
+  setWorkspace,
   upsertWorkspaceStart,
   setWorkspacesStart,
+  setDisplayArrows,
   syncWorkspacesStart,
+  setDisplayArrowsStart,
+  syncCollabWorkspacesStart,
   setWorkspaces,
 } = workspacesSlice.actions
 

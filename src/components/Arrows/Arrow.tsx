@@ -1,13 +1,13 @@
+import { Box } from "@mui/material"
+import { isEqual } from "lodash"
+import { useEffect, useState } from "react"
+import { Arrow as SvgArrow } from "react-absolute-svg-arrows"
 import { useAppSelector } from "../../hooks"
 import { selectFacility } from "../../selectors/facilities"
-import { Task } from "../../slices/tasks"
-import { Arrow as SvgArrow } from "react-absolute-svg-arrows"
-import { getCoordsHelper } from "../DroppedTask/getCoordsHelper"
 import { Facility } from "../../slices/facilities"
-import { Box } from "@mui/material"
+import { Task } from "../../slices/tasks"
 import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
-import { useEffect, useState } from "react"
-import { isEqual } from "lodash"
+import { getCoordsHelper } from "../DroppedTask/getCoordsHelper"
 
 interface ArrowProps {
   fromTask: Task
@@ -22,7 +22,7 @@ export function Arrow({
   taskWidth,
   overFacility,
 }: ArrowProps) {
-  const [coords, setCoords] = useState({ x: 0, y: 0 })
+  const [coords, setCoords] = useState<{ x: number; y: number } | null>(null)
   const fromFacility = useAppSelector((state) =>
     selectFacility(state, fromTask.workspaceId, fromTask.facilityId),
   )
@@ -69,7 +69,7 @@ export function Arrow({
     facilities,
   ])
 
-  if (!fromTask.facilityId || !fromTask.startTime) return null
+  if (!fromTask.facilityId || !fromTask.startTime || !coords) return null
 
   return (
     <Box
@@ -86,7 +86,7 @@ export function Arrow({
         }}
         config={{
           strokeWidth: 2,
-          arrowColor: "black",
+          arrowColor: coords.x <= view?.cellWidth! ? "black" : "#C70039",
           arrowHeadEndingSize: 10,
           dotEndingRadius: 5,
         }}

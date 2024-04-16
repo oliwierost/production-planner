@@ -33,7 +33,11 @@ import { ResizeHandle } from "../ResizeHandle"
 import { calculateTaskLeftOffsetHelper } from "../DataGrid/calculateTaskLeftOffsetHelper"
 
 import { Lock, LockOpen } from "@mui/icons-material"
+import { selectProject } from "../../selectors/projects"
+import { selectInvite } from "../../selectors/invites"
 
+import α from "color-alpha"
+import { selectWorkspace } from "../../selectors/workspaces"
 interface DroppedTaskProps {
   isResized: boolean
   setIsResized: React.Dispatch<React.SetStateAction<boolean>>
@@ -62,6 +66,17 @@ export const DroppedTask = memo(function DroppedTask({
     isEqual,
   )
 
+  const workspace = useAppSelector((state) =>
+    selectWorkspace(state, workspaceId),
+  )
+
+  const project = useAppSelector((state) =>
+    selectProject(state, workspaceId, projectId),
+  )
+
+  const invite = useAppSelector((state) =>
+    selectInvite(state, project?.inviteId),
+  )
   const overFacilityId = useAppSelector(
     (state) => state.drag.overFacilityId,
     isEqual,
@@ -116,9 +131,18 @@ export const DroppedTask = memo(function DroppedTask({
   const drag = useAppSelector((state) => state.drag, isEqual)
 
   const cellSpan = task.duration
+  const progressTimestamp =
+    task.startTime! +
+    86400000 * (cellSpan / currentFacility?.manpower!) * (task.progress / 100)
+  const currentDay = new Date().setHours(0, 0, 0, 0)
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
-    if (view?.name !== "1 mies." || projectId !== task.projectId) return
+    if (
+      view?.name !== "1 mies." ||
+      projectId !== task.projectId ||
+      (invite && invite?.permissions !== "edycja" ? true : false)
+    )
+      return
     if (!anchorEl) {
       setCursorPosition({ left: event.clientX - 2, top: event.clientY - 4 })
       setAnchorEl(event.currentTarget)
@@ -332,7 +356,8 @@ export const DroppedTask = memo(function DroppedTask({
           {requiredTasks &&
           isOverlay &&
           taskWidth &&
-          view?.name == "1 mies." ? (
+          view?.name == "1 mies." &&
+          workspace?.displayArrows ? (
             <Arrows
               task={task}
               requiredTasks={requiredTasks}
@@ -352,10 +377,16 @@ export const DroppedTask = memo(function DroppedTask({
             onMouseLeave={() => setIsHovered(false)}
             sx={{
               transition: "width 0.1s ease", // Apply transition inline
-              bgcolor: task.projectId === projectId ? task.bgcolor : "grey.400",
+              background:
+                task.projectId === projectId
+                  ? `linear-gradient(90deg, ${task.bgcolor} ${
+                      task.progress
+                    }%, ${α(task.bgcolor, 0.6)} ${task.progress}%)`
+                  : "grey.400",
               color: "background.default",
               borderRadius: 1,
-              border: "1px solid black",
+              border:
+                progressTimestamp < currentDay ? "2px solid #C70039" : "none",
               boxSizing: "border-box",
               display:
                 !isOverlay || draggedTask?.id === task.id || isResized
@@ -395,7 +426,9 @@ export const DroppedTask = memo(function DroppedTask({
               }}
               item={task}
             />
-            {view?.name == "1 mies." && task.projectId === projectId ? (
+            {view?.name == "1 mies." &&
+            task.projectId === projectId &&
+            (!invite || invite?.permissions == "edycja") ? (
               <Stack
                 direction="row"
                 mr={1}
@@ -418,7 +451,6 @@ export const DroppedTask = memo(function DroppedTask({
                     <LockOpen fontSize="small" />
                   )}
                 </IconButton>
-
                 <ResizeHandle
                   task={task}
                   isResized={isResized}

@@ -7,6 +7,10 @@ interface NumberFieldProps {
   value?: number
   onChange?: React.ChangeEventHandler<HTMLInputElement>
   disabled?: boolean
+  min?: number
+  max?: number
+  step?: number
+  displayZero?: boolean
 }
 
 export function NumberField({
@@ -16,6 +20,10 @@ export function NumberField({
   value,
   onChange,
   disabled,
+  min = 1,
+  max = undefined,
+  step = 1,
+  displayZero = false,
 }: NumberFieldProps) {
   return (
     <Stack
@@ -29,14 +37,16 @@ export function NumberField({
     >
       <InputBase
         name={name}
-        value={value! < 1 ? "" : Number(value).toString()}
+        value={value! < 1 ? (displayZero ? 0 : "") : Number(value).toString()}
         onChange={onChange}
         sx={{ mx: 3, flex: 1 }}
         placeholder={placeholder}
         type="number"
         disabled={disabled}
         inputProps={{
-          min: 1,
+          min: min,
+          max: max,
+          step: step,
         }}
       />
       <Stack

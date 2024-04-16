@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { projectId } from "./projects"
+import { inviteId } from "./invites"
 
 export type deadlineId = string
 // Define the Task interface
@@ -14,6 +15,7 @@ export interface Deadline {
     week: number
     month: number
   }
+  inviteId?: inviteId
 }
 
 // Define the state structure for tasks
@@ -56,6 +58,16 @@ export const deadlinesSlice = createSlice({
         ...state.deadlines[deadline.projectId][deadline.id],
         ...deadline,
       }
+    },
+    setCollabDeadlines(state, action: PayloadAction<Deadline[]>) {
+      const deadlines = action.payload
+      for (const deadline of deadlines) {
+        if (!state.deadlines[deadline.projectId]) {
+          state.deadlines[deadline.projectId] = {}
+        }
+        state.deadlines[deadline.projectId][deadline.id] = deadline
+      }
+      state.loading = false
     },
     setDeadlines: (
       state,
@@ -113,6 +125,10 @@ export const deadlinesSlice = createSlice({
       state.loading = true
       state.error = null
     },
+    syncCollabDeadlinesStart: (state) => {
+      state.loading = true
+      state.error = null
+    },
   },
 })
 
@@ -124,9 +140,11 @@ export const {
   setDeadlines,
   addDeadlineStart,
   removeDeadlineStart,
+  setCollabDeadlines,
   updateDeadlineStart,
   setDeadlinesStart,
   syncDeadlinesStart,
+  syncCollabDeadlinesStart,
 } = deadlinesSlice.actions
 
 // Export the reducer

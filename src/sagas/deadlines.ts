@@ -1,43 +1,50 @@
-import { eventChannel } from "redux-saga"
 import { PayloadAction } from "@reduxjs/toolkit"
-import {
-  call,
-  put,
-  take,
-  cancelled,
-  takeLatest,
-  all,
-  select,
-} from "redux-saga/effects"
-import { firestore } from "../../firebase.config"
 import {
   collection,
   deleteDoc,
   doc,
+  getDocs,
   onSnapshot,
   setDoc,
   updateDoc,
 } from "firebase/firestore"
-import { setToastOpen } from "../slices/toast"
+import { EventChannel, eventChannel } from "redux-saga"
 import {
-  Deadline,
-  removeDeadline,
-  setDeadlines,
-  removeDeadlineStart,
-  updateDeadlineStart,
-  syncDeadlinesStart,
-  addDeadlineStart,
+  all,
+  call,
+  cancelled,
+  put,
+  race,
+  select,
+  take,
+  takeLatest,
+} from "redux-saga/effects"
+import { firestore } from "../../firebase.config"
+import { selectProject } from "../selectors/projects"
+import {
   addDeadline,
+  addDeadlineStart,
+  Deadline,
   deadlineId,
+  removeDeadline,
+  removeDeadlineStart,
+  setCollabDeadlines,
+  setDeadlines,
+  syncCollabDeadlinesStart,
+  syncDeadlinesStart,
   updateDeadline,
+  updateDeadlineStart,
 } from "../slices/deadlines"
-import { projectId } from "../slices/projects"
+import { Invite } from "../slices/invites"
+import { Project, projectId } from "../slices/projects"
+import { setToastOpen } from "../slices/toast"
+import { userId } from "../slices/user"
 import { workspaceId } from "../slices/workspaces"
 
 const addDeadlineToFirestore = async (
-  userId: string,
+  userId: userId,
   deadline: Deadline,
-  workspaceId: string,
+  workspaceId: workspaceId,
 ) => {
   await setDoc(
     doc(
@@ -49,11 +56,10 @@ const addDeadlineToFirestore = async (
 }
 
 const updateDeadlineInFirestore = async (
-  userId: string,
-  deadlineId: string,
-  workspaceId: string,
-
-  updateData: { [key: string]: any },
+  userId: userId,
+  deadlineId: deadlineId,
+  workspaceId: workspaceId,
+  updateData: Partial<Deadline>,
 ) => {
   await updateDoc(
     doc(
@@ -65,9 +71,9 @@ const updateDeadlineInFirestore = async (
 }
 
 const deleteDeadlineFromFirestore = async (
-  userId: string,
-  deadlineId: string,
-  workspaceId: string,
+  userId: userId,
+  deadlineId: deadlineId,
+  workspaceId: workspaceId,
 ) => {
   await deleteDoc(
     doc(
@@ -80,7 +86,10 @@ const deleteDeadlineFromFirestore = async (
 export function* addDeadlineSaga(action: PayloadAction<Deadline>) {
   try {
     const deadline = action.payload
-    const userId: string = yield select((state) => state.user.user?.id)
+    const project: Project = yield select((state) =>
+      selectProject(state, deadline.workspaceId, deadline.projectId),
+    )
+    const userId = project.ownerId
     yield put(addDeadline(deadline))
     yield call(addDeadlineToFirestore, userId, deadline, deadline.workspaceId)
     yield put(setToastOpen({ message: "Dodano deadline", severity: "success" }))
@@ -94,7 +103,10 @@ export function* deleteDeadlineSaga(
 ): Generator<any, void, any> {
   try {
     const deadline = action.payload
-    const userId: string = yield select((state) => state.user.user?.id)
+    const project: Project = yield select((state) =>
+      selectProject(state, deadline.workspaceId, deadline.projectId),
+    )
+    const userId = project.ownerId
     yield put(removeDeadline(deadline))
     yield call(
       deleteDeadlineFromFirestore,
@@ -112,15 +124,18 @@ export function* deleteDeadlineSaga(
 
 export function* updateDeadlineSaga(
   action: PayloadAction<{
-    deadlineId: string
+    deadlineId: deadlineId
     data: any
     workspaceId: workspaceId
     projectId: projectId
   }>,
 ): Generator<any, void, any> {
   try {
-    const { deadlineId, data, workspaceId } = action.payload
-    const userId: string = yield select((state) => state.user.user?.id)
+    const { deadlineId, data, workspaceId, projectId } = action.payload
+    const project: Project = yield select((state) =>
+      selectProject(state, workspaceId, projectId),
+    )
+    const userId = project.ownerId
     yield put(updateDeadline(data))
     yield call(updateDeadlineInFirestore, userId, deadlineId, workspaceId, data)
     yield put(
@@ -181,6 +196,55 @@ export function* syncDeadlinesSaga() {
   }
 }
 
+export function* syncCollabDeadlinesSaga() {
+  const userId: string = yield select((state) => state.user.user?.id)
+  const invites: { [key: string]: Invite } = yield select(
+    (state) => state.invites.invites,
+  )
+
+  if (!userId || Object.keys(invites).length === 0) return
+
+  const channels: EventChannel<Deadline[]>[] = Object.values(invites).map(
+    (invite) => {
+      return eventChannel((emitter) => {
+        const colRef = collection(
+          firestore,
+          `users/${invite.invitingUserId}/workspaces/${invite.workspaceId}/deadlines`,
+        )
+        const unsubscribe = onSnapshot(colRef, async () => {
+          const snapshot = await getDocs(colRef)
+          const deadlines = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            inviteId: invite.id,
+            ...doc.data(),
+          })) as Deadline[]
+          emitter(deadlines)
+        })
+        return unsubscribe
+      })
+    },
+  )
+
+  try {
+    while (true) {
+      const results: Deadline[][] = yield race(
+        channels.map((channel) => take(channel)),
+      )
+      for (const result of results) {
+        if (result) {
+          const deadlines: Deadline[] = result
+          yield put(setCollabDeadlines(deadlines))
+        }
+      }
+    }
+  } finally {
+    const isCancelled: boolean = yield cancelled()
+    if (isCancelled) {
+      channels.forEach((channel) => channel.close())
+    }
+  }
+}
+
 function* watchAddDeadline() {
   yield takeLatest(addDeadlineStart.type, addDeadlineSaga)
 }
@@ -197,11 +261,16 @@ function* watchSyncDeadlines() {
   yield takeLatest(syncDeadlinesStart.type, syncDeadlinesSaga)
 }
 
+function* watchSyncCollabDeadlines() {
+  yield takeLatest(syncCollabDeadlinesStart.type, syncCollabDeadlinesSaga)
+}
+
 export default function* deadlineSagas() {
   yield all([
     watchAddDeadline(),
     watchDeleteDeadline(),
     watchUpdateDeadline(),
     watchSyncDeadlines(),
+    watchSyncCollabDeadlines(),
   ])
 }

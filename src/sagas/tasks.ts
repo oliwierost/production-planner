@@ -1,69 +1,76 @@
-import { eventChannel } from "redux-saga"
 import { PayloadAction } from "@reduxjs/toolkit"
-import {
-  call,
-  put,
-  take,
-  cancelled,
-  takeLatest,
-  all,
-  select,
-} from "redux-saga/effects"
-import { firestore } from "../../firebase.config"
-import {
-  assignTaskToFacility,
-  Facility,
-  removeTaskFromFacility,
-} from "../slices/facilities"
 import {
   arrayRemove,
   arrayUnion,
   collection,
   deleteDoc,
   doc,
+  getDocs,
   onSnapshot,
   setDoc,
   updateDoc,
   writeBatch,
 } from "firebase/firestore"
+import { EventChannel, eventChannel } from "redux-saga"
 import {
-  setTasks,
-  Task,
-  deleteTaskStart,
-  syncTasksStart,
-  addTaskStart,
-  setTaskDroppedStart,
-  updateTaskStart,
-  moveTaskStart,
-  updateTask,
-  upsertTask,
-  resizeTaskStart,
-  taskId,
-  removeTask,
-  updateRequiredTasks,
-  updateRequiredByTasks,
-  setTaskLockedStart,
-} from "../slices/tasks"
-import { setToastOpen } from "../slices/toast"
+  all,
+  call,
+  cancelled,
+  put,
+  race,
+  select,
+  take,
+  takeLatest,
+} from "redux-saga/effects"
+import { firestore } from "../../firebase.config"
+import {
+  assignTaskToFacility,
+  Facility,
+  facilityId,
+  removeTaskFromFacility,
+} from "../slices/facilities"
 import {
   GridType,
   removeCells,
   setCellsOccupied,
   updateGridStart,
 } from "../slices/grid"
+import {
+  addTaskStart,
+  deleteTaskStart,
+  moveTaskStart,
+  removeTask,
+  resizeTaskStart,
+  setCollabTasks,
+  setTaskDroppedStart,
+  setTaskLockedStart,
+  setTasks,
+  syncCollabTasksStart,
+  syncTasksStart,
+  Task,
+  taskId,
+  updateRequiredByTasks,
+  updateRequiredTasks,
+  updateTask,
+  updateTaskStart,
+  upsertTask,
+} from "../slices/tasks"
+import { setToastOpen } from "../slices/toast"
 
-import { userId } from "../slices/user"
-import { projectId } from "../slices/projects"
-import { selectGrid } from "../selectors/grid"
-import { workspaceId } from "../slices/workspaces"
-import { selectFacility } from "../selectors/facilities"
-import { calculateTaskDurationHelper } from "../components/DataGrid/calculateTaskDurationHelper"
 import { FormikHelpers } from "formik"
 import React from "react"
-import { Modal } from "../components/DataPanel"
 import { TaskFormData } from "../components/CreateTaskModal"
+import { calculateTaskDurationHelper } from "../components/DataGrid/calculateTaskDurationHelper"
+import { Modal } from "../components/DataPanel"
+import { selectFacility } from "../selectors/facilities"
+import { selectGrid } from "../selectors/grid"
 import { setDragDisabled } from "../slices/drag"
+import { Project, projectId } from "../slices/projects"
+import { userId } from "../slices/user"
+import { workspaceId } from "../slices/workspaces"
 import { updateGridInFirestore } from "./grid"
+import { Invite } from "../slices/invites"
+import { selectProject } from "../selectors/projects"
 
 interface CustomError extends Error {
   statusCode?: number
@@ -181,14 +188,20 @@ export const setTaskDroppedInFirestore = async (
   )
   if (dropped) {
     batch.update(facilityRef, { tasks: arrayUnion(taskId) })
+    batch.update(taskRef, {
+      dropped,
+      facilityId: facilityId,
+      startTime: Number(colId),
+    })
   } else {
     batch.update(facilityRef, { tasks: arrayRemove(taskId) })
+    batch.update(taskRef, {
+      dropped,
+      facilityId: null,
+      startTime: null,
+    })
   }
-  batch.update(taskRef, {
-    dropped,
-    facilityId: facilityId,
-    startTime: Number(colId),
-  })
+
   batch.update(gridRef, {
     cells: gridState.cells,
   })
@@ -196,13 +209,13 @@ export const setTaskDroppedInFirestore = async (
 }
 
 export const moveTaskInFirestore = async (
-  userId: string,
-  taskId: string,
-  sourceFacilityId: string,
-  facilityId: string,
+  userId: userId,
+  taskId: taskId,
+  sourceFacilityId: facilityId,
+  facilityId: facilityId,
   colId: string,
   grid: GridType,
-  workspaceId: string,
+  workspaceId: workspaceId,
 ) => {
   const batch = writeBatch(firestore)
   const taskRef = doc(
@@ -238,9 +251,9 @@ export const moveTaskInFirestore = async (
 }
 
 export const resizeTaskInFirestore = async (
-  userId: string,
-  taskId: string,
-  workspaceId: string,
+  userId: userId,
+  taskId: taskId,
+  workspaceId: workspaceId,
   newDuration: number,
   grid: GridType,
 ) => {
@@ -263,10 +276,10 @@ export const resizeTaskInFirestore = async (
 }
 
 export const updateTaskInFirestore = async (
-  userId: string,
-  taskId: string,
-  updateData: { [key: string]: any },
-  workspaceId: string,
+  userId: userId,
+  taskId: taskId,
+  updateData: Partial<Task>,
+  workspaceId: workspaceId,
 ) => {
   await updateDoc(
     doc(firestore, `users/${userId}/workspaces/${workspaceId}/tasks/${taskId}`),
@@ -275,10 +288,10 @@ export const updateTaskInFirestore = async (
 }
 
 const deleteTaskFromFirestore = async (
-  userId: string,
-  taskId: string,
-  workspaceId: string,
-  facilityId?: string | null,
+  userId: userId,
+  taskId: taskId,
+  workspaceId: workspaceId,
+  facilityId?: facilityId | null,
 ) => {
   await deleteDoc(
     doc(firestore, `users/${userId}/workspaces/${workspaceId}/tasks/${taskId}`),
@@ -299,14 +312,18 @@ const deleteTaskFromFirestore = async (
 export function* addTaskSaga(
   action: PayloadAction<{
     task: Task
-    workspaceId: string
+    workspaceId: workspaceId
     resetForm: FormikHelpers<TaskFormData>["resetForm"]
     setModal: React.Dispatch<React.SetStateAction<Modal | null>>
   }>,
 ) {
   try {
     const { task, workspaceId, setModal, resetForm } = action.payload
-    const userId: string = yield select((state) => state.user.user.id)
+    const projectId = task.projectId
+    const project: Project = yield select((state) =>
+      selectProject(state, workspaceId, projectId),
+    )
+    const userId = project.ownerId
 
     const grid: GridType = yield select((state) =>
       selectGrid(state, workspaceId),
@@ -389,7 +406,10 @@ export function* deleteTaskSaga(
 ): Generator<any, void, any> {
   try {
     const { task } = action.payload
-    const userId: userId = yield select((state) => state.user.user?.id)
+    const project: Project = yield select((state) =>
+      selectProject(state, task.workspaceId, task.projectId),
+    )
+    const userId = project.ownerId
     const workspaceId: workspaceId = task.workspaceId
     const facilityId = task.facilityId
     const colId = task.startTime?.toString()
@@ -441,7 +461,10 @@ export function* setTaskDroppedSaga(
     const { dropped, rowId, colId, task } = action.payload
     const duration = task.duration
     const workspaceId = task.workspaceId
-    const userId: string = yield select((state) => state.user.user?.id)
+    const project: Project = yield select((state) =>
+      selectProject(state, task.workspaceId, task.projectId),
+    )
+    const userId = project.ownerId
     const facility: Facility = yield select((state) =>
       selectFacility(state, workspaceId, rowId),
     )
@@ -456,13 +479,6 @@ export function* setTaskDroppedSaga(
             startTime: Number(colId),
           },
         }),
-      )
-      yield call(
-        updateTaskInFirestore,
-        userId,
-        task.id,
-        { facilityId: rowId, startTime: Number(colId) },
-        workspaceId,
       )
     } else {
       yield put(removeCells({ facility, colId, duration, workspaceId }))
@@ -517,7 +533,10 @@ export function* moveTaskSaga(
   const duration = task.duration
 
   const taskId = task.id
-  const userId: string = yield select((state) => state.user.user?.id)
+  const project: Project = yield select((state) =>
+    selectProject(state, task.workspaceId, task.projectId),
+  )
+  const userId = project.ownerId
   const workspaceId = task.workspaceId
   const facility = yield select((state) =>
     selectFacility(state, workspaceId, rowId),
@@ -580,7 +599,10 @@ export function* resizeTaskSaga(
   //get newColId based on the newDuration as days in miliseconds
   try {
     const workspaceId: workspaceId = task.workspaceId
-    const userId: string = yield select((state) => state.user.user?.id)
+    const project: Project = yield select((state) =>
+      selectProject(state, task.workspaceId, task.projectId),
+    )
+    const userId = project.ownerId
     const facility: Facility = yield select((state) =>
       selectFacility(state, workspaceId, rowId),
     )
@@ -638,7 +660,10 @@ export function* updateTaskSaga(
     const { task, data, workspaceId, setModal, resetForm } = action.payload
     const id = task.id
     const requiredTasks = data.requiredTasks
-    const userId: string = yield select((state) => state.user.user?.id)
+    const project: Project = yield select((state) =>
+      selectProject(state, task.workspaceId, task.projectId),
+    )
+    const userId = project.ownerId
     const prevGrid: GridType = yield select((state) =>
       selectGrid(state, workspaceId),
     )
@@ -740,7 +765,10 @@ export function* setTaskLockedSaga(
   action: PayloadAction<{ task: Task; locked: boolean }>,
 ) {
   const { task, locked } = action.payload
-  const userId: string = yield select((state) => state.user.user?.id)
+  const project: Project = yield select((state) =>
+    selectProject(state, task.workspaceId, task.projectId),
+  )
+  const userId = project.ownerId
   try {
     yield put(updateTask({ task, data: { locked } }))
     yield call(
@@ -807,6 +835,55 @@ export function* syncTasksSaga() {
   }
 }
 
+export function* syncCollabTasksSaga() {
+  const userId: string = yield select((state) => state.user.user?.id)
+  const invites: { [key: string]: Invite } = yield select(
+    (state) => state.invites.invites,
+  )
+
+  if (!userId || Object.keys(invites).length === 0) return
+
+  const channels: EventChannel<Task[]>[] = Object.values(invites).map(
+    (invite) => {
+      return eventChannel((emitter) => {
+        const colRef = collection(
+          firestore,
+          `users/${invite.invitingUserId}/workspaces/${invite.workspaceId}/tasks`,
+        )
+        const unsubscribe = onSnapshot(colRef, async () => {
+          const snapshot = await getDocs(colRef)
+          const tasks = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            inviteId: invite.id,
+            ...doc.data(),
+          })) as Task[]
+          emitter(tasks)
+        })
+        return unsubscribe
+      })
+    },
+  )
+
+  try {
+    while (true) {
+      const results: Task[][] = yield race(
+        channels.map((channel) => take(channel)),
+      )
+      for (const result of results) {
+        if (result) {
+          const tasks: Task[] = result
+          yield put(setCollabTasks(tasks))
+        }
+      }
+    }
+  } finally {
+    const isCancelled: boolean = yield cancelled()
+    if (isCancelled) {
+      channels.forEach((channel) => channel.close())
+    }
+  }
+}
+
 function* watchAddTask() {
   yield takeLatest(addTaskStart.type, addTaskSaga)
 }
@@ -839,6 +916,10 @@ function* watchSyncTasks() {
   yield takeLatest(syncTasksStart.type, syncTasksSaga)
 }
 
+function* watchSyncCollabTasks() {
+  yield takeLatest(syncCollabTasksStart.type, syncCollabTasksSaga)
+}
+
 export default function* taskSagas() {
   yield all([
     watchAddTask(),
@@ -849,5 +930,6 @@ export default function* taskSagas() {
     watchSetTaskLocked(),
     watchResizeTask(),
     watchUpdateTask(),
+    watchSyncCollabTasks(),
   ])
 }

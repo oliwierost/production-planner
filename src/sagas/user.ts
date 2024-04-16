@@ -1,3 +1,4 @@
+import { PayloadAction } from "@reduxjs/toolkit"
 import {
   all,
   call,
@@ -7,33 +8,35 @@ import {
   take,
   takeLatest,
 } from "redux-saga/effects"
-import { PayloadAction } from "@reduxjs/toolkit"
 
 import { doc, getDoc, onSnapshot, setDoc, updateDoc } from "firebase/firestore"
 import { auth, firestore } from "../../firebase.config"
 
 import { eventChannel } from "redux-saga"
 
-import { hashObject } from "./facilities"
-import {
-  Credentials,
-  User,
-  initializeUserStart,
-  setProjectOpen,
-  setProjectOpenStart,
-  setUser,
-  setWorkspaceOpen,
-  setWorkspaceOpenStart,
-  signInStart,
-  signOutStart,
-  syncUserStart,
-} from "../slices/user"
 import {
   UserCredential,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth"
+import { projectId } from "../slices/projects"
 import { setToastOpen } from "../slices/toast"
+import {
+  Credentials,
+  User,
+  initializeUserStart,
+  setOpenStart,
+  setProjectOpen,
+  setUser,
+  setUserOpen,
+  setWorkspaceOpen,
+  signInStart,
+  signOutStart,
+  syncUserStart,
+  userId,
+} from "../slices/user"
+import { workspaceId } from "../slices/workspaces"
+import { hashObject } from "./facilities"
 
 export const fetchUserFromFirestore = async (userId: string): Promise<User> => {
   const docRef = doc(firestore, `users/${userId}`)
@@ -46,20 +49,15 @@ export const addUserInFirestore = async (user: User): Promise<void> => {
   await setDoc(userRef, user)
 }
 
-export const setProjectOpenInFirestore = async (
-  userId: string,
-  projectId: string,
-): Promise<void> => {
+export const updateUserInFirestore = async ({
+  userId,
+  data,
+}: {
+  userId: string
+  data: Partial<User>
+}): Promise<void> => {
   const userRef = doc(firestore, `users/${userId}`)
-  await updateDoc(userRef, { openProjectId: projectId })
-}
-
-export const setWorkspaceOpenInFirestore = async (
-  userId: string,
-  workspaceId: string,
-): Promise<void> => {
-  const userRef = doc(firestore, `users/${userId}`)
-  await updateDoc(userRef, { openWorkspaceId: workspaceId })
+  await updateDoc(userRef, data)
 }
 
 export const signUpWithFirebase = async (
@@ -96,8 +94,10 @@ function* initializeUserSaga(action: PayloadAction<Credentials>) {
     const user = {
       id: userCredential.user.uid,
       email: userCredential.user.email!,
+      openUserId: null,
       openProjectId: null,
       openWorkspaceId: null,
+      openProjectPermissions: null,
     }
     yield call(addUserInFirestore, user)
     yield put(setUser(user))
@@ -148,30 +148,31 @@ function* signOutSaga() {
   }
 }
 
-function* setProjectOpenSaga(action: PayloadAction<string>) {
+function* setOpenSaga(
+  action: PayloadAction<{
+    projectId: projectId
+    workspaceId: workspaceId
+    userId: userId
+  }>,
+) {
   try {
-    const userId: string = yield select((state) => state.user.user.id)
-    yield put(setProjectOpen(action.payload))
-    yield call(setProjectOpenInFirestore, userId, action.payload)
+    const { projectId, workspaceId, userId } = action.payload
+    const currentUserId: userId = yield select((state) => state.user.user.id)
+    yield put(setProjectOpen(projectId))
+    yield put(setWorkspaceOpen(workspaceId))
+    yield put(setUserOpen(userId))
+    yield call(updateUserInFirestore, {
+      userId: currentUserId,
+      data: {
+        openProjectId: projectId,
+        openWorkspaceId: workspaceId,
+        openUserId: userId,
+      },
+    })
   } catch (error) {
     yield put(
       setToastOpen({
         message: "Error setting project open!",
-        severity: "error",
-      }),
-    )
-  }
-}
-
-function* setWorkspaceOpenSaga(action: PayloadAction<string>) {
-  try {
-    const userId: string = yield select((state) => state.user.user.id)
-    yield put(setWorkspaceOpen(action.payload))
-    yield call(setWorkspaceOpenInFirestore, userId, action.payload)
-  } catch (error) {
-    yield put(
-      setToastOpen({
-        message: "Error setting workspace open!",
         severity: "error",
       }),
     )
@@ -215,12 +216,8 @@ export function* syncUserSaga({
   }
 }
 
-function* watchSetSelectedWorkspace() {
-  yield takeLatest(setWorkspaceOpenStart.type, setWorkspaceOpenSaga)
-}
-
-function* watchSetSelectedProject() {
-  yield takeLatest(setProjectOpenStart.type, setProjectOpenSaga)
+function* watchSetOpenSaga() {
+  yield takeLatest(setOpenStart.type, setOpenSaga)
 }
 
 function* watchInitializeUser() {
@@ -241,8 +238,7 @@ function* watchSyncUser() {
 
 export default function* userSagas() {
   yield all([
-    watchSetSelectedWorkspace(),
-    watchSetSelectedProject(),
+    watchSetOpenSaga(),
     watchInitializeUser(),
     watchSignOut(),
     watchSetUser(),

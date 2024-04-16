@@ -25,12 +25,15 @@ interface CreateProjectModalProps {
 interface FormData {
   title: string
   description: string
+  invitedUsers: string[]
+  id: string
 }
 
 const initialValues = {
   id: "",
   title: "",
   description: "",
+  invitedUsers: [],
 }
 
 export function CreateProjectModal({
@@ -67,6 +70,8 @@ export function CreateProjectModal({
             project: {
               ...values,
               id,
+              workspaceId: workspaceId,
+              ownerId: user.id,
             },
           }),
         )

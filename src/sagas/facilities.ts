@@ -1,29 +1,5 @@
-import { eventChannel } from "redux-saga"
 import { PayloadAction } from "@reduxjs/toolkit"
-import {
-  call,
-  put,
-  take,
-  cancelled,
-  takeLatest,
-  all,
-  select,
-} from "redux-saga/effects"
-import { firestore } from "../../firebase.config"
-import {
-  Facility,
-  addFacilityStart,
-  setFacilities,
-  deleteFacilityStart,
-  syncFacilitiesStart,
-  updateFacilityStart,
-  facilityId,
-  upsertFacility,
-  removeFacility,
-  updateFacility,
-  undropTasksFromFacilityStart,
-  sortFacilities,
-} from "../slices/facilities"
+import CryptoJS from "crypto-js"
 import {
   arrayRemove,
   arrayUnion,
@@ -31,21 +7,50 @@ import {
   deleteDoc,
   doc,
   DocumentData,
+  getDocs,
   onSnapshot,
   setDoc,
   updateDoc,
 } from "firebase/firestore"
-import { setToastOpen } from "../slices/toast"
+import { EventChannel, eventChannel } from "redux-saga"
+import {
+  all,
+  call,
+  cancelled,
+  put,
+  race,
+  select,
+  take,
+  takeLatest,
+} from "redux-saga/effects"
+import { firestore } from "../../firebase.config"
+import { selectGrid } from "../selectors/grid"
+import { selectTasksByIdsInWorkspace } from "../selectors/tasks"
+import {
+  addFacilityStart,
+  deleteFacilityStart,
+  Facility,
+  facilityId,
+  removeFacility,
+  setCollabFacilities,
+  setFacilities,
+  sortFacilities,
+  syncCollabFacilitiesStart,
+  syncFacilitiesStart,
+  undropTasksFromFacilityStart,
+  updateFacility,
+  updateFacilityStart,
+  upsertFacility,
+} from "../slices/facilities"
 import { removeFacilityFromGrid } from "../slices/grid"
-import { undropMultipleTasksInFirestore } from "./tasks"
-import CryptoJS from "crypto-js"
-import { userId } from "../slices/user"
-import { workspaceId } from "../slices/workspaces"
+import { Invite } from "../slices/invites"
 import { projectId } from "../slices/projects"
 import { Task, taskId, undropMultipleTasks } from "../slices/tasks"
-import { selectTasksByIdsInWorkspace } from "../selectors/tasks"
-import { selectGrid } from "../selectors/grid"
+import { setToastOpen } from "../slices/toast"
+import { userId } from "../slices/user"
+import { workspaceId } from "../slices/workspaces"
 import { updateGridInFirestore } from "./grid"
+import { undropMultipleTasksInFirestore } from "./tasks"
 
 function stableStringify(obj: object) {
   const allKeys: string[] = []
@@ -145,7 +150,7 @@ export function* updateFacilitySaga(
   try {
     const { facility, data } = action.payload
     const facilityId: facilityId = facility.id
-    const userId: userId = yield select((state) => state.user.user?.id)
+    const userId: userId = yield select((state) => state.user.user?.openUserId)
     const workspaceId: workspaceId = yield select(
       (state) => state.user.user?.openWorkspaceId,
     )
@@ -177,6 +182,7 @@ export function* addFacilitySaga(action: PayloadAction<Facility>) {
   try {
     const userId: userId = yield select((state) => state.user.user?.id)
     const facility = action.payload
+
     yield put(upsertFacility(facility))
     yield call(addFacilityToFirestore, userId, facility)
     const facilities: {
@@ -211,7 +217,7 @@ export function* undropTasksFromFacilitySaga(
 ): Generator<any, void, any> {
   try {
     const facility: Facility = action.payload
-    const userId: userId = yield select((state) => state.user.user?.id)
+    const userId: userId = yield select((state) => state.user.user?.openUserId)
     const workspaceId: workspaceId = yield select(
       (state) => state.user.user?.openWorkspaceId,
     )
@@ -252,7 +258,7 @@ export function* deleteFacilitySaga(
 ): Generator<any, void, any> {
   try {
     const { id: facilityId, tasks: taskIds } = action.payload
-    const userId: userId = yield select((state) => state.user.user?.id)
+    const userId: userId = yield select((state) => state.user.user?.openUserId)
     const workspaceId: workspaceId = yield select(
       (state) => state.user.user?.openWorkspaceId,
     )
@@ -358,6 +364,69 @@ export function* syncFacilitiesSaga() {
   }
 }
 
+export function* syncCollabFacilities() {
+  const userId: string = yield select((state) => state.user.user?.id)
+  const invites: { [key: string]: Invite } = yield select(
+    (state) => state.invites.invites,
+  )
+
+  if (!userId || Object.keys(invites).length === 0) return
+
+  const channels: EventChannel<Facility[]>[] = Object.values(invites).map(
+    (invite) => {
+      return eventChannel((emitter) => {
+        const colRef = collection(
+          firestore,
+          `users/${invite.invitingUserId}/workspaces/${invite.workspaceId}/facilities`,
+        )
+        const unsubscribe = onSnapshot(colRef, async () => {
+          const snapshot = await getDocs(colRef)
+          const facilities = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            inviteId: invite.id,
+            ...doc.data(),
+          })) as Facility[]
+          emitter(facilities)
+        })
+        return unsubscribe
+      })
+    },
+  )
+
+  try {
+    while (true) {
+      const results: Facility[][] = yield race(
+        channels.map((channel) => take(channel)),
+      )
+      for (const result of results) {
+        if (result) {
+          const facilities: Facility[] = result
+          yield put(setCollabFacilities(facilities))
+        }
+      }
+      const allFacilities: {
+        [id: workspaceId]: { [id: projectId]: Facility }
+      } = yield select((state) => state.facilities.facilities)
+      const workspaceId: workspaceId = yield select(
+        (state) => state.user.user?.openWorkspaceId,
+      )
+      if (workspaceId && allFacilities[workspaceId]) {
+        yield put(
+          sortFacilities({
+            facilities: allFacilities,
+            workspaceId,
+          }),
+        )
+      }
+    }
+  } finally {
+    const isCancelled: boolean = yield cancelled()
+    if (isCancelled) {
+      channels.forEach((channel) => channel.close())
+    }
+  }
+}
+
 export function* watchAddFacility() {
   yield takeLatest(addFacilityStart.type, addFacilitySaga)
 }
@@ -381,6 +450,10 @@ function* watchSyncFacilities() {
   yield takeLatest(syncFacilitiesStart.type, syncFacilitiesSaga)
 }
 
+function* watchSyncCollabFacilities() {
+  yield takeLatest(syncCollabFacilitiesStart.type, syncCollabFacilities)
+}
+
 export default function* facilitiesSagas() {
   yield all([
     watchAddFacility(),
@@ -388,5 +461,6 @@ export default function* facilitiesSagas() {
     watchSyncFacilities(),
     watchUndropTasksFromFacility(),
     watchUpdateFacility(),
+    watchSyncCollabFacilities(),
   ])
 }

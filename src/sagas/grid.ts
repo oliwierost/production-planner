@@ -1,19 +1,4 @@
-import {
-  all,
-  call,
-  cancelled,
-  put,
-  select,
-  take,
-  takeLatest,
-} from "redux-saga/effects"
 import { PayloadAction } from "@reduxjs/toolkit"
-import {
-  GridType,
-  initializeGrid,
-  initializeGridStart,
-  syncGridStart,
-} from "../slices/grid"
 import {
   collection,
   doc,
@@ -22,16 +7,36 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore"
+import { EventChannel, eventChannel } from "redux-saga"
+import {
+  all,
+  call,
+  cancelled,
+  put,
+  race,
+  select,
+  take,
+  takeLatest,
+} from "redux-saga/effects"
 import { firestore } from "../../firebase.config"
-import { updateGridStart, setGrid } from "../slices/grid"
-import { eventChannel } from "redux-saga"
+import {
+  Grid,
+  GridType,
+  initializeGrid,
+  initializeGridStart,
+  setGrid,
+  syncCollabGridStart,
+  syncGridStart,
+  updateGridStart,
+} from "../slices/grid"
+import { Invite, inviteId } from "../slices/invites"
 import { setToastOpen } from "../slices/toast"
-import { User } from "../slices/user"
+import { User, userId } from "../slices/user"
 import { workspaceId } from "../slices/workspaces"
 
 export const fetchGridFromFirestore = async (
-  userId: string,
-  selectedWorkspaceId: string,
+  userId: userId,
+  selectedWorkspaceId: workspaceId,
 ): Promise<GridType | null> => {
   const snapshot = await getDoc(
     doc(
@@ -43,9 +48,9 @@ export const fetchGridFromFirestore = async (
 }
 
 export const updateGridInFirestore = async (
-  userId: string,
+  userId: userId,
   gridData: GridType,
-  selectedWorkspaceId: string,
+  selectedWorkspaceId: workspaceId,
 ): Promise<void> => {
   const gridRef = doc(
     firestore,
@@ -59,7 +64,7 @@ export const updateGridInFirestore = async (
 
 function* updateGridSaga(action: PayloadAction<GridType>) {
   try {
-    const userId: string = yield select((state) => state.user.user?.id)
+    const userId: string = yield select((state) => state.user.user?.openUserId)
     const selectedWorkspaceId: string = yield select(
       (state) => state.workspaces.selectedWorkspace,
     )
@@ -79,7 +84,7 @@ function* updateGridSaga(action: PayloadAction<GridType>) {
 function* initializeGridSaga() {
   try {
     const user: User = yield select((state) => state.user.user)
-    const userId = user?.id
+    const userId = user?.openUserId
     const workspaceId = user?.openWorkspaceId
     if (!userId || !workspaceId) return
     const gridData: GridType | null = yield call(
@@ -119,7 +124,7 @@ export function* syncGridSaga() {
           `users/${userId}/workspaces/${workspaceId}/grid`,
         )
         onSnapshot(gridRef, async (gridSnapshot) => {
-          const grid = {} as { [id: workspaceId]: GridType }
+          const grid = {} as Grid
           gridSnapshot.forEach((doc) => {
             grid[workspaceId] = doc.data() as GridType
           })
@@ -133,13 +138,60 @@ export function* syncGridSaga() {
 
   try {
     while (true) {
-      const gridData: { [id: workspaceId]: GridType } = yield take(channel)
-      yield put(setGrid({ grid: gridData }))
+      const gridData: Grid = yield take(channel)
+      yield put(setGrid(gridData))
     }
   } finally {
     const isCancelled: boolean = yield cancelled()
     if (isCancelled) {
       channel.close()
+    }
+  }
+}
+
+export function* syncCollabGridSaga() {
+  const userId: string = yield select((state) => state.user.user?.openUserId)
+  const invites: { [key: inviteId]: Invite } = yield select(
+    (state) => state.invites.invites,
+  )
+
+  if (!userId || Object.keys(invites).length === 0) return
+
+  const channels: EventChannel<Grid>[] = Object.values(invites).map(
+    (invite) => {
+      return eventChannel((emitter) => {
+        const docRef = doc(
+          firestore,
+          `users/${invite.invitingUserId}/workspaces/${invite.workspaceId}/grid/first-grid`,
+        )
+        const unsubscribe = onSnapshot(docRef, async () => {
+          const snapshot = await getDoc(docRef)
+          const grid = {
+            [invite.workspaceId]: snapshot.data() as GridType,
+          } as Grid
+          emitter(grid)
+        })
+        return unsubscribe
+      })
+    },
+  )
+
+  try {
+    while (true) {
+      const results: Grid[] = yield race(
+        channels.map((channel) => take(channel)),
+      )
+      for (const result of results) {
+        if (result) {
+          const collabGrid: Grid = result
+          yield put(setGrid(collabGrid))
+        }
+      }
+    }
+  } finally {
+    const isCancelled: boolean = yield cancelled()
+    if (isCancelled) {
+      channels.forEach((channel) => channel.close())
     }
   }
 }
@@ -156,6 +208,15 @@ function* watchSyncGrid() {
   yield takeLatest(syncGridStart.type, syncGridSaga)
 }
 
+function* watchSyncCollabGrid() {
+  yield takeLatest(syncCollabGridStart.type, syncCollabGridSaga)
+}
+
 export default function* gridSagas() {
-  yield all([watchUpdateGrid(), watchInitializeGrid(), watchSyncGrid()])
+  yield all([
+    watchUpdateGrid(),
+    watchInitializeGrid(),
+    watchSyncGrid(),
+    watchSyncCollabGrid(),
+  ])
 }

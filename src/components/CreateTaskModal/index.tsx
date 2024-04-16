@@ -43,6 +43,7 @@ export interface TaskFormData {
   requiredTasks: string[]
   requiredByTasks: string[]
   locked: boolean
+  progress: number
 }
 
 const colorOptions = [
@@ -82,6 +83,7 @@ const initialValues: Task = {
   locked: false,
   projectId: "",
   workspaceId: "",
+  progress: 0,
 }
 
 export function CreateTaskModal({
@@ -458,6 +460,7 @@ export function CreateTaskModal({
                               sx={{
                                 border: "1px solid black",
                                 height: 300,
+                                width: "50%",
                                 overflow: "auto",
                                 p: 1,
                               }}
@@ -550,7 +553,7 @@ export function CreateTaskModal({
                             <Stack
                               sx={{
                                 border: "1px solid black",
-                                flex: 1,
+                                width: "50%",
                                 height: 300,
                                 overflow: "auto",
                                 p: 1,
