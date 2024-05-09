@@ -119,6 +119,9 @@ export function* syncRaportsSaga() {
           const newRaports = { ...prevRaports }
           raportsSnapshot.forEach((doc) => {
             const docData = doc.data()
+            if (!newRaports[docData.taskId]) {
+              newRaports[docData.taskId] = {}
+            }
             newRaports[docData.taskId][docData.id] = {
               id: doc.id,
               ...docData,
@@ -137,6 +140,7 @@ export function* syncRaportsSaga() {
       const raports: { [id: taskId]: { [id: raportId]: Raport } } = yield take(
         channel,
       )
+
       yield put(setRaports(raports))
     }
   } finally {
@@ -201,7 +205,7 @@ function* waatchUpsertRaport() {
 }
 
 function* watchSyncRaports() {
-  yield takeLatest(syncRaportsStart.type, syncRaportsStart)
+  yield takeLatest(syncRaportsStart.type, syncRaportsSaga)
 }
 
 function* watchSyncCollabRaports() {
