@@ -7,7 +7,7 @@ interface ArrowsProps {
   task: Task
   taskWidth: number
   overFacility: Facility | null
-  colId: string
+  colId: number
 }
 
 export function Arrows({

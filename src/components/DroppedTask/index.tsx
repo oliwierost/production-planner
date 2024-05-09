@@ -38,6 +38,7 @@ import { selectInvite } from "../../selectors/invites"
 
 import α from "color-alpha"
 import { selectWorkspace } from "../../selectors/workspaces"
+import { TaskTooltip, Tooltip } from "../TaskTooltip"
 interface DroppedTaskProps {
   isResized: boolean
   setIsResized: React.Dispatch<React.SetStateAction<boolean>>
@@ -365,101 +366,103 @@ export const DroppedTask = memo(function DroppedTask({
               colId={colId}
             />
           ) : null}
-          <Stack
-            onContextMenu={(e) => handleRightClick(e)}
-            key={task.id}
-            width={taskWidth}
-            height="30px"
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            sx={{
-              transition: "width 0.1s ease", // Apply transition inline
-              background:
-                task.projectId === projectId
-                  ? `linear-gradient(90deg, ${task.bgcolor} ${
-                      task.progress
-                    }%, ${α(task.bgcolor, 0.6)} ${task.progress}%)`
-                  : "#D9D9D9",
-              color: "background.default",
-              borderRadius: 1,
-              border:
-                progressTimestamp < currentDay ? "2px solid #C70039" : "none",
-              boxSizing: "border-box",
-              display:
-                !isOverlay || draggedTask?.id === task.id || isResized
-                  ? "flex"
-                  : "none",
-              opacity: isOverlay ? 0.5 : 1,
-              zIndex: isOverlay ? 10 : 30,
-              transform: `translateX(${leftOffset}px)`,
-            }}
-          >
-            {task.title &&
-            view?.name !== "1 rok" &&
-            Number(task.duration) > currentFacility!.manpower ? (
-              <Typography
-                variant="body2"
-                fontWeight={700}
-                noWrap
-                sx={{
-                  maxWidth: "100%",
-                  boxSizing: "border-box",
-                  textOverflow: "ellipsis",
-                  overflow: "hidden",
-                  px: "min(20px, 10%)",
-                }}
-              >
-                {task.title}
-              </Typography>
-            ) : null}
-            <ContextMenu
-              options={contextMenuOptions}
-              modal={modal}
-              setModal={setModal}
-              open={open}
-              cursorPosition={cursorPosition}
-              onClose={() => {
-                handleClose()
+          <TaskTooltip task={task}>
+            <Stack
+              onContextMenu={(e) => handleRightClick(e)}
+              key={task.id}
+              width={taskWidth}
+              height="30px"
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              sx={{
+                transition: "width 0.1s ease", // Apply transition inline
+                background:
+                  task.projectId === projectId
+                    ? `linear-gradient(90deg, ${task.bgcolor} ${
+                        task.progress
+                      }%, ${α(task.bgcolor, 0.6)} ${task.progress}%)`
+                    : "#D9D9D9",
+                color: "background.default",
+                borderRadius: 1,
+                border:
+                  progressTimestamp < currentDay ? "2px solid #C70039" : "none",
+                boxSizing: "border-box",
+                display:
+                  !isOverlay || draggedTask?.id === task.id || isResized
+                    ? "flex"
+                    : "none",
+                opacity: isOverlay ? 0.5 : 1,
+                zIndex: isOverlay ? 10 : 30,
+                transform: `translateX(${leftOffset}px)`,
               }}
-              item={task}
-            />
-            {view?.name == "1 mies." &&
-            task.projectId === projectId &&
-            (!invite || invite?.permissions == "edycja") ? (
-              <Stack
-                direction="row"
-                mr={1}
-                height="100%"
-                alignItems="center"
-                justifySelf="flex-end"
-              >
-                <IconButton
+            >
+              {task.title &&
+              view?.name !== "1 rok" &&
+              Number(task.duration) > currentFacility!.manpower ? (
+                <Typography
+                  variant="body2"
+                  fontWeight={700}
+                  noWrap
                   sx={{
-                    color: "white",
-                    "&:focus": {
-                      outline: "none",
-                    },
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    px: "min(20px, 10%)",
                   }}
-                  onClick={handleLock}
                 >
-                  {task.locked ? (
-                    <Lock fontSize="small" />
-                  ) : (
-                    <LockOpen fontSize="small" />
-                  )}
-                </IconButton>
-                <ResizeHandle
-                  task={task}
-                  isResized={isResized}
-                  isHovered={isHovered}
-                  projectId={projectId}
-                />
-              </Stack>
-            ) : null}
-          </Stack>
+                  {task.title}
+                </Typography>
+              ) : null}
+              <ContextMenu
+                options={contextMenuOptions}
+                modal={modal}
+                setModal={setModal}
+                open={open}
+                cursorPosition={cursorPosition}
+                onClose={() => {
+                  handleClose()
+                }}
+                item={task}
+              />
+              {view?.name == "1 mies." &&
+              task.projectId === projectId &&
+              (!invite || invite?.permissions == "edycja") ? (
+                <Stack
+                  direction="row"
+                  mr={1}
+                  height="100%"
+                  alignItems="center"
+                  justifySelf="flex-end"
+                >
+                  <IconButton
+                    sx={{
+                      color: "white",
+                      "&:focus": {
+                        outline: "none",
+                      },
+                    }}
+                    onClick={handleLock}
+                  >
+                    {task.locked ? (
+                      <Lock fontSize="small" />
+                    ) : (
+                      <LockOpen fontSize="small" />
+                    )}
+                  </IconButton>
+                  <ResizeHandle
+                    task={task}
+                    isResized={isResized}
+                    isHovered={isHovered}
+                    projectId={projectId}
+                  />
+                </Stack>
+              ) : null}
+            </Stack>
+          </TaskTooltip>
         </DndContext>
       ) : null}
     </>

@@ -15,6 +15,7 @@ import { ContextMenu } from "../ContextMenu"
 import { Modal } from "../DataPanel"
 import { selectProject } from "../../selectors/projects"
 import { selectInvite } from "../../selectors/invites"
+import { FacilityTooltip } from "../FacilityTooltip"
 
 interface FacilityProps {
   facility: FacilityType | null
@@ -95,43 +96,45 @@ export function Facility({ facility }: FacilityProps) {
   return (
     <>
       {facility ? (
-        <Stack
-          justifyContent="center"
-          height="100%"
-          px={3}
-          sx={{
-            bgcolor: facility.bgcolor,
-            color: "#FFFFFF",
-          }}
-          onContextMenu={(e) => handleRightClick(e)}
-          position="relative"
-        >
-          <Typography variant="body2" color="#1E1E1E" fontWeight={600}>
-            {facility.title}
-          </Typography>
-          <ContextMenu
-            open={open}
-            onClose={handleClose}
-            item={facility}
-            cursorPosition={cursorPosition}
-            options={contextMenuOptions}
-            modal={modal}
-            setModal={setModal}
-          />
+        <FacilityTooltip facility={facility}>
           <Stack
-            direction="row"
-            position="absolute"
-            top={1}
-            right={2}
-            alignItems="center"
-            spacing={0.3}
+            justifyContent="center"
+            height="100%"
+            px={3}
+            sx={{
+              bgcolor: facility.bgcolor,
+              color: "#FFFFFF",
+            }}
+            onContextMenu={(e) => handleRightClick(e)}
+            position="relative"
           >
-            <Typography fontSize="12px" color="black" fontWeight={600}>
-              {facility.manpower}
+            <Typography variant="body2" color="#1E1E1E" fontWeight={600}>
+              {facility.title}
             </Typography>
-            <PersonIcon sx={{ color: "black", fontSize: "15px" }} />
+            <ContextMenu
+              open={open}
+              onClose={handleClose}
+              item={facility}
+              cursorPosition={cursorPosition}
+              options={contextMenuOptions}
+              modal={modal}
+              setModal={setModal}
+            />
+            <Stack
+              direction="row"
+              position="absolute"
+              top={1}
+              right={2}
+              alignItems="center"
+              spacing={0.3}
+            >
+              <Typography fontSize="12px" color="black" fontWeight={600}>
+                {facility.manpower}
+              </Typography>
+              <PersonIcon sx={{ color: "black", fontSize: "15px" }} />
+            </Stack>
           </Stack>
-        </Stack>
+        </FacilityTooltip>
       ) : null}
     </>
   )

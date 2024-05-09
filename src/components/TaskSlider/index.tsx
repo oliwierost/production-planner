@@ -56,44 +56,32 @@ export function TaskSlider() {
           }}
         >
           <Stack direction="row" minHeight={60} spacing={2}>
-            {Object.values(tasks)
-              .filter((task) => !task.startTime || !task.facilityId)
-              .sort((a, b) => {
-                //sort by color
-                if (a.bgcolor < b.bgcolor) {
-                  return -1
-                }
-                if (a.bgcolor > b.bgcolor) {
-                  return 1
-                }
-                return 0
-              })
-              .map((task) => (
-                <Box key={task.id}>
-                  <Box key={task.id} position="relative">
-                    <Draggable id={task.id} data={{ task, sourceId: null }}>
-                      {draggedTask?.id !== task.id ? (
-                        <Task task={task} />
-                      ) : (
-                        <Box maxWidth={cellWidth}>
-                          <DraggedTask task={task} />
-                        </Box>
-                      )}
-                    </Draggable>
-                    {task.id === draggedTask?.id ? (
-                      <Box
-                        sx={{
-                          opacity: 0.5,
-                          width: "100%",
-                          height: "100%",
-                        }}
-                      >
-                        <Task task={task} />
+            {filteredTasks.map((task) => (
+              <Box key={task.id}>
+                <Box key={task.id} position="relative">
+                  <Draggable id={task.id} data={{ task, sourceId: null }}>
+                    {draggedTask?.id !== task.id ? (
+                      <Task task={task} />
+                    ) : (
+                      <Box maxWidth={cellWidth}>
+                        <DraggedTask task={task} />
                       </Box>
-                    ) : null}
-                  </Box>
+                    )}
+                  </Draggable>
+                  {task.id === draggedTask?.id ? (
+                    <Box
+                      sx={{
+                        opacity: 0.5,
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    >
+                      <Task task={task} />
+                    </Box>
+                  ) : null}
                 </Box>
-              ))}
+              </Box>
+            ))}
           </Stack>
         </Stack>
       ) : null}
