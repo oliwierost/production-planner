@@ -42,6 +42,7 @@ export function Toolbar() {
       direction="row"
       width="100%"
       bgcolor="lightgrey"
+      borderBottom="1px solid black"
       alignItems="center"
       justifyContent="space-between"
     >

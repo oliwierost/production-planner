@@ -382,7 +382,7 @@ export const DroppedTask = memo(function DroppedTask({
                   ? `linear-gradient(90deg, ${task.bgcolor} ${
                       task.progress
                     }%, ${α(task.bgcolor, 0.6)} ${task.progress}%)`
-                  : "grey.400",
+                  : "#D9D9D9",
               color: "background.default",
               borderRadius: 1,
               border:
