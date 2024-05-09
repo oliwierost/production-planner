@@ -22,6 +22,7 @@ export const selectDeadline = createSelector(
     ) => {
       const deadlines = state.deadlines.deadlines
       if (!deadlines || !deadlineId || !projectId) return null
+      console.log("deadlineId", deadlineId)
       return deadlines[projectId] ? deadlines[projectId][deadlineId] : null
     },
   ],

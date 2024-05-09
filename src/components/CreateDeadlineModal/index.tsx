@@ -53,7 +53,7 @@ export function CreateDeadlineModal({
 
   const user = useAppSelector((state) => state.user.user)
   const deadline = useAppSelector((state) =>
-    selectDeadline(state, deadlineId, projectId),
+    selectDeadline(state, projectId, deadlineId),
   )
 
   const handleInputChange = (

@@ -353,6 +353,12 @@ export function DataPanel() {
                                             justifyContent="space-between"
                                             alignItems="center"
                                             key={deadline.id}
+                                            onMouseEnter={() =>
+                                              setOverItem(deadline.id)
+                                            }
+                                            onMouseLeave={() =>
+                                              setOverItem(null)
+                                            }
                                           >
                                             <Typography
                                               pl={3}
@@ -363,48 +369,50 @@ export function DataPanel() {
                                             >
                                               {deadline.title}
                                             </Typography>
-                                            <Stack direction="row">
-                                              <IconButton
-                                                onClick={() =>
-                                                  setModal({
-                                                    open: true,
-                                                    item: "deadline",
-                                                    deadlineId: deadline.id,
-                                                    projectId: project.id,
-                                                    workspaceId: workspace.id,
-                                                  })
-                                                }
-                                                sx={{
-                                                  "&:focus": {
-                                                    outline: "none",
-                                                  },
-                                                  height: "fit-content",
-                                                }}
-                                              >
-                                                <Edit
-                                                  sx={{ fontSize: "14px" }}
-                                                />
-                                              </IconButton>
-                                              <IconButton
-                                                onClick={() =>
-                                                  dispatch(
-                                                    removeDeadlineStart(
-                                                      deadline,
-                                                    ),
-                                                  )
-                                                }
-                                                sx={{
-                                                  "&:focus": {
-                                                    outline: "none",
-                                                  },
-                                                  height: "fit-content",
-                                                }}
-                                              >
-                                                <Delete
-                                                  sx={{ fontSize: "14px" }}
-                                                />
-                                              </IconButton>
-                                            </Stack>
+                                            {overItem == deadline.id ? (
+                                              <Stack direction="row">
+                                                <IconButton
+                                                  onClick={() =>
+                                                    setModal({
+                                                      open: true,
+                                                      item: "deadline",
+                                                      deadlineId: deadline.id,
+                                                      projectId: project.id,
+                                                      workspaceId: workspace.id,
+                                                    })
+                                                  }
+                                                  sx={{
+                                                    "&:focus": {
+                                                      outline: "none",
+                                                    },
+                                                    height: "fit-content",
+                                                  }}
+                                                >
+                                                  <Edit
+                                                    sx={{ fontSize: "14px" }}
+                                                  />
+                                                </IconButton>
+                                                <IconButton
+                                                  onClick={() =>
+                                                    dispatch(
+                                                      removeDeadlineStart(
+                                                        deadline,
+                                                      ),
+                                                    )
+                                                  }
+                                                  sx={{
+                                                    "&:focus": {
+                                                      outline: "none",
+                                                    },
+                                                    height: "fit-content",
+                                                  }}
+                                                >
+                                                  <Delete
+                                                    sx={{ fontSize: "14px" }}
+                                                  />
+                                                </IconButton>
+                                              </Stack>
+                                            ) : null}
                                           </Stack>
                                         ),
                                       )
@@ -530,7 +538,7 @@ export function DataPanel() {
               summary="Zakłady (współpraca)"
               variant="collection"
               setModal={setModal}
-              item="deadline"
+              item="workspace"
               border={true}
               displayAdd={false}
             >
