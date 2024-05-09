@@ -1,23 +1,22 @@
+import { DriveFileRenameOutline } from "@mui/icons-material"
+import GroupsIcon from "@mui/icons-material/Groups"
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
 import { Box, Stack, Tooltip, Typography } from "@mui/material"
-import { Modal } from "../Modal"
-import { TitleBar } from "../TitleBar"
-import { TextArea } from "../TextArea"
-import { SecondaryButton } from "../SecondaryButton"
-import { PrimaryButton } from "../PrimaryButton"
-import { doc, collection } from "firebase/firestore"
-import { firestore } from "../../../firebase.config"
+import { collection, doc } from "firebase/firestore"
 import { Form, Formik, FormikHelpers } from "formik"
-import { ColorField } from "../ColorField"
-import { NumberField } from "../NumberField"
-import { useAppDispatch, useAppSelector } from "../../hooks"
-import { addFacilityStart, updateFacilityStart } from "../../slices/facilities"
-import GroupsIcon from "@mui/icons-material/Groups"
+import { firestore } from "../../../firebase.config"
 import { facilityModalSchema } from "../../../validationSchema"
-import { Modal as ModalType } from "../DataPanel"
+import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectFacility } from "../../selectors/facilities"
+import { addFacilityStart, updateFacilityStart } from "../../slices/facilities"
+import { ColorField } from "../ColorField"
+import { Modal as ModalType } from "../DataPanel"
+import { Modal } from "../Modal"
+import { NumberField } from "../NumberField"
+import { PrimaryButton } from "../PrimaryButton"
+import { SecondaryButton } from "../SecondaryButton"
+import { TextArea } from "../TextArea"
 import { TextField } from "../TextField"
-import { DriveFileRenameOutline } from "@mui/icons-material"
 
 interface CreateFacilityModalProps {
   open: boolean
@@ -146,7 +145,6 @@ export function CreateFacilityModal({
           <Form onSubmit={handleSubmit}>
             <Modal open={open} onClose={() => handleClose(resetForm)}>
               <Stack alignItems="center" justifyContent="center">
-                <TitleBar onClose={() => handleClose(resetForm)} />
                 <Stack p={2} bgcolor="white" width="fit-content" spacing={4}>
                   <Typography variant="h6">
                     {facilityId ? "Edytuj" : "Dodaj"} stanowisko

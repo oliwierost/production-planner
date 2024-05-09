@@ -1,8 +1,8 @@
-import { Stack } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import { Stack } from "@mui/material"
+import CloseIcon from "@mui/icons-material/Close"
 
 interface TitleBarProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
 export function TitleBar({ onClose }: TitleBarProps) {
@@ -24,5 +24,5 @@ export function TitleBar({ onClose }: TitleBarProps) {
         onClick={() => onClose()}
       />
     </Stack>
-  );
+  )
 }

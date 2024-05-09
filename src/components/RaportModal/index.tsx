@@ -30,7 +30,6 @@ import { Raport } from "../Raport"
 import { SecondaryButton } from "../SecondaryButton"
 import { TextArea } from "../TextArea"
 import { TextField } from "../TextField"
-import { TitleBar } from "../TitleBar"
 
 interface RaportModalProps {
   open: boolean
@@ -172,7 +171,6 @@ export function RaportModal({
                 bgcolor="white"
                 maxHeight={500}
               >
-                <TitleBar onClose={() => handleClose(resetForm)} />
                 <Stack
                   direction="row"
                   height="100%"

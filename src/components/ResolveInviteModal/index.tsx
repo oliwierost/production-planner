@@ -16,7 +16,6 @@ import { AcceptButton } from "../AcceptButton"
 import { Modal as ModalType } from "../DataPanel"
 import { DeclineButton } from "../DecilineButton"
 import { Modal } from "../Modal"
-import { TitleBar } from "../TitleBar"
 
 interface ResolveInviteModalProps {
   open: boolean
@@ -67,7 +66,6 @@ export function ResolveInviteModal({
   return (
     <Modal open={open} onClose={() => handleClose()}>
       <Stack alignItems="center" justifyContent="center">
-        <TitleBar onClose={() => handleClose()} />
         <Stack p={2} bgcolor="white" width="fit-content" spacing={4}>
           <Typography component="span" variant="h6">
             Otrzymano zaproszenie do współpracy

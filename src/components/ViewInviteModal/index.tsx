@@ -11,7 +11,6 @@ import { workspaceId } from "../../slices/workspaces"
 import { Modal as ModalType } from "../DataPanel"
 import { Modal } from "../Modal"
 import { SecondaryButton } from "../SecondaryButton"
-import { TitleBar } from "../TitleBar"
 
 interface ViewInviteModalProps {
   open: boolean
@@ -47,7 +46,6 @@ export function ViewInviteModal({
   return (
     <Modal open={open} onClose={() => handleClose()}>
       <Stack alignItems="center" justifyContent="center">
-        <TitleBar onClose={() => handleClose()} />
         <Stack p={2} bgcolor="white" width="fit-content" spacing={4}>
           <Typography component="span" variant="h6">
             Wysłano zaproszenie do współpracy

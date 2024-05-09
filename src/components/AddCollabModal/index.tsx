@@ -18,7 +18,6 @@ import { Modal } from "../Modal"
 import { PrimaryButton } from "../PrimaryButton"
 import { SecondaryButton } from "../SecondaryButton"
 import { TextField } from "../TextField"
-import { TitleBar } from "../TitleBar"
 
 interface CreateProjectModalProps {
   open: boolean
@@ -157,7 +156,6 @@ export function AddCollabModal({
           <Form onSubmit={handleSubmit}>
             <Modal open={open} onClose={() => handleClose(resetForm)}>
               <Stack alignItems="center" justifyContent="center">
-                <TitleBar onClose={() => handleClose(resetForm)} />
                 <Stack p={2} bgcolor="white" width="fit-content" spacing={4}>
                   <Typography variant="h6">
                     Zaproś użytkownika do współpracy

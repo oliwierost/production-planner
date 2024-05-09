@@ -1,21 +1,20 @@
-import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline"
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
 import { Box, Stack, Tooltip, Typography } from "@mui/material"
-import { TextField } from "../TextField"
-import { Modal } from "../Modal"
-import { TitleBar } from "../TitleBar"
-import { TextArea } from "../TextArea"
-import { SecondaryButton } from "../SecondaryButton"
-import { PrimaryButton } from "../PrimaryButton"
-import { doc, collection } from "firebase/firestore"
-import { firestore } from "../../../firebase.config"
+import { collection, doc } from "firebase/firestore"
 import { Form, Formik, FormikHelpers } from "formik"
-import { DateField } from "../DateField"
-import { useAppDispatch, useAppSelector } from "../../hooks"
-import { addDeadlineStart, updateDeadlineStart } from "../../slices/deadlines"
+import { firestore } from "../../../firebase.config"
 import { deadlineModalSchema } from "../../../validationSchema"
-import { Modal as ModalType } from "../DataPanel"
+import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectDeadline } from "../../selectors/deadlines"
+import { addDeadlineStart, updateDeadlineStart } from "../../slices/deadlines"
+import { Modal as ModalType } from "../DataPanel"
+import { DateField } from "../DateField"
+import { Modal } from "../Modal"
+import { PrimaryButton } from "../PrimaryButton"
+import { SecondaryButton } from "../SecondaryButton"
+import { TextArea } from "../TextArea"
+import { TextField } from "../TextField"
 
 interface CreateDeadlineModalProps {
   open: boolean
@@ -158,7 +157,6 @@ export function CreateDeadlineModal({
           <Form onSubmit={handleSubmit}>
             <Modal open={open} onClose={() => handleClose(resetForm)}>
               <Stack alignItems="center" justifyContent="center">
-                <TitleBar onClose={() => handleClose(resetForm)} />
                 <Stack p={2} bgcolor="white" width="fit-content" spacing={4}>
                   <Typography variant="h6">Dodaj deadline</Typography>
                   <Stack spacing={2}>

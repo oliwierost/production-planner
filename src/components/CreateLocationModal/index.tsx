@@ -1,14 +1,13 @@
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline"
 import { Stack, Typography } from "@mui/material"
-import { TextField } from "../TextField"
-import { Modal } from "../Modal"
-import { TitleBar } from "../TitleBar"
-import { TextArea } from "../TextArea"
-import { SecondaryButton } from "../SecondaryButton"
-import { PrimaryButton } from "../PrimaryButton"
-import { doc, setDoc, collection, getDoc } from "firebase/firestore"
-import { firestore } from "../../../firebase.config"
+import { collection, doc, getDoc, setDoc } from "firebase/firestore"
 import { Form, Formik, FormikHelpers } from "formik"
+import { firestore } from "../../../firebase.config"
+import { Modal } from "../Modal"
+import { PrimaryButton } from "../PrimaryButton"
+import { SecondaryButton } from "../SecondaryButton"
+import { TextArea } from "../TextArea"
+import { TextField } from "../TextField"
 
 interface CreateLocationModalProps {
   open: boolean
@@ -31,7 +30,7 @@ export function CreateLocationModal({
 }: CreateLocationModalProps) {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    setFieldValue: FormikHelpers<FormData>["setFieldValue"]
+    setFieldValue: FormikHelpers<FormData>["setFieldValue"],
   ) => {
     const { name, value } = e.target
     setFieldValue(name, value)
@@ -39,7 +38,7 @@ export function CreateLocationModal({
 
   const handleSubmit = async (
     values: FormData,
-    resetForm: FormikHelpers<FormData>["resetForm"]
+    resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     try {
       const projectId = "PgwbCyMAeN300VU1LcsY"
@@ -47,7 +46,7 @@ export function CreateLocationModal({
         firestore,
         "projects",
         projectId,
-        "locations"
+        "locations",
       )
       const locationRef = doc(locationsRef)
       const locationId = locationRef.id
@@ -82,7 +81,6 @@ export function CreateLocationModal({
           <Form onSubmit={handleSubmit}>
             <Modal open={open} onClose={() => handleClose(resetForm)}>
               <Stack alignItems="center" justifyContent="center">
-                <TitleBar onClose={() => handleClose(resetForm)} />
                 <Stack p={2} bgcolor="white" width="fit-content" spacing={4}>
                   <Typography variant="h6">Dodaj lokalizacje</Typography>
                   <Stack spacing={2}>

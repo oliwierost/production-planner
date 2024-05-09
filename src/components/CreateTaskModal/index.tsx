@@ -1,29 +1,27 @@
+import { ArrowRightAlt } from "@mui/icons-material"
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline"
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
 import { Box, Stack, Tab, Tabs, Tooltip, Typography } from "@mui/material"
-import { TextField } from "../TextField"
-import { Modal } from "../Modal"
-import { TitleBar } from "../TitleBar"
-import { TextArea } from "../TextArea"
-import { SecondaryButton } from "../SecondaryButton"
-import { PrimaryButton } from "../PrimaryButton"
-import { doc, collection } from "firebase/firestore"
-import { firestore } from "../../../firebase.config"
+import { collection, doc } from "firebase/firestore"
 import { Form, Formik, FormikHelpers } from "formik"
-import { ColorField } from "../ColorField"
-import { NumberField } from "../NumberField"
-import { useAppDispatch, useAppSelector } from "../../hooks"
-import { addTaskStart, Task, taskId, updateTaskStart } from "../../slices/tasks"
 import { useState } from "react"
-import { setDragDisabled } from "../../slices/drag"
+import { firestore } from "../../../firebase.config"
 import { taskModalSchema } from "../../../validationSchema"
-import { DateField } from "../DateField"
-import { Dropdown } from "../Dropdown"
-import { Modal as ModalType } from "../DataPanel"
+import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectFacilities } from "../../selectors/facilities"
 import { selectTask, selectTasks } from "../../selectors/tasks"
-import _ from "lodash"
-import { ArrowRightAlt } from "@mui/icons-material"
+import { setDragDisabled } from "../../slices/drag"
+import { addTaskStart, Task, taskId, updateTaskStart } from "../../slices/tasks"
+import { ColorField } from "../ColorField"
+import { Modal as ModalType } from "../DataPanel"
+import { DateField } from "../DateField"
+import { Dropdown } from "../Dropdown"
+import { Modal } from "../Modal"
+import { NumberField } from "../NumberField"
+import { PrimaryButton } from "../PrimaryButton"
+import { SecondaryButton } from "../SecondaryButton"
+import { TextArea } from "../TextArea"
+import { TextField } from "../TextField"
 
 interface CreateTaskModalProps {
   open: boolean
@@ -211,7 +209,6 @@ export function CreateTaskModal({
           <Form onSubmit={handleSubmit}>
             <Modal open={open} onClose={() => handleClose(resetForm)}>
               <Stack alignItems="center" justifyContent="center">
-                <TitleBar onClose={() => handleClose(resetForm)} />
                 <Stack p={2} bgcolor="white" spacing={4}>
                   <Typography variant="h6">
                     {taskId ? "Edytuj" : "Dodaj"} zadanie
