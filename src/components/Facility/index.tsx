@@ -22,6 +22,7 @@ interface FacilityProps {
 }
 
 export function Facility({ facility }: FacilityProps) {
+  const [tooltipOpen, setTooltipOpen] = useState(false)
   const [modal, setModal] = useState<Modal | null>(null)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
@@ -96,7 +97,7 @@ export function Facility({ facility }: FacilityProps) {
   return (
     <>
       {facility ? (
-        <FacilityTooltip facility={facility}>
+        <FacilityTooltip facility={facility} open={tooltipOpen}>
           <Stack
             justifyContent="center"
             height="100%"
@@ -105,8 +106,13 @@ export function Facility({ facility }: FacilityProps) {
               bgcolor: facility.bgcolor,
               color: "#FFFFFF",
             }}
-            onContextMenu={(e) => handleRightClick(e)}
+            onContextMenu={(e) => {
+              setTooltipOpen(false)
+              handleRightClick(e)
+            }}
             position="relative"
+            onMouseEnter={() => setTooltipOpen(true)}
+            onMouseLeave={() => setTooltipOpen(false)}
           >
             <Typography variant="body2" color="#1E1E1E" fontWeight={600}>
               {facility.title}

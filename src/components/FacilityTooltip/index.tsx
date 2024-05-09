@@ -7,9 +7,10 @@ import { Facility } from "../../slices/facilities"
 interface TooltipProps {
   children: ReactElement<any, any>
   facility: Facility
+  open: boolean
 }
 
-export function FacilityTooltip({ children, facility }: TooltipProps) {
+export function FacilityTooltip({ children, facility, open }: TooltipProps) {
   const workspace = useAppSelector((state) =>
     selectWorkspace(state, facility.workspaceId),
   )
@@ -17,6 +18,7 @@ export function FacilityTooltip({ children, facility }: TooltipProps) {
   return (
     <MuiTooltip
       followCursor
+      open={open}
       title={
         <Stack spacing={2} direction="row">
           <Stack>

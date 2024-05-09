@@ -17,6 +17,7 @@ interface TaskProps {
 }
 
 export function Task({ task }: TaskProps) {
+  const [tooltipOpen, setTooltipOpen] = useState(false)
   const [modal, setModal] = useState<Modal | null>(null)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
@@ -83,7 +84,7 @@ export function Task({ task }: TaskProps) {
     },
   ]
   return (
-    <TaskTooltip task={task}>
+    <TaskTooltip task={task} open={tooltipOpen}>
       <Stack
         width={120}
         height={60}
@@ -92,8 +93,13 @@ export function Task({ task }: TaskProps) {
         px={3}
         borderRadius={1}
         sx={{ bgcolor: task.bgcolor, color: "#FFFFFF" }}
-        onContextMenu={(e) => handleRightClick(e)}
+        onContextMenu={(e) => {
+          setTooltipOpen(false)
+          handleRightClick(e)
+        }}
         position="relative"
+        onMouseEnter={() => setTooltipOpen(true)}
+        onMouseLeave={() => setTooltipOpen(false)}
       >
         <Typography variant="body1" fontWeight={700} noWrap>
           {task.title}

@@ -9,9 +9,10 @@ import { Task } from "../../slices/tasks"
 interface TooltipProps {
   children: ReactElement<any, any>
   task: Task
+  open: boolean
 }
 
-export function TaskTooltip({ children, task }: TooltipProps) {
+export function TaskTooltip({ children, task, open }: TooltipProps) {
   const project = useAppSelector((state) =>
     selectProject(state, task.workspaceId, task.projectId),
   )
@@ -24,6 +25,7 @@ export function TaskTooltip({ children, task }: TooltipProps) {
   return (
     <MuiTooltip
       followCursor
+      open={open}
       title={
         <Stack spacing={2} direction="row">
           <Stack>

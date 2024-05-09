@@ -58,6 +58,7 @@ export const DroppedTask = memo(function DroppedTask({
   colId,
   isOverlay = false,
 }: DroppedTaskProps) {
+  const [tooltipOpen, setTooltipOpen] = useState(false)
   const projectId = useAppSelector(
     (state) => state.user.user?.openProjectId,
     isEqual,
@@ -145,6 +146,7 @@ export const DroppedTask = memo(function DroppedTask({
     )
       return
     if (!anchorEl) {
+      setTooltipOpen(false)
       setCursorPosition({ left: event.clientX - 2, top: event.clientY - 4 })
       setAnchorEl(event.currentTarget)
       dispatch(setDragDisabled(true))
@@ -366,7 +368,7 @@ export const DroppedTask = memo(function DroppedTask({
               colId={colId}
             />
           ) : null}
-          <TaskTooltip task={task}>
+          <TaskTooltip task={task} open={tooltipOpen}>
             <Stack
               onContextMenu={(e) => handleRightClick(e)}
               key={task.id}
@@ -375,8 +377,14 @@ export const DroppedTask = memo(function DroppedTask({
               direction="row"
               alignItems="center"
               justifyContent="space-between"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
+              onMouseEnter={() => {
+                setIsHovered(true)
+                setTooltipOpen(true)
+              }}
+              onMouseLeave={() => {
+                setIsHovered(false)
+                setTooltipOpen(false)
+              }}
               sx={{
                 transition: "width 0.1s ease", // Apply transition inline
                 background:

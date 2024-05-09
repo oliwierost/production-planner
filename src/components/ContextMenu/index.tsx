@@ -1,6 +1,5 @@
 import AssignmentIcon from "@mui/icons-material/Assignment"
 import { Menu, Typography } from "@mui/material"
-import Divider from "@mui/material/Divider"
 import ListItemIcon from "@mui/material/ListItemIcon"
 import MenuItem from "@mui/material/MenuItem"
 import MenuList from "@mui/material/MenuList"
@@ -50,17 +49,21 @@ export function ContextMenu({
         open={modal ? false : open}
         onClose={onClose}
         anchorReference="anchorPosition"
-        anchorPosition={{ top: cursorPosition.top, left: cursorPosition.left }}
+        anchorPosition={{
+          top: cursorPosition.top + 18,
+          left: cursorPosition.left,
+        }}
         transitionDuration={0}
+        elevation={0}
         sx={{
           "& .MuiPaper-root": {
-            bgcolor: "white",
-            borderRadius: 1,
-            cursor: "default",
+            backgroundColor: "#f5f5f9",
+            color: "rgba(0, 0, 0, 0.87)",
+            border: "1px solid #dadde9",
           },
         }}
       >
-        <MenuList dense sx={{ outline: "none" }}>
+        <MenuList dense sx={{ outline: "none", width: "fit-content" }}>
           <MenuItem
             disableTouchRipple
             sx={{
@@ -74,17 +77,16 @@ export function ContextMenu({
               <AssignmentIcon fontSize="small" sx={{ color: "primary.dark" }} />
             </ListItemIcon>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{ fontWeight: 600, color: "text.primary" }}
             >
               {item.title}
             </Typography>
           </MenuItem>
-          <Divider sx={{ bgcolor: "primary.dark" }} />
           {options.map((option, idx) => (
             <MenuItem key={idx} onClick={option.onClick}>
               <ListItemIcon>{option.icon}</ListItemIcon>
-              <Typography variant="body1" color="text.primary">
+              <Typography variant="body2" color="text.primary">
                 {option.title}
               </Typography>
             </MenuItem>
