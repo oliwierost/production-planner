@@ -356,13 +356,13 @@ export const DroppedTask = memo(function DroppedTask({
           {requiredTasks &&
           isOverlay &&
           taskWidth &&
-          view?.name == "1 mies." &&
           workspace?.displayArrows ? (
             <Arrows
               task={task}
               requiredTasks={requiredTasks}
               taskWidth={taskWidth}
               overFacility={overFacility}
+              colId={colId}
             />
           ) : null}
           <Stack

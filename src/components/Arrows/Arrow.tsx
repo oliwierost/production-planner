@@ -8,12 +8,14 @@ import { Facility } from "../../slices/facilities"
 import { Task } from "../../slices/tasks"
 import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
 import { getCoordsHelper } from "../DroppedTask/getCoordsHelper"
+import { calculateTaskLeftOffsetHelper } from "../DataGrid/calculateTaskLeftOffsetHelper"
 
 interface ArrowProps {
   fromTask: Task
   toTask: Task
   taskWidth: number
   overFacility: Facility | null
+  colId: number
 }
 
 export function Arrow({
@@ -21,6 +23,7 @@ export function Arrow({
   toTask,
   taskWidth,
   overFacility,
+  colId,
 }: ArrowProps) {
   const [coords, setCoords] = useState<{ x: number; y: number } | null>(null)
   const fromFacility = useAppSelector((state) =>
@@ -35,6 +38,13 @@ export function Arrow({
   )
 
   const view = useAppSelector((state) => state.view.view)
+
+  const toTaskLeftOffset = calculateTaskLeftOffsetHelper(
+    toTask.startTime!,
+    colId,
+    view?.cellWidth!,
+    view?.daysInCell!,
+  )
 
   useEffect(() => {
     if (!view || !fromFacility || !toFacility) return
@@ -53,9 +63,15 @@ export function Arrow({
       manpower: fromFacility?.manpower,
       daysInCell: view?.daysInCell,
     })
+    const fromTaskLeftOffset = calculateTaskLeftOffsetHelper(
+      fromTask.startTime!,
+      colId,
+      view.cellWidth!,
+      view.daysInCell!,
+    )
 
     setCoords({
-      x: startCoords.x + newTaskWidth,
+      x: newTaskWidth + fromTaskLeftOffset,
       y: startCoords.y,
     })
   }, [
@@ -67,6 +83,7 @@ export function Arrow({
     view,
     overFacility,
     facilities,
+    view?.name,
   ])
 
   if (!fromTask.facilityId || !fromTask.startTime || !coords) return null
@@ -81,7 +98,7 @@ export function Arrow({
       <SvgArrow
         startPoint={coords}
         endPoint={{
-          x: 0,
+          x: toTaskLeftOffset,
           y: 0,
         }}
         config={{
