@@ -25,6 +25,7 @@ import { RaportModal } from "../RaportModal"
 import { workspaceId } from "../../slices/workspaces"
 import { projectId } from "../../slices/projects"
 import { inviteId } from "../../slices/invites"
+import { deleteFacilityStart } from "../../slices/facilities"
 
 export type Item =
   | ""
@@ -45,7 +46,7 @@ export interface Modal {
   inviteId?: inviteId
   facilityId?: string
   deadlineId?: string
-  projectId: projectId
+  projectId?: projectId
   workspaceId: workspaceId
 }
 
@@ -98,7 +99,7 @@ export function DataPanel() {
         )
 
       case "deadline":
-        return (
+        return modal.projectId ? (
           <CreateDeadlineModal
             setModal={setModal}
             open={true}
@@ -106,18 +107,18 @@ export function DataPanel() {
             projectId={modal.projectId}
             deadlineId={modal.deadlineId}
           />
-        )
+        ) : null
       case "collaborator":
-        return (
+        return modal.projectId ? (
           <AddCollabModal
             setModal={setModal}
             open={true}
             workspaceId={modal.workspaceId}
             projectId={modal.projectId}
           />
-        )
+        ) : null
       case "invite-resolve":
-        return (
+        return modal.projectId ? (
           <ResolveInviteModal
             setModal={setModal}
             open={true}
@@ -125,9 +126,9 @@ export function DataPanel() {
             projectId={modal.projectId}
             inviteId={modal.inviteId}
           />
-        )
+        ) : null
       case "invite-view":
-        return (
+        return modal.projectId ? (
           <ViewInviteModal
             setModal={setModal}
             open={true}
@@ -135,9 +136,9 @@ export function DataPanel() {
             projectId={modal.projectId}
             inviteId={modal.inviteId}
           />
-        )
+        ) : null
       case "raport":
-        return (
+        return modal.projectId ? (
           <RaportModal
             setModal={setModal}
             open={true}
@@ -146,7 +147,7 @@ export function DataPanel() {
             taskId={modal.taskId}
             inviteId={modal.inviteId}
           />
-        )
+        ) : null
       default:
         return null
     }
@@ -465,15 +466,59 @@ export function DataPanel() {
                       {facilities[workspace.id]
                         ? Object.values(facilities[workspace.id]).map(
                             (facility) => (
-                              <Typography
-                                pl={3}
-                                py={1.2}
+                              <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                alignItems="center"
                                 key={facility.id}
-                                noWrap
-                                variant="body2"
+                                onMouseEnter={() => setOverItem(facility.id)}
+                                onMouseLeave={() => setOverItem(null)}
                               >
-                                {facility.title}
-                              </Typography>
+                                <Typography
+                                  pl={3}
+                                  py={1.2}
+                                  key={facility.id}
+                                  noWrap
+                                  variant="body2"
+                                >
+                                  {facility.title}
+                                </Typography>
+                                {overItem == facility.id ? (
+                                  <Stack direction="row">
+                                    <IconButton
+                                      onClick={() =>
+                                        setModal({
+                                          open: true,
+                                          item: "facility",
+                                          facilityId: facility.id,
+                                          workspaceId: workspace.id,
+                                        })
+                                      }
+                                      sx={{
+                                        "&:focus": {
+                                          outline: "none",
+                                        },
+                                        height: "fit-content",
+                                      }}
+                                    >
+                                      <Edit sx={{ fontSize: "14px" }} />
+                                    </IconButton>
+                                    <IconButton
+                                      onClick={() =>
+                                        dispatch(deleteFacilityStart(facility))
+                                      }
+                                      sx={{
+                                        "&:focus": {
+                                          outline: "none",
+                                        },
+                                        height: "fit-content",
+                                      }}
+                                    >
+                                      <Delete sx={{ fontSize: "14px" }} />
+                                    </IconButton>
+                                  </Stack>
+                                ) : null}
+                              </Stack>
                             ),
                           )
                         : null}
@@ -548,6 +593,12 @@ export function DataPanel() {
                                             justifyContent="space-between"
                                             alignItems="center"
                                             key={task.id}
+                                            onMouseEnter={() =>
+                                              setOverItem(task.id)
+                                            }
+                                            onMouseLeave={() =>
+                                              setOverItem(null)
+                                            }
                                           >
                                             <Typography
                                               pl={3}
@@ -559,11 +610,12 @@ export function DataPanel() {
                                               {task.title}
                                             </Typography>
                                             <Stack direction="row">
-                                              {invites[project.inviteId || ""]
+                                              {overItem == task.id &&
+                                              (invites[project.inviteId || ""]
                                                 .permissions == "edycja" ||
-                                              invites[project.inviteId || ""]
-                                                .permissions ==
-                                                "raportowanie" ? (
+                                                invites[project.inviteId || ""]
+                                                  .permissions ==
+                                                  "raportowanie") ? (
                                                 <IconButton
                                                   onClick={() =>
                                                     setModal({
@@ -769,15 +821,66 @@ export function DataPanel() {
                       {facilities[workspace.id]
                         ? Object.values(facilities[workspace.id]).map(
                             (facility) => (
-                              <Typography
-                                pl={3}
-                                py={1.2}
+                              <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                alignItems="center"
                                 key={facility.id}
-                                noWrap
-                                variant="body2"
+                                onMouseEnter={() => setOverItem(facility.id)}
+                                onMouseLeave={() => setOverItem(null)}
                               >
-                                {facility.title}
-                              </Typography>
+                                <Typography
+                                  pl={3}
+                                  py={1.2}
+                                  key={facility.id}
+                                  noWrap
+                                  variant="body2"
+                                >
+                                  {facility.title}
+                                </Typography>
+                                <Stack direction="row">
+                                  {overItem == facility.id &&
+                                  invites[facility.inviteId || ""]
+                                    .permissions == "edycja" ? (
+                                    <>
+                                      <IconButton
+                                        onClick={() =>
+                                          setModal({
+                                            open: true,
+                                            item: "task",
+                                            taskId: facility.id,
+                                            projectId: "",
+                                            workspaceId: workspace.id,
+                                          })
+                                        }
+                                        sx={{
+                                          "&:focus": {
+                                            outline: "none",
+                                          },
+                                          height: "fit-content",
+                                        }}
+                                      >
+                                        <Edit sx={{ fontSize: "14px" }} />
+                                      </IconButton>
+                                      <IconButton
+                                        onClick={() =>
+                                          dispatch(
+                                            deleteFacilityStart(facility),
+                                          )
+                                        }
+                                        sx={{
+                                          "&:focus": {
+                                            outline: "none",
+                                          },
+                                          height: "fit-content",
+                                        }}
+                                      >
+                                        <Delete sx={{ fontSize: "14px" }} />
+                                      </IconButton>
+                                    </>
+                                  ) : null}
+                                </Stack>
+                              </Stack>
                             ),
                           )
                         : null}
