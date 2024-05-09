@@ -12,7 +12,7 @@ export function TaskSlider() {
   const draggedTask = useAppSelector((state) => state.drag.draggedTask)
   const cellWidth = useAppSelector((state) => state.view.view?.cellWidth)
 
-  const filteredTasks = !_.isEmpty(tasks)
+  const filteredTasks = tasks
     ? Object.values(tasks)
         .filter((task) => !task.startTime || !task.facilityId)
         .sort((a, b) => {
