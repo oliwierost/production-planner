@@ -122,10 +122,12 @@ export function* syncRaportsSaga() {
             if (!newRaports[docData.taskId]) {
               newRaports[docData.taskId] = {}
             }
-            newRaports[docData.taskId][docData.id] = {
-              id: doc.id,
-              ...docData,
-            } as Raport
+            if (!newRaports[docData.taskId][docData.id]) {
+              newRaports[docData.taskId][docData.id] = {
+                id: doc.id,
+                ...docData,
+              } as Raport
+            }
           })
           emitter({ ...prevRaports, ...newRaports })
         })

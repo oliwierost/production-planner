@@ -60,22 +60,26 @@ import { syncInvitesStart } from "./slices/invites"
 import { syncCollabWorkspacesStart } from "./slices/workspaces"
 import { syncCollabProjectsStart } from "./slices/projects"
 import { syncCollabRaportsStart, syncRaportsStart } from "./slices/raports"
-
-export const NUM_OF_DAYS = 100
-export const START_DATE = new Date(2024, 1, 1, 0, 0)
+import { selectProject } from "./selectors/projects"
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const dispatch = useAppDispatch()
-  const monthView = generateMonthView(NUM_OF_DAYS, START_DATE)
-  const monthMapping = generateMonthMapping(NUM_OF_DAYS, START_DATE)
-  const weekMapping = generateWeekMapping(NUM_OF_DAYS, START_DATE)
 
   const user = useAppSelector((state) => state.user.user)
   const facilities = useAppSelector((state) =>
     selectFacilities(state, user?.openWorkspaceId),
   )
   const invites = useAppSelector((state) => state.invites.invites)
+  const openProjectId = useAppSelector(
+    (state) => state.user.user?.openProjectId,
+  )
+  const openWorkspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
+  )
+  const openProject = useAppSelector((state) =>
+    selectProject(state, openWorkspaceId, openProjectId),
+  )
 
   const currentUser = auth.currentUser
 
@@ -87,13 +91,23 @@ function App() {
   }, [currentUser])
 
   useEffect(() => {
-    dispatch(
-      initializeMappings({
-        monthMapping: monthMapping,
-        weekMapping: weekMapping,
-      }),
-    )
-  }, [])
+    if (openProject) {
+      const monthMapping = generateMonthMapping(
+        openProject.startTime,
+        openProject.endTime,
+      )
+      const weekMapping = generateWeekMapping(
+        openProject.startTime,
+        openProject.endTime,
+      )
+      dispatch(
+        initializeMappings({
+          monthMapping: monthMapping,
+          weekMapping: weekMapping,
+        }),
+      )
+    }
+  }, [openProject])
 
   useEffect(() => {
     dispatch(syncWorkspacesStart())
@@ -123,8 +137,15 @@ function App() {
   )
 
   useEffect(() => {
-    if (grid) dispatch(setMonthView({ view: monthView }))
-  }, [dispatch, grid])
+    if (grid && openProject) {
+      const monthView = generateMonthView(
+        openProject.startTime,
+        openProject.endTime,
+      )
+      console.log(monthView)
+      dispatch(setMonthView({ view: monthView }))
+    }
+  }, [dispatch, grid, openProject])
 
   const checkCanDrop = (over: Over, active: Active) => {
     const overId = over.id

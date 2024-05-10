@@ -14,9 +14,10 @@ export const getYear = (date: Date): number => {
   return date.getFullYear()
 }
 
-export const generateMonthView = (numberOfColumns: number, startDate: Date) => {
+export const generateMonthView = (startTime: number, endTime: number) => {
   const numOfCellsInViewport = 20
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
+  const numOfCols = Math.ceil((endTime - startTime) / (1000 * 60 * 60 * 24))
 
   const headerBottomData = [
     {
@@ -31,9 +32,10 @@ export const generateMonthView = (numberOfColumns: number, startDate: Date) => {
   ]
 
   headerBottomData.push(
-    ...Array.from({ length: numberOfColumns }, (_, i) => {
-      const date = new Date(startDate)
-      date.setDate(i + 1)
+    ...Array.from({ length: numOfCols }, (_, i) => {
+      const date = new Date(startTime)
+      date.setDate(date.getDate() + i)
+
       return {
         field: "date" + i,
         headerName: date.toLocaleDateString("pl-Pl", {
@@ -62,12 +64,10 @@ export const generateMonthView = (numberOfColumns: number, startDate: Date) => {
   }
 }
 
-export const generateQuarterYearView = (
-  numberOfColumns: number,
-  startDate: Date,
-) => {
+export const generateQuarterYearView = (startTime: number, endTime: number) => {
   const numOfCellsInViewport = 12 // maximum is 12
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
+  const numOfCols = Math.ceil((endTime - startTime) / (1000 * 60 * 60 * 24 * 7))
   const headerBottomData = [
     {
       field: "stand",
@@ -81,9 +81,9 @@ export const generateQuarterYearView = (
   ]
 
   headerBottomData.push(
-    ...Array.from({ length: numberOfColumns }, (_, i) => {
-      const dateStart = new Date(startDate)
-      dateStart.setDate(1 + 7 * i)
+    ...Array.from({ length: numOfCols }, (_, i) => {
+      const dateStart = new Date(startTime)
+      dateStart.setDate(dateStart.getDate() + i * 7)
       return {
         field: "date" + i,
         headerName: dateStart.toLocaleDateString("pl-Pl"),
@@ -109,9 +109,12 @@ export const generateQuarterYearView = (
   }
 }
 
-export const generateYearView = (numberOfColumns: number, startDate: Date) => {
+export const generateYearView = (startTime: number, endTime: number) => {
   const numOfCellsInViewport = 12 // maximum is 12
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
+  const numOfCols = Math.ceil(
+    (endTime - startTime) / (1000 * 60 * 60 * 24 * 30),
+  )
   const headerBottomData = [
     {
       field: "stand",
@@ -125,9 +128,9 @@ export const generateYearView = (numberOfColumns: number, startDate: Date) => {
   ]
 
   headerBottomData.push(
-    ...Array.from({ length: numberOfColumns }, (_, i) => {
-      const date = new Date(startDate)
-      date.setMonth(1 + i)
+    ...Array.from({ length: numOfCols }, (_, i) => {
+      const date = new Date(startTime)
+      date.setMonth(date.getMonth() + i)
       return {
         field: "date" + i,
         headerName: getMonth(date),

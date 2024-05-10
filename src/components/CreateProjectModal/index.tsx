@@ -14,6 +14,7 @@ import { PrimaryButton } from "../PrimaryButton"
 import { SecondaryButton } from "../SecondaryButton"
 import { TextArea } from "../TextArea"
 import { TextField } from "../TextField"
+import { DateField } from "../DateField"
 
 interface CreateProjectModalProps {
   open: boolean
@@ -25,6 +26,8 @@ interface FormData {
   title: string
   description: string
   invitedUsers: string[]
+  startTime: number
+  endTime: number
   id: string
 }
 
@@ -33,6 +36,8 @@ const initialValues = {
   title: "",
   description: "",
   invitedUsers: [],
+  startTime: Date.now(),
+  endTime: Date.now(),
 }
 
 export function CreateProjectModal({
@@ -155,6 +160,34 @@ export function CreateProjectModal({
                         value={values.description}
                         onChange={(e) => handleInputChange(e, setFieldValue)}
                         name="description"
+                      />
+                    </Stack>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      spacing={5}
+                      alignItems="center"
+                    >
+                      <Typography variant="body1">Data rozpoczęcia</Typography>
+                      <DateField
+                        placeholder="Data rozpoczęcia"
+                        value={values.startTime}
+                        setFieldValue={setFieldValue}
+                        name="startTime"
+                      />
+                    </Stack>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      spacing={5}
+                      alignItems="center"
+                    >
+                      <Typography variant="body1">Data zakończenia</Typography>
+                      <DateField
+                        placeholder="Data zakończenia"
+                        value={values.endTime}
+                        setFieldValue={setFieldValue}
+                        name="endTime"
                       />
                     </Stack>
                   </Stack>

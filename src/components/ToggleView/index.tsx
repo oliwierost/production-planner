@@ -17,7 +17,7 @@ import ViewDayIcon from "@mui/icons-material/ViewDay"
 import { ViewTimeline } from "@mui/icons-material"
 import { Tooltip } from "@mui/material"
 import { setDragDisabled } from "../../slices/drag"
-import { NUM_OF_DAYS, START_DATE } from "../../App"
+import { selectProject } from "../../selectors/projects"
 
 interface ToggleViewProps {}
 
@@ -27,6 +27,15 @@ export function ToggleView({}: ToggleViewProps) {
   const viewState = useAppSelector((state) => state.view)
   const cellStateMap = gridState.grid
   const view = viewState.view
+  const openProjectId = useAppSelector(
+    (state) => state.user.user?.openProjectId,
+  )
+  const openWorkspaceId = useAppSelector(
+    (state) => state.user.user?.openWorkspaceId,
+  )
+  const openProject = useAppSelector((state) =>
+    selectProject(state, openWorkspaceId, openProjectId),
+  )
   if (!view) return null
 
   const handleChange = (
@@ -34,12 +43,15 @@ export function ToggleView({}: ToggleViewProps) {
     newView: string,
   ) => {
     console.info("mouse event", event)
-    if (cellStateMap) {
+    if (cellStateMap && openProject) {
       switch (newView) {
         case "year":
           dispatch(
             setYearView({
-              view: generateYearView(NUM_OF_DAYS, START_DATE),
+              view: generateYearView(
+                openProject.startTime,
+                openProject.endTime,
+              ),
             }),
           )
           dispatch(setDragDisabled(true))
@@ -47,14 +59,22 @@ export function ToggleView({}: ToggleViewProps) {
         case "3months.":
           dispatch(
             setQuarterView({
-              view: generateQuarterYearView(NUM_OF_DAYS, START_DATE),
+              view: generateQuarterYearView(
+                openProject.startTime,
+                openProject.endTime,
+              ),
             }),
           )
           dispatch(setDragDisabled(true))
           break
         case "1month.":
           dispatch(
-            setMonthView({ view: generateMonthView(NUM_OF_DAYS, START_DATE) }),
+            setMonthView({
+              view: generateMonthView(
+                openProject.startTime,
+                openProject.endTime,
+              ),
+            }),
           )
           dispatch(setDragDisabled(false))
           break

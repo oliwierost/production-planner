@@ -12,6 +12,13 @@ import { useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setOpenStart, userId } from "../../slices/user"
 import { Modal } from "../DataPanel"
+import { setMonthView, setQuarterView, setYearView } from "../../slices/view"
+import {
+  generateMonthView,
+  generateQuarterYearView,
+  generateYearView,
+} from "../../generateView"
+import { selectProject } from "../../selectors/projects"
 
 interface AccordionProps {
   summary: string
@@ -49,6 +56,10 @@ export function Accordion({
   const openProjectId = useAppSelector(
     (state) => state.user.user?.openProjectId,
   )
+  const openProject = useAppSelector((state) =>
+    selectProject(state, workspaceId, projectId),
+  )
+  const view = useAppSelector((state) => state.view.view)
 
   const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation()
@@ -63,7 +74,7 @@ export function Accordion({
   }
 
   const handleCheck = () => {
-    if (workspaceId && projectId && userId) {
+    if (workspaceId && projectId && userId && openProject) {
       dispatch(
         setOpenStart({
           workspaceId: workspaceId,
@@ -71,6 +82,27 @@ export function Accordion({
           userId: userId,
         }),
       )
+      if (view?.name == "1 mies.") {
+        const monthView = generateMonthView(
+          openProject.startTime,
+          openProject.endTime,
+        )
+        dispatch(setMonthView({ view: monthView }))
+      }
+      if (view?.name == "3 mies,") {
+        const monthView = generateQuarterYearView(
+          openProject.startTime,
+          openProject.endTime,
+        )
+        dispatch(setQuarterView({ view: monthView }))
+      }
+      if (view?.name == "1 rok") {
+        const monthView = generateYearView(
+          openProject.startTime,
+          openProject.endTime,
+        )
+        dispatch(setYearView({ view: monthView }))
+      }
     }
   }
 

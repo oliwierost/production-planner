@@ -10,6 +10,8 @@ export interface Project {
   workspaceId: workspaceId
   inviteId?: string
   ownerId: userId
+  startTime: number
+  endTime: number
 }
 
 export type projectId = string
