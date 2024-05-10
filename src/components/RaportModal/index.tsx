@@ -261,8 +261,51 @@ export function RaportModal({
                           spacing={5}
                           alignItems="center"
                         >
+                          <Typography variant="body1">Progres</Typography>
+                          <Stack direction="row" alignItems="center">
+                            <Box
+                              position="absolute"
+                              sx={{
+                                transform: "translateX(-30px)",
+                              }}
+                            >
+                              {errors.progress && touched.progress ? (
+                                <Tooltip title={errors.progress} arrow>
+                                  <PriorityHigh
+                                    color="error"
+                                    fontSize="large"
+                                  />
+                                </Tooltip>
+                              ) : null}
+                            </Box>
+                            <Stack
+                              direction="row"
+                              spacing={2}
+                              alignItems="center"
+                            >
+                              <NumberField
+                                placeholder="Stopień"
+                                value={values.progress}
+                                onChange={(e) =>
+                                  handleNumberChange(e, setFieldValue)
+                                }
+                                name="progress"
+                                icon={<Percent />}
+                                min={0}
+                                max={100}
+                                displayZero
+                              />
+                            </Stack>
+                          </Stack>
+                        </Stack>
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          spacing={5}
+                          alignItems="center"
+                        >
                           <Typography variant="body1">
-                            Stopień zaawansowania
+                            Przyrost progresu
                           </Typography>
                           <Stack direction="row" alignItems="center">
                             <Box
@@ -323,18 +366,6 @@ export function RaportModal({
                                   ) : null}
                                 </Stack>
                               ) : null}
-                              <NumberField
-                                placeholder="Stopień"
-                                value={values.progress}
-                                onChange={(e) =>
-                                  handleNumberChange(e, setFieldValue)
-                                }
-                                name="progress"
-                                icon={<Percent />}
-                                min={0}
-                                max={100}
-                                displayZero
-                              />
                             </Stack>
                           </Stack>
                         </Stack>

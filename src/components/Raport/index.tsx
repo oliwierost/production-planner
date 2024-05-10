@@ -7,6 +7,7 @@ import {
   Typography,
 } from "@mui/material"
 import { Raport as RaportType } from "../../slices/raports"
+import { Task } from "../Task"
 
 interface RaportProps {
   raport: RaportType
@@ -35,7 +36,7 @@ export function Raport({ raport }: RaportProps) {
               color={progressDiff > 0 ? "#4CBB17" : "#C70039"}
               variant="h6"
             >
-              {progressDiff}%
+              {raport.progress}%
             </Typography>
             {progressDiff > 0 ? (
               <TrendingUp
@@ -60,9 +61,19 @@ export function Raport({ raport }: RaportProps) {
             </Typography>
           </Typography>
           <Typography>
-            Stopień zaawansowania:{" "}
+            Progres:{" "}
             <Typography component="span" fontWeight={600}>
               {raport.progress}%
+            </Typography>
+          </Typography>
+          <Typography>
+            Przyrost progresu:{" "}
+            <Typography
+              component="span"
+              fontWeight={600}
+              color={progressDiff > 0 ? "#4CBB17" : "#C70039"}
+            >
+              {progressDiff}%
             </Typography>
           </Typography>
           <Typography>

@@ -1,7 +1,16 @@
-import EditIcon from "@mui/icons-material/Edit"
+import {
+  DndContext,
+  DragMoveEvent,
+  MouseSensor,
+  useSensor,
+} from "@dnd-kit/core"
 import DeleteIcon from "@mui/icons-material/Delete"
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
+import EditIcon from "@mui/icons-material/Edit"
 import { IconButton, Stack, Typography } from "@mui/material"
+import React, { memo, useCallback, useEffect, useState } from "react"
+import { useAppDispatch, useAppSelector } from "../../hooks"
+import { setDragDisabled } from "../../slices/drag"
 import {
   Task,
   deleteTaskStart,
@@ -10,35 +19,26 @@ import {
   setTaskLockedStart,
 } from "../../slices/tasks"
 import { ContextMenu } from "../ContextMenu"
-import React, { memo, useCallback, useEffect, useState } from "react"
-import { useAppDispatch, useAppSelector } from "../../hooks"
-import { setDragDisabled } from "../../slices/drag"
-import {
-  DndContext,
-  DragMoveEvent,
-  MouseSensor,
-  useSensor,
-} from "@dnd-kit/core"
 
 import { isEqual } from "lodash"
 import { selectCell } from "../../selectors/grid"
 import { selectTask, selectTasksByIds } from "../../selectors/tasks"
 
-import { Arrows } from "../Arrows"
-import { Modal } from "../DataPanel"
 import { selectFacility } from "../../selectors/facilities"
+import { Arrows } from "../Arrows"
 import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
+import { Modal } from "../DataPanel"
 
-import { ResizeHandle } from "../ResizeHandle"
 import { calculateTaskLeftOffsetHelper } from "../DataGrid/calculateTaskLeftOffsetHelper"
+import { ResizeHandle } from "../ResizeHandle"
 
 import { Lock, LockOpen } from "@mui/icons-material"
-import { selectProject } from "../../selectors/projects"
 import { selectInvite } from "../../selectors/invites"
+import { selectProject } from "../../selectors/projects"
 
 import α from "color-alpha"
 import { selectWorkspace } from "../../selectors/workspaces"
-import { TaskTooltip, Tooltip } from "../TaskTooltip"
+import { TaskTooltip } from "../TaskTooltip"
 interface DroppedTaskProps {
   isResized: boolean
   setIsResized: React.Dispatch<React.SetStateAction<boolean>>
@@ -309,7 +309,7 @@ export const DroppedTask = memo(function DroppedTask({
     )
   }
 
-  const [taskWidth, setTaskWidth] = useState(getTaskWidth())
+  const [taskWidth, setTaskWidth] = useState(0)
   const [leftOffset, setTaskLeftOffset] = useState(getLeftOffset())
 
   useEffect(() => {
