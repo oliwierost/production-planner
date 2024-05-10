@@ -142,7 +142,7 @@ function App() {
         openProject.startTime,
         openProject.endTime,
       )
-      console.log(monthView)
+
       dispatch(setMonthView({ view: monthView }))
     }
   }, [dispatch, grid, openProject])

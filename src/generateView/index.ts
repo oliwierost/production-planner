@@ -14,6 +14,14 @@ export const getYear = (date: Date): number => {
   return date.getFullYear()
 }
 
+function monthsBetweenDates(timestamp1: number, timestamp2: number): number {
+  const date1 = new Date(timestamp1)
+  const date2 = new Date(timestamp2)
+  const diffYear = date2.getFullYear() - date1.getFullYear()
+  const diffMonth = date2.getMonth() - date1.getMonth()
+  return diffYear * 12 + diffMonth + 1 // Adding 1 to include both start and end month
+}
+
 export const generateMonthView = (startTime: number, endTime: number) => {
   const numOfCellsInViewport = 20
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
@@ -35,7 +43,7 @@ export const generateMonthView = (startTime: number, endTime: number) => {
     ...Array.from({ length: numOfCols }, (_, i) => {
       const date = new Date(startTime)
       date.setDate(date.getDate() + i)
-
+      date.setHours(0, 0, 0, 0)
       return {
         field: "date" + i,
         headerName: date.toLocaleDateString("pl-Pl", {
@@ -84,6 +92,7 @@ export const generateQuarterYearView = (startTime: number, endTime: number) => {
     ...Array.from({ length: numOfCols }, (_, i) => {
       const dateStart = new Date(startTime)
       dateStart.setDate(dateStart.getDate() + i * 7)
+      dateStart.setHours(0, 0, 0, 0)
       return {
         field: "date" + i,
         headerName: dateStart.toLocaleDateString("pl-Pl"),
@@ -112,9 +121,8 @@ export const generateQuarterYearView = (startTime: number, endTime: number) => {
 export const generateYearView = (startTime: number, endTime: number) => {
   const numOfCellsInViewport = 12 // maximum is 12
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
-  const numOfCols = Math.ceil(
-    (endTime - startTime) / (1000 * 60 * 60 * 24 * 30),
-  )
+  const numOfCols = monthsBetweenDates(startTime, endTime)
+
   const headerBottomData = [
     {
       field: "stand",
@@ -130,7 +138,10 @@ export const generateYearView = (startTime: number, endTime: number) => {
   headerBottomData.push(
     ...Array.from({ length: numOfCols }, (_, i) => {
       const date = new Date(startTime)
+      //set day to 1st day of month
+      date.setDate(1)
       date.setMonth(date.getMonth() + i)
+      date.setHours(0, 0, 0, 0)
       return {
         field: "date" + i,
         headerName: getMonth(date),

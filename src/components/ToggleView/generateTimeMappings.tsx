@@ -5,7 +5,8 @@ export function generateWeekMapping(
   const weekMapping: { [weekStart: number]: number[] } = {}
   let numOfDays = Math.ceil((endTime - startTime) / (24 * 60 * 60 * 1000))
 
-  const currentDate = new Date(startTime)
+  let currentDate = new Date(startTime)
+  currentDate.setHours(0, 0, 0, 0)
   while (numOfDays > 0) {
     const weekStartTimestamp = new Date(
       currentDate.getFullYear(),
@@ -21,6 +22,7 @@ export function generateWeekMapping(
       numOfDays--
     }
   }
+
   return weekMapping
 }
 export const generateMonthMapping = (startTime: number, endTime: number) => {
@@ -30,16 +32,18 @@ export const generateMonthMapping = (startTime: number, endTime: number) => {
   for (let i = 0; i < numOfDays; i++) {
     const currentDate = new Date(startTime + i * 24 * 60 * 60 * 1000)
     currentDate.setHours(0, 0, 0, 0)
-    const currentTimestamp = currentDate.getTime()
-    const currentMonthTimestamp = new Date(
+
+    const currentMonthDate = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),
-    ).getTime()
+      1,
+    )
+    currentMonthDate.setHours(0, 0, 0, 0)
 
-    if (!result[currentMonthTimestamp]) {
-      result[currentMonthTimestamp] = [currentTimestamp]
+    if (!result[currentMonthDate.getTime()]) {
+      result[currentMonthDate.getTime()] = [currentDate.getTime()]
     } else {
-      result[currentMonthTimestamp].push(currentTimestamp)
+      result[currentMonthDate.getTime()].push(currentDate.getTime())
     }
   }
 
