@@ -43,7 +43,7 @@ export function FacilityTooltip({ children, facility, open }: TooltipProps) {
               {workspace?.title}
             </Typography>
             <Typography variant="body2" lineHeight="20px" fontWeight={600}>
-              {facility?.manpower}
+              {facility?.manpower} os.
             </Typography>
             <Box
               bgcolor={facility.bgcolor}
