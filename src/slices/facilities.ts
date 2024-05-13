@@ -2,7 +2,18 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { ParentAttributes, workspaceId } from "./workspaces"
 import { Task } from "./tasks"
 import { inviteId } from "./invites"
+import { projectId } from "./projects"
 // Define the Facility interface
+
+export interface Condition {
+  facilityAttribute: string
+  operator: string
+  taskAttribute: string
+}
+
+export interface Conditions {
+  [key: projectId]: Condition[]
+}
 
 export interface Attribute {
   name: string
@@ -25,6 +36,7 @@ export interface Facility {
   manpower: number
   inviteId?: inviteId
   attributes: Attributes
+  conditions: Conditions
 }
 
 // Define the state structure for facilities

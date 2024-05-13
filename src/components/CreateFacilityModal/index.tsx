@@ -1,9 +1,10 @@
-import { DriveFileRenameOutline } from "@mui/icons-material"
+import { Add, Delete, DriveFileRenameOutline } from "@mui/icons-material"
 import GroupsIcon from "@mui/icons-material/Groups"
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
 import {
   Box,
   Divider,
+  IconButton,
   Stack,
   Tab,
   Tabs,
@@ -21,6 +22,8 @@ import { selectWorkspace } from "../../selectors/workspaces"
 import {
   addFacilityStart,
   Attributes,
+  Condition,
+  Conditions,
   updateFacilityStart,
 } from "../../slices/facilities"
 import { ParentAttributes } from "../../slices/workspaces"
@@ -34,6 +37,9 @@ import { PrimaryButton } from "../PrimaryButton"
 import { SecondaryButton } from "../SecondaryButton"
 import { TextArea } from "../TextArea"
 import { TextField } from "../TextField"
+import { Dropdown } from "../Dropdown"
+import { selectProject } from "../../selectors/projects"
+import { projectId } from "../../slices/projects"
 
 interface CreateFacilityModalProps {
   open: boolean
@@ -67,6 +73,21 @@ const tabs = [
     label: "Atrybuty",
     value: 1,
   },
+  {
+    label: "Warunki",
+    value: 2,
+  },
+]
+
+const operatorOptions = [
+  {
+    label: "=",
+    value: "==",
+  },
+  {
+    label: "≠",
+    value: "!=",
+  },
 ]
 
 const colorOptions = [
@@ -99,11 +120,24 @@ export function CreateFacilityModal({
   workspaceId,
 }: CreateFacilityModalProps) {
   const [tab, setTab] = useState(0)
-
+  const [condition, setCondition] = useState<Condition>({
+    facilityAttribute: "",
+    operator: "==",
+    taskAttribute: "",
+  })
+  const [conditions, setConditions] = useState<Conditions>({})
+  const [selectedProjectId, setSelectedProjectId] = useState<projectId>("")
   const dispatch = useAppDispatch()
 
   const workspace = useAppSelector((state) =>
     selectWorkspace(state, workspaceId),
+  )
+  const projects = useAppSelector(
+    (state) => state.projects.projects[workspaceId],
+  )
+
+  const project = useAppSelector((state) =>
+    selectProject(state, workspaceId, selectedProjectId),
   )
   const [workspaceAttributes, setWorkspaceAttributes] =
     useState<ParentAttributes>({})
@@ -186,6 +220,7 @@ export function CreateFacilityModal({
     setModal(null)
     resetForm()
   }
+  console.log(conditions)
   return (
     <Formik
       initialValues={facility ? facility : initialValues}
@@ -385,6 +420,216 @@ export function CreateFacilityModal({
                                 />
                               ),
                             )}
+                          </Stack>
+                          <Divider />
+                        </Stack>
+                      </>
+                    ) : null}
+                    {tab == 2 ? (
+                      <>
+                        <Stack spacing={2} overflow="scroll" maxHeight={400}>
+                          <Typography variant="body1">
+                            Wybierz projekt
+                          </Typography>
+                          <Dropdown
+                            width={180}
+                            placeholder="Wybierz projekt"
+                            options={Object.values(projects).map((project) => ({
+                              label: project.title,
+                              value: project.id,
+                            }))}
+                            onChange={(e) => {
+                              setSelectedProjectId(e.target.value)
+                            }}
+                          />
+                          <Typography variant="body1">Dodaj warunek</Typography>
+                          <Stack direction="row" spacing={2}>
+                            <Stack>
+                              <Typography variant="body2">
+                                Atrybut stanowiska
+                              </Typography>
+                              <Dropdown
+                                width={180}
+                                onChange={(e) => {
+                                  setCondition((prev) => ({
+                                    ...prev,
+                                    facilityAttribute: e.target.value,
+                                  }))
+                                }}
+                                options={Object.values(workspaceAttributes).map(
+                                  (attribute) => ({
+                                    label: attribute.name,
+                                    value: attribute.name,
+                                  }),
+                                )}
+                                placeholder="Atrybut A"
+                                value={condition.facilityAttribute}
+                              />
+                            </Stack>
+                            <Stack>
+                              <Typography variant="body2">Operator</Typography>
+                              <Dropdown
+                                onChange={(e) => {
+                                  setCondition((prev) => ({
+                                    ...prev,
+                                    operator: e.target.value,
+                                  }))
+                                }}
+                                options={operatorOptions}
+                                placeholder="Operator"
+                                width={100}
+                                value={condition.operator}
+                              />
+                            </Stack>
+                            <Stack>
+                              <Typography variant="body2">
+                                Atrybut zadania
+                              </Typography>
+                              <Dropdown
+                                onChange={(e) => {
+                                  setCondition((prev) => ({
+                                    ...prev,
+                                    taskAttribute: e.target.value,
+                                  }))
+                                }}
+                                width={180}
+                                options={Object.values(
+                                  project?.taskAttributes || {},
+                                ).map((attribute) => ({
+                                  label: attribute.name,
+                                  value: attribute.name,
+                                }))}
+                                placeholder="Atrybut B"
+                                value={condition.taskAttribute}
+                              />
+                            </Stack>
+                            <IconButton
+                              sx={{
+                                alignSelf: "flex-end",
+                                height: 45,
+                                width: 45,
+                                "&:focus": {
+                                  outline: "none",
+                                },
+                              }}
+                              onClick={() => {
+                                if (
+                                  condition.facilityAttribute &&
+                                  condition.operator &&
+                                  condition.taskAttribute
+                                ) {
+                                  setConditions((prev) => {
+                                    return {
+                                      ...prev,
+                                      [selectedProjectId]: [
+                                        ...(prev[selectedProjectId] || []),
+                                        {
+                                          facilityAttribute:
+                                            condition.facilityAttribute,
+
+                                          operator: condition.operator,
+                                          taskAttribute:
+                                            condition.taskAttribute,
+                                        },
+                                      ],
+                                    }
+                                  })
+                                  setCondition({
+                                    facilityAttribute: "",
+                                    operator: "",
+                                    taskAttribute: "",
+                                  })
+                                }
+                              }}
+                            >
+                              <Add />
+                            </IconButton>
+                          </Stack>
+                          <Divider />
+                          <Typography variant="body1">
+                            Edytuj warunki
+                          </Typography>
+                          <Stack spacing={3}>
+                            {conditions[selectedProjectId]
+                              ? conditions[selectedProjectId].map(
+                                  (condition, index) => (
+                                    <Stack
+                                      key={index}
+                                      direction="row"
+                                      justifyContent="space-between"
+                                      alignItems="center"
+                                    >
+                                      <Stack direction="row" spacing={4}>
+                                        <Stack
+                                          alignItems="center"
+                                          justifyContent="center"
+                                        >
+                                          <Typography
+                                            variant="body1"
+                                            fontWeight={600}
+                                          >
+                                            {index + 1}.
+                                          </Typography>
+                                        </Stack>
+                                        <Stack>
+                                          <Typography variant="body2">
+                                            Atrybut stanowiska
+                                          </Typography>
+                                          <Typography
+                                            variant="body1"
+                                            fontWeight={600}
+                                          >
+                                            {condition.facilityAttribute}
+                                          </Typography>
+                                        </Stack>
+                                        <Stack>
+                                          <Typography variant="body2">
+                                            Operator
+                                          </Typography>
+                                          <Typography
+                                            variant="body1"
+                                            fontWeight={600}
+                                          >
+                                            {condition.operator == "=="
+                                              ? "="
+                                              : "≠"}
+                                          </Typography>
+                                        </Stack>
+                                        <Stack>
+                                          <Typography variant="body2">
+                                            Atrybut zadania
+                                          </Typography>
+                                          <Typography
+                                            variant="body1"
+                                            fontWeight={600}
+                                          >
+                                            {condition.taskAttribute}
+                                          </Typography>
+                                        </Stack>
+                                      </Stack>
+                                      <IconButton
+                                        sx={{
+                                          "&:focus": {
+                                            outline: "none",
+                                          },
+                                        }}
+                                        onClick={() => {
+                                          setConditions((prev) => {
+                                            return {
+                                              ...prev,
+                                              [selectedProjectId]: prev[
+                                                selectedProjectId
+                                              ].filter((_, i) => i !== index),
+                                            }
+                                          })
+                                        }}
+                                      >
+                                        <Delete />
+                                      </IconButton>
+                                    </Stack>
+                                  ),
+                                )
+                              : null}
                           </Stack>
                           <Divider />
                         </Stack>

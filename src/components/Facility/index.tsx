@@ -67,6 +67,7 @@ export function Facility({ facility }: FacilityProps) {
           workspaceId: workspaceId,
           projectId: projectId,
         })
+        setTooltipOpen(false)
         handleClose()
         dispatch(setDragDisabled(true))
       },
@@ -76,6 +77,7 @@ export function Facility({ facility }: FacilityProps) {
       title: "Usuń",
       onClick: () => {
         if (!facility) return
+        setTooltipOpen(false)
         dispatch(deleteFacilityStart(facility))
         handleClose()
       },
@@ -87,6 +89,7 @@ export function Facility({ facility }: FacilityProps) {
       title: "Usuń zadania z osi czasu",
       onClick: () => {
         if (!facility) return
+        setTooltipOpen(false)
         dispatch(undropTasksFromFacilityStart(facility))
         handleClose()
       },
@@ -111,8 +114,14 @@ export function Facility({ facility }: FacilityProps) {
               handleRightClick(e)
             }}
             position="relative"
-            onMouseEnter={() => setTooltipOpen(true)}
-            onMouseLeave={() => setTooltipOpen(false)}
+            onMouseEnter={() => {
+              if (!modal?.open) {
+                setTooltipOpen(true)
+              }
+            }}
+            onMouseLeave={() => {
+              setTooltipOpen(false)
+            }}
           >
             <Typography variant="body2" color="#1E1E1E" fontWeight={600}>
               {facility.title}
