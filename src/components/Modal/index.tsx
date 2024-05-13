@@ -68,7 +68,6 @@ export function Modal({ open, children, onClose, blur = false }: ModalProps) {
     >
       <Stack
         alignItems="center"
-        justifyContent="center"
         width="fit-content"
         position="absolute"
         top="50%"
@@ -79,6 +78,7 @@ export function Modal({ open, children, onClose, blur = false }: ModalProps) {
         }}
         border="1px solid #1E1E1E"
         boxShadow={16}
+        maxHeight="100vh"
       >
         <Box
           onMouseDown={handleMouseDown}

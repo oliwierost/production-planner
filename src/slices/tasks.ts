@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { projectId } from "./projects"
+import { ProjectAttributes, projectId } from "./projects"
 import { workspaceId } from "./workspaces"
 import React from "react"
 import { Modal } from "../components/DataPanel"
@@ -9,6 +9,16 @@ import { inviteId } from "./invites"
 
 // Define the Task interface
 export type taskId = string
+
+export interface TaskAttribute {
+  name: string
+  value?: string
+}
+
+export interface TaskAttributes {
+  [key: string]: TaskAttribute
+}
+
 export interface Task {
   id: string
   title: string
@@ -24,6 +34,7 @@ export interface Task {
   locked: boolean
   inviteId?: inviteId
   progress: number
+  attributes: TaskAttributes
 }
 
 // Define the state structure for tasks
@@ -172,6 +183,7 @@ export const tasksSlice = createSlice({
       state,
       action: PayloadAction<{
         task: Task
+        projectAttributes: ProjectAttributes
         workspaceId: string
         setModal: React.Dispatch<React.SetStateAction<Modal | null>>
         resetForm: FormikHelpers<TaskFormData>["resetForm"]
@@ -186,6 +198,7 @@ export const tasksSlice = createSlice({
       action: PayloadAction<{
         task: Task
         data: any
+        projectAttributes: ProjectAttributes
         workspaceId: workspaceId
         setModal: React.Dispatch<React.SetStateAction<Modal | null>>
         resetForm: FormikHelpers<TaskFormData>["resetForm"]

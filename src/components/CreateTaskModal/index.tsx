@@ -1,27 +1,46 @@
 import { ArrowRightAlt } from "@mui/icons-material"
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline"
 import PriorityHighIcon from "@mui/icons-material/PriorityHigh"
-import { Box, Stack, Tab, Tabs, Tooltip, Typography } from "@mui/material"
+import {
+  Box,
+  Divider,
+  Stack,
+  Tab,
+  Tabs,
+  Tooltip,
+  Typography,
+} from "@mui/material"
 import { collection, doc } from "firebase/firestore"
 import { Form, Formik, FormikHelpers } from "formik"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { firestore } from "../../../firebase.config"
 import { taskModalSchema } from "../../../validationSchema"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectFacilities } from "../../selectors/facilities"
 import { selectTask, selectTasks } from "../../selectors/tasks"
 import { setDragDisabled } from "../../slices/drag"
-import { addTaskStart, Task, taskId, updateTaskStart } from "../../slices/tasks"
+import {
+  addTaskStart,
+  TaskAttribute,
+  TaskAttributes,
+  Task,
+  taskId,
+  updateTaskStart,
+} from "../../slices/tasks"
+import { AddAttribute } from "../AddAttribute"
 import { ColorField } from "../ColorField"
 import { Modal as ModalType } from "../DataPanel"
 import { DateField } from "../DateField"
 import { Dropdown } from "../Dropdown"
+import { EditAttribute } from "../EditAttribute"
 import { Modal } from "../Modal"
 import { NumberField } from "../NumberField"
 import { PrimaryButton } from "../PrimaryButton"
 import { SecondaryButton } from "../SecondaryButton"
 import { TextArea } from "../TextArea"
 import { TextField } from "../TextField"
+import { selectProject } from "../../selectors/projects"
+import { ProjectAttributes } from "../../slices/projects"
 
 interface CreateTaskModalProps {
   open: boolean
@@ -82,6 +101,7 @@ const initialValues: Task = {
   projectId: "",
   workspaceId: "",
   progress: 0,
+  attributes: {},
 }
 
 export function CreateTaskModal({
@@ -99,10 +119,18 @@ export function CreateTaskModal({
   const facilities = useAppSelector((state) =>
     selectFacilities(state, workspaceId),
   )
+  const project = useAppSelector((state) =>
+    selectProject(state, workspaceId, projectId),
+  )
   const facilitiesOptions = Object.values(facilities ?? {}).map((facility) => ({
     label: facility.title,
     value: facility.id,
   }))
+
+  const [projectAttributes, setProjectAttributes] = useState<ProjectAttributes>(
+    {},
+  )
+  const [attributes, setAttributes] = useState<TaskAttributes>({})
 
   const dispatch = useAppDispatch()
   const user = useAppSelector((state) => state.user.user)
@@ -122,6 +150,15 @@ export function CreateTaskModal({
     setTab(newValue)
   }
 
+  useEffect(() => {
+    if (task && task.attributes) {
+      setAttributes(task.attributes)
+    }
+    if (project && project.taskAttributes) {
+      setProjectAttributes(project.taskAttributes)
+    }
+  }, [task, project])
+
   const handleSubmit = async (
     values: TaskFormData,
     resetForm: FormikHelpers<TaskFormData>["resetForm"],
@@ -134,6 +171,7 @@ export function CreateTaskModal({
         ),
       ).id
       if (!projectId || !workspaceId) return
+
       dispatch(
         addTaskStart({
           task: {
@@ -141,8 +179,10 @@ export function CreateTaskModal({
             facilityId: values.facilityId == "none" ? null : values.facilityId,
             projectId: projectId,
             workspaceId: workspaceId,
+            attributes,
             id,
           },
+          projectAttributes,
           workspaceId: workspaceId,
           resetForm: resetForm,
           setModal: setModal,
@@ -156,7 +196,9 @@ export function CreateTaskModal({
           data: {
             ...values,
             facilityId: values.facilityId == "none" ? null : values.facilityId,
+            attributes,
           },
+          projectAttributes,
           workspaceId,
           resetForm: resetForm,
           setModal: setModal,
@@ -179,6 +221,10 @@ export function CreateTaskModal({
     {
       label: "Związki",
       value: 1,
+    },
+    {
+      label: "Atrybuty",
+      value: 2,
     },
   ]
   return (
@@ -331,7 +377,6 @@ export function CreateTaskModal({
                                 />
                               </Stack>
                             </Stack>
-
                             <Stack spacing={2}>
                               <Stack
                                 direction="row"
@@ -366,7 +411,6 @@ export function CreateTaskModal({
                                   />
                                 </Stack>
                               </Stack>
-
                               <Stack
                                 direction="row"
                                 spacing={5}
@@ -586,6 +630,35 @@ export function CreateTaskModal({
                                 : null}
                             </Stack>
                           </Stack>
+                        </Stack>
+                      </>
+                    ) : null}
+                    {tab == 2 ? (
+                      <>
+                        <Stack spacing={2} overflow="scroll" maxHeight={400}>
+                          <Typography variant="body1">Dodaj atrybut</Typography>
+                          <AddAttribute
+                            setAttributes={setAttributes}
+                            setProjectAttributes={setProjectAttributes}
+                          />
+                          <Divider />
+                          <Typography variant="body1">
+                            Edytuj atrybuty
+                          </Typography>
+                          <Stack>
+                            {Object.values(projectAttributes).map(
+                              (attribute, index) => (
+                                <EditAttribute
+                                  key={index}
+                                  attribute={attribute}
+                                  taskAttributes={attributes}
+                                  setAttributes={setAttributes}
+                                  setProjectAttributes={setProjectAttributes}
+                                />
+                              ),
+                            )}
+                          </Stack>
+                          <Divider />
                         </Stack>
                       </>
                     ) : null}

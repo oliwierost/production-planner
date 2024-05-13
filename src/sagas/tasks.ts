@@ -65,12 +65,19 @@ import { Modal } from "../components/DataPanel"
 import { selectFacility } from "../selectors/facilities"
 import { selectGrid } from "../selectors/grid"
 import { setDragDisabled } from "../slices/drag"
-import { Project, projectId } from "../slices/projects"
+import {
+  Project,
+  ProjectAttributes,
+  projectId,
+  setProjectAttributes,
+} from "../slices/projects"
 import { userId } from "../slices/user"
 import { workspaceId } from "../slices/workspaces"
 import { updateGridInFirestore } from "./grid"
 import { Invite } from "../slices/invites"
 import { selectProject } from "../selectors/projects"
+import _ from "lodash"
+import { updateProjectInFirestore } from "./projects"
 
 interface CustomError extends Error {
   statusCode?: number
@@ -312,13 +319,15 @@ const deleteTaskFromFirestore = async (
 export function* addTaskSaga(
   action: PayloadAction<{
     task: Task
+    projectAttributes: ProjectAttributes
     workspaceId: workspaceId
     resetForm: FormikHelpers<TaskFormData>["resetForm"]
     setModal: React.Dispatch<React.SetStateAction<Modal | null>>
   }>,
 ) {
   try {
-    const { task, workspaceId, setModal, resetForm } = action.payload
+    const { task, projectAttributes, workspaceId, setModal, resetForm } =
+      action.payload
     const projectId = task.projectId
     const project: Project = yield select((state) =>
       selectProject(state, workspaceId, projectId),
@@ -350,6 +359,22 @@ export function* addTaskSaga(
 
         yield call(updateGridInFirestore, userId, gridState, workspaceId)
       }
+    }
+    if (!_.isEmpty(projectAttributes)) {
+      yield put(
+        setProjectAttributes({
+          projectId: task.projectId,
+          attributes: projectAttributes,
+          workspaceId,
+        }),
+      )
+      yield call(
+        updateProjectInFirestore,
+        userId,
+        task.workspaceId,
+        task.projectId,
+        { taskAttributes: projectAttributes },
+      )
     }
     yield put(upsertTask(task))
     if (task.requiredTasks.length > 0) {
@@ -651,13 +676,15 @@ export function* updateTaskSaga(
   action: PayloadAction<{
     task: Task
     data: any
+    projectAttributes: ProjectAttributes
     workspaceId: workspaceId
     setModal: React.Dispatch<React.SetStateAction<Modal | null>>
     resetForm: FormikHelpers<TaskFormData>["resetForm"]
   }>,
 ): Generator<any, void, any> {
   try {
-    const { task, data, workspaceId, setModal, resetForm } = action.payload
+    const { task, data, projectAttributes, workspaceId, setModal, resetForm } =
+      action.payload
     const id = task.id
     const requiredTasks = data.requiredTasks
     const project: Project = yield select((state) =>
@@ -723,6 +750,22 @@ export function* updateTaskSaga(
     )
     yield call(updateGridStart, grid)
     yield call(updateTaskInFirestore, userId, id, data, task.workspaceId)
+    if (!_.isEmpty(projectAttributes)) {
+      yield put(
+        setProjectAttributes({
+          projectId: task.projectId,
+          attributes: projectAttributes,
+          workspaceId,
+        }),
+      )
+      yield call(
+        updateProjectInFirestore,
+        userId,
+        task.workspaceId,
+        task.projectId,
+        { taskAttributes: projectAttributes },
+      )
+    }
     if (requiredTasks.length > 0) {
       yield call(
         updateRequiredTasksInFirestore,

@@ -2,6 +2,14 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { userId } from "./user"
 import { workspaceId } from "./workspaces"
 
+export interface ProjectAttribute {
+  name: string
+  options?: string[]
+}
+
+export interface ProjectAttributes {
+  [key: string]: ProjectAttribute
+}
 export interface Project {
   id: string
   title: string
@@ -12,6 +20,8 @@ export interface Project {
   ownerId: userId
   startTime: number
   endTime: number
+  taskAttributes?: ProjectAttributes
+  facilityAttributes?: ProjectAttributes
 }
 
 export type projectId = string
@@ -92,6 +102,17 @@ export const projectsSlice = createSlice({
         workspaceId
       ][projectId].invitedUsers.filter((id) => id !== userId)
     },
+    setProjectAttributes: (
+      state,
+      action: PayloadAction<{
+        workspaceId: workspaceId
+        projectId: projectId
+        attributes: ProjectAttributes
+      }>,
+    ) => {
+      const { workspaceId, projectId, attributes } = action.payload
+      state.projects[workspaceId][projectId].taskAttributes = attributes
+    },
     upsertProjectStart: (
       state,
       action: PayloadAction<{ workspaceId: workspaceId; project: Project }>,
@@ -129,6 +150,7 @@ export const {
   removeInvitedUserFromProject,
   setProjectsStart,
   syncProjectsStart,
+  setProjectAttributes,
   syncCollabProjectsStart,
 } = projectsSlice.actions
 

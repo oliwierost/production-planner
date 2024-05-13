@@ -10,7 +10,14 @@ import {
   race,
 } from "redux-saga/effects"
 import { firestore } from "../../firebase.config"
-import { collection, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore"
+import {
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore"
 import { setToastOpen } from "../slices/toast"
 import { EventChannel, eventChannel } from "redux-saga"
 import {
@@ -38,6 +45,21 @@ const addProjectToFirestore = async (
       `users/${userId}/workspaces/${workspaceId}/projects/${project.id}`,
     ),
     project,
+  )
+}
+
+export const updateProjectInFirestore = async (
+  userId: userId,
+  workspaceId: workspaceId,
+  projectId: projectId,
+  data: Partial<Project>,
+) => {
+  await updateDoc(
+    doc(
+      firestore,
+      `users/${userId}/workspaces/${workspaceId}/projects/${projectId}`,
+    ),
+    data,
   )
 }
 

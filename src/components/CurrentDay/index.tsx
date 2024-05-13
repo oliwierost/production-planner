@@ -11,20 +11,21 @@ interface DeadlineProps {
 export function CurrentDay({ time, rowIndex, lastIndex }: DeadlineProps) {
   const viewState = useAppSelector((state) => state.view)
 
-  const todayTimestamp = new Date().setHours(0, 0, 0, 0)
-  const [timestamp, setTimestamp] = useState(todayTimestamp)
+  const todayDate = new Date()
+  todayDate.setHours(0, 0, 0, 0)
+  const [timestamp, setTimestamp] = useState(todayDate.getTime())
   const [left, setLeft] = useState(0)
 
   useEffect(() => {
     if (!viewState.view) return
 
     if (viewState.view.name == "1 mies.") {
-      setTimestamp(todayTimestamp)
+      setTimestamp(todayDate.getTime())
       setLeft(0)
     } else if (viewState.view.name == "3 mies.") {
       const quarterDate = new Date(2024, 1, 1, 0, 0)
       while (
-        todayTimestamp >=
+        todayDate.getTime() >=
         quarterDate.getTime() + 7 * 24 * 60 * 60 * 1000
       ) {
         quarterDate.setDate(quarterDate.getDate() + 7)
@@ -33,18 +34,25 @@ export function CurrentDay({ time, rowIndex, lastIndex }: DeadlineProps) {
       setTimestamp(weekTimestamp)
       setLeft(
         (viewState.view.cellWidth! / 7) *
-          Math.floor((todayTimestamp - weekTimestamp) / (1000 * 60 * 60 * 24)),
+          Math.floor(
+            (todayDate.getTime() - weekTimestamp) / (1000 * 60 * 60 * 24),
+          ),
       )
     } else if (viewState.view.name == "1 rok") {
       const yearDate = new Date(2024, 1, 1, 0, 0)
-      while (todayTimestamp >= yearDate.getTime() + 30 * 24 * 60 * 60 * 1000) {
+      while (
+        todayDate.getTime() >=
+        yearDate.getTime() + 30 * 24 * 60 * 60 * 1000
+      ) {
         yearDate.setMonth(yearDate.getMonth() + 1)
       }
       const monthTimestamp = yearDate.getTime()
       setTimestamp(monthTimestamp)
       setLeft(
         (viewState.view.cellWidth! / 30) *
-          Math.floor((todayTimestamp - monthTimestamp) / (1000 * 60 * 60 * 24)),
+          Math.floor(
+            (todayDate.getTime() - monthTimestamp) / (1000 * 60 * 60 * 24),
+          ),
       )
     }
   }, [viewState.view?.name])

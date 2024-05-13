@@ -137,6 +137,7 @@ export const DroppedTask = memo(function DroppedTask({
     task.startTime! +
     86400000 * (cellSpan / currentFacility?.manpower!) * (task.progress / 100)
   const currentDay = new Date().setHours(0, 0, 0, 0)
+
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault()
     if (
@@ -170,6 +171,7 @@ export const DroppedTask = memo(function DroppedTask({
           workspaceId: workspaceId,
         })
         dispatch(setDragDisabled(true))
+        setTooltipOpen(false)
         handleClose()
       },
       icon: <EditIcon fontSize="small" sx={{ color: "primary.dark" }} />,
@@ -186,6 +188,7 @@ export const DroppedTask = memo(function DroppedTask({
           }),
         )
         dispatch(setDragDisabled(false))
+        setTooltipOpen(false)
         handleClose()
       },
       icon: <DeleteIcon fontSize="small" sx={{ color: "primary.dark" }} />,
@@ -202,6 +205,7 @@ export const DroppedTask = memo(function DroppedTask({
           }),
         )
         dispatch(setDragDisabled(false))
+        setTooltipOpen(false)
         handleClose()
       },
       icon: (
@@ -223,7 +227,7 @@ export const DroppedTask = memo(function DroppedTask({
   const handleDragMove = useCallback(
     debounce((event: DragMoveEvent) => {
       const { delta } = event
-
+      setTooltipOpen(false)
       const gridSize = cellWidth
       const newX = Math.round(delta.x / gridSize) * gridSize
       const taskDurationNum = Number(task.duration)
@@ -259,6 +263,9 @@ export const DroppedTask = memo(function DroppedTask({
 
   const handleDragEnd = () => {
     setIsResized(false)
+    if (isHovered) {
+      setTooltipOpen(true)
+    }
     dispatch(
       resizeTaskStart({
         task: task,
@@ -379,7 +386,7 @@ export const DroppedTask = memo(function DroppedTask({
               justifyContent="space-between"
               onMouseEnter={() => {
                 setIsHovered(true)
-                setTooltipOpen(true)
+                if (!modal?.open || isResized) setTooltipOpen(true)
               }}
               onMouseLeave={() => {
                 setIsHovered(false)

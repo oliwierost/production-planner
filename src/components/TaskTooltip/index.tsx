@@ -55,7 +55,7 @@ export function TaskTooltip({ children, task, open }: TooltipProps) {
               Kolor:
             </Typography>
             <Typography variant="body2" lineHeight="20px">
-              Stopień zaawansowania:
+              Progres:
             </Typography>
           </Stack>
           <Stack>
@@ -69,7 +69,7 @@ export function TaskTooltip({ children, task, open }: TooltipProps) {
               {project?.title}
             </Typography>
             <Typography variant="body2" lineHeight="20px" fontWeight={600}>
-              {task.duration} dni
+              {task.duration} dni/os.
             </Typography>
             {task.startTime ? (
               <Typography variant="body2" lineHeight="20px" fontWeight={600}>
