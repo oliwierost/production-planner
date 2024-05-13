@@ -31,12 +31,15 @@ import { generateMonthView } from "./generateView"
 import { useAppDispatch, useAppSelector } from "./hooks"
 import { selectFacilities } from "./selectors/facilities"
 import { selectGrid } from "./selectors/grid"
+import { selectProject } from "./selectors/projects"
 import {
   syncCollabDeadlinesStart,
   syncDeadlinesStart,
 } from "./slices/deadlines"
 import { setDraggedTask, setOverFacilityId } from "./slices/drag"
 import {
+  Condition,
+  Facility,
   syncCollabFacilitiesStart,
   syncFacilitiesStart,
 } from "./slices/facilities"
@@ -45,22 +48,23 @@ import {
   syncCollabGridStart,
   syncGridStart,
 } from "./slices/grid"
-import { syncProjectsStart } from "./slices/projects"
+import { syncInvitesStart } from "./slices/invites"
+import { syncCollabProjectsStart, syncProjectsStart } from "./slices/projects"
+import { syncCollabRaportsStart, syncRaportsStart } from "./slices/raports"
 import {
   moveTaskStart,
   setTaskDroppedStart,
   syncCollabTasksStart,
   syncTasksStart,
+  Task,
 } from "./slices/tasks"
 import { setToastClose, setToastOpen } from "./slices/toast"
 import { syncUserStart } from "./slices/user"
 import { initializeMappings, setMonthView } from "./slices/view"
-import { syncWorkspacesStart } from "./slices/workspaces"
-import { syncInvitesStart } from "./slices/invites"
-import { syncCollabWorkspacesStart } from "./slices/workspaces"
-import { syncCollabProjectsStart } from "./slices/projects"
-import { syncCollabRaportsStart, syncRaportsStart } from "./slices/raports"
-import { selectProject } from "./selectors/projects"
+import {
+  syncCollabWorkspacesStart,
+  syncWorkspacesStart,
+} from "./slices/workspaces"
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -147,12 +151,49 @@ function App() {
     }
   }, [dispatch, grid, openProject])
 
+  const checkConditions = (
+    conditions: Condition[],
+    task: Task,
+    facility: Facility,
+  ) => {
+    if (!conditions) return true
+    for (const condition of conditions) {
+      const taskAttribute = condition.taskAttribute
+      const operator = condition.operator
+      const facilityAttribute = condition.facilityAttribute
+      const taskAttributeValue = task.attributes[taskAttribute].value
+      const facilityAttributeValue =
+        facility.attributes[facilityAttribute].value
+
+      switch (operator) {
+        case "==":
+          if (taskAttributeValue !== facilityAttributeValue) return false
+          break
+        case "!=":
+          if (taskAttributeValue == facilityAttributeValue) return false
+      }
+    }
+    return true
+  }
+
   const checkCanDrop = (over: Over, active: Active) => {
     const overId = over.id
     const task = active.data.current?.task
     const [rowId, colId] = (overId as string).split("-")
-    if (!facilities || !grid) return false
+    if (!facilities || !grid || !openProjectId) return false
     const facility = facilities[rowId]
+    const conditions = facility.conditions[openProjectId]
+    const areConditionsMet = checkConditions(conditions, task, facility)
+    console.log("areConditionsMet", areConditionsMet)
+    if (!areConditionsMet) {
+      dispatch(
+        setToastOpen({
+          message: "Nie spełniono warunków",
+          severity: "error",
+        }),
+      )
+      return false
+    }
     const increment = 1000 * 60 * 60 * 24
     const actualDuration = calculateTaskDurationHelper({
       manpower: facility.manpower,

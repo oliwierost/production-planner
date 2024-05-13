@@ -170,17 +170,17 @@ export function* updateFacilitySaga(
         [id: facilityId]: Facility
       }
     } = yield select((state) => state.facilities.facilities)
-    if (!_.isEmpty(workspaceAttributes)) {
-      yield put(
-        setWorkspaceAttributes({
-          attributes: workspaceAttributes,
-          workspaceId: facility.workspaceId,
-        }),
-      )
-      yield call(updateWorkspaceInFirestore, userId, facility.workspaceId, {
-        facilityAttributes: workspaceAttributes,
-      })
-    }
+
+    yield put(
+      setWorkspaceAttributes({
+        attributes: workspaceAttributes,
+        workspaceId: facility.workspaceId,
+      }),
+    )
+    yield call(updateWorkspaceInFirestore, userId, facility.workspaceId, {
+      facilityAttributes: workspaceAttributes,
+    })
+
     yield put(
       sortFacilities({
         facilities: facilities,
@@ -216,17 +216,16 @@ export function* addFacilitySaga(
         [id: facilityId]: Facility
       }
     } = yield select((state) => state.facilities.facilities)
-    if (!_.isEmpty(workspaceAttributes)) {
-      yield put(
-        setWorkspaceAttributes({
-          attributes: workspaceAttributes,
-          workspaceId: facility.workspaceId,
-        }),
-      )
-      yield call(updateWorkspaceInFirestore, userId, facility.workspaceId, {
-        facilityAttributes: workspaceAttributes,
-      })
-    }
+    yield put(
+      setWorkspaceAttributes({
+        attributes: workspaceAttributes,
+        workspaceId: facility.workspaceId,
+      }),
+    )
+    yield call(updateWorkspaceInFirestore, userId, facility.workspaceId, {
+      facilityAttributes: workspaceAttributes,
+    })
+
     yield put(
       sortFacilities({
         facilities: facilities,

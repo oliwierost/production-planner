@@ -33,7 +33,7 @@ export function EditAttribute({
 
   return (
     <Accordion
-      elevation={3}
+      elevation={0}
       sx={{
         "& .MuiAccordionSummary-root": {
           bgcolor: "white",
@@ -120,8 +120,8 @@ export function EditAttribute({
               </Typography>
             </Stack>
             <Stack sx={{ border: "1px solid black" }}>
-              {attribute.options?.map((option) => (
-                <ListItem>
+              {attribute.options?.map((option, index) => (
+                <ListItem key={index}>
                   <Stack
                     direction="row"
                     spacing={2}

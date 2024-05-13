@@ -40,6 +40,7 @@ import { TextField } from "../TextField"
 import { Dropdown } from "../Dropdown"
 import { selectProject } from "../../selectors/projects"
 import { projectId } from "../../slices/projects"
+import _ from "lodash"
 
 interface CreateFacilityModalProps {
   open: boolean
@@ -149,6 +150,24 @@ export function CreateFacilityModal({
     selectFacility(state, workspaceId, facilityId),
   )
 
+  const openProjectId = useAppSelector(
+    (state) => state.user.user?.openProjectId,
+  )
+
+  useEffect(() => {
+    if (openProjectId) {
+      setSelectedProjectId(openProjectId)
+    } else {
+      setSelectedProjectId(Object.values(projects)[0]?.id)
+    }
+  }, [openProjectId])
+
+  useEffect(() => {
+    if (facility) {
+      setConditions(facility.conditions)
+    }
+  }, [facility])
+
   const handleTabChange = (
     _: React.SyntheticEvent<Element, Event>,
     newValue: number,
@@ -193,6 +212,7 @@ export function CreateFacilityModal({
               workspaceId,
               tasks: [],
               attributes,
+              conditions,
             },
             workspaceAttributes,
           }),
@@ -204,6 +224,7 @@ export function CreateFacilityModal({
             data: {
               ...values,
               attributes,
+              conditions,
             },
             workspaceAttributes,
           }),
@@ -427,130 +448,143 @@ export function CreateFacilityModal({
                     ) : null}
                     {tab == 2 ? (
                       <>
-                        <Stack spacing={2} overflow="scroll" maxHeight={400}>
-                          <Typography variant="body1">
-                            Wybierz projekt
-                          </Typography>
-                          <Dropdown
-                            width={180}
-                            placeholder="Wybierz projekt"
-                            options={Object.values(projects).map((project) => ({
-                              label: project.title,
-                              value: project.id,
-                            }))}
-                            onChange={(e) => {
-                              setSelectedProjectId(e.target.value)
-                            }}
-                          />
-                          <Typography variant="body1">Dodaj warunek</Typography>
-                          <Stack direction="row" spacing={2}>
-                            <Stack>
-                              <Typography variant="body2">
-                                Atrybut stanowiska
-                              </Typography>
-                              <Dropdown
-                                width={180}
-                                onChange={(e) => {
-                                  setCondition((prev) => ({
-                                    ...prev,
-                                    facilityAttribute: e.target.value,
-                                  }))
-                                }}
-                                options={Object.values(workspaceAttributes).map(
-                                  (attribute) => ({
+                        <Stack spacing={4} overflow="scroll" maxHeight={400}>
+                          <Stack spacing={1}>
+                            <Typography variant="body1">
+                              Wybierz projekt
+                            </Typography>
+                            <Dropdown
+                              width={180}
+                              placeholder="Wybierz projekt"
+                              options={Object.values(projects).map(
+                                (project) => ({
+                                  label: project.title,
+                                  value: project.id,
+                                }),
+                              )}
+                              onChange={(e) => {
+                                setSelectedProjectId(e.target.value)
+                              }}
+                              value={selectedProjectId}
+                            />
+                          </Stack>
+                          <Stack spacing={1}>
+                            <Typography variant="body1">
+                              Dodaj warunek
+                            </Typography>
+                            <Stack direction="row" spacing={2}>
+                              <Stack>
+                                <Typography variant="body2">
+                                  Atrybut stanowiska
+                                </Typography>
+                                <Dropdown
+                                  width={180}
+                                  onChange={(e) => {
+                                    setCondition((prev) => ({
+                                      ...prev,
+                                      facilityAttribute: e.target.value,
+                                    }))
+                                  }}
+                                  options={Object.values(
+                                    workspaceAttributes,
+                                  ).map((attribute) => ({
                                     label: attribute.name,
                                     value: attribute.name,
-                                  }),
-                                )}
-                                placeholder="Atrybut A"
-                                value={condition.facilityAttribute}
-                              />
-                            </Stack>
-                            <Stack>
-                              <Typography variant="body2">Operator</Typography>
-                              <Dropdown
-                                onChange={(e) => {
-                                  setCondition((prev) => ({
-                                    ...prev,
-                                    operator: e.target.value,
-                                  }))
-                                }}
-                                options={operatorOptions}
-                                placeholder="Operator"
-                                width={100}
-                                value={condition.operator}
-                              />
-                            </Stack>
-                            <Stack>
-                              <Typography variant="body2">
-                                Atrybut zadania
-                              </Typography>
-                              <Dropdown
-                                onChange={(e) => {
-                                  setCondition((prev) => ({
-                                    ...prev,
-                                    taskAttribute: e.target.value,
-                                  }))
-                                }}
-                                width={180}
-                                options={Object.values(
-                                  project?.taskAttributes || {},
-                                ).map((attribute) => ({
-                                  label: attribute.name,
-                                  value: attribute.name,
-                                }))}
-                                placeholder="Atrybut B"
-                                value={condition.taskAttribute}
-                              />
-                            </Stack>
-                            <IconButton
-                              sx={{
-                                alignSelf: "flex-end",
-                                height: 45,
-                                width: 45,
-                                "&:focus": {
-                                  outline: "none",
-                                },
-                              }}
-                              onClick={() => {
-                                if (
-                                  condition.facilityAttribute &&
-                                  condition.operator &&
-                                  condition.taskAttribute
-                                ) {
-                                  setConditions((prev) => {
-                                    return {
-                                      ...prev,
-                                      [selectedProjectId]: [
-                                        ...(prev[selectedProjectId] || []),
-                                        {
-                                          facilityAttribute:
-                                            condition.facilityAttribute,
+                                  }))}
+                                  placeholder="Atrybut A"
+                                  value={condition.facilityAttribute}
+                                />
+                              </Stack>
 
-                                          operator: condition.operator,
-                                          taskAttribute:
-                                            condition.taskAttribute,
-                                        },
-                                      ],
-                                    }
-                                  })
-                                  setCondition({
-                                    facilityAttribute: "",
-                                    operator: "",
-                                    taskAttribute: "",
-                                  })
-                                }
-                              }}
-                            >
-                              <Add />
-                            </IconButton>
+                              <Stack>
+                                <Typography variant="body2">
+                                  Operator
+                                </Typography>
+                                <Dropdown
+                                  onChange={(e) => {
+                                    setCondition((prev) => ({
+                                      ...prev,
+                                      operator: e.target.value,
+                                    }))
+                                  }}
+                                  options={operatorOptions}
+                                  placeholder="Operator"
+                                  width={100}
+                                  value={condition.operator}
+                                />
+                              </Stack>
+                              <Stack>
+                                <Typography variant="body2">
+                                  Atrybut zadania
+                                </Typography>
+                                <Dropdown
+                                  onChange={(e) => {
+                                    setCondition((prev) => ({
+                                      ...prev,
+                                      taskAttribute: e.target.value,
+                                    }))
+                                  }}
+                                  width={180}
+                                  options={Object.values(
+                                    project?.taskAttributes || {},
+                                  ).map((attribute) => ({
+                                    label: attribute.name,
+                                    value: attribute.name,
+                                  }))}
+                                  placeholder="Atrybut B"
+                                  value={condition.taskAttribute}
+                                />
+                              </Stack>
+                              <IconButton
+                                sx={{
+                                  alignSelf: "flex-end",
+                                  height: 45,
+                                  width: 45,
+                                  "&:focus": {
+                                    outline: "none",
+                                  },
+                                }}
+                                onClick={() => {
+                                  if (
+                                    condition.facilityAttribute &&
+                                    condition.operator &&
+                                    condition.taskAttribute
+                                  ) {
+                                    setConditions((prev) => {
+                                      return {
+                                        ...prev,
+                                        [selectedProjectId]: [
+                                          ...(prev?.[selectedProjectId] || []),
+                                          {
+                                            facilityAttribute:
+                                              condition.facilityAttribute,
+
+                                            operator: condition.operator,
+                                            taskAttribute:
+                                              condition.taskAttribute,
+                                          },
+                                        ],
+                                      }
+                                    })
+                                    setCondition({
+                                      facilityAttribute: "",
+                                      operator: "",
+                                      taskAttribute: "",
+                                    })
+                                  }
+                                }}
+                              >
+                                <Add />
+                              </IconButton>
+                            </Stack>
                           </Stack>
                           <Divider />
                           <Typography variant="body1">
                             Edytuj warunki
                           </Typography>
                           <Stack spacing={3}>
-                            {conditions[selectedProjectId]
+                            {selectedProjectId &&
+                            !_.isEmpty(conditions?.[selectedProjectId])
                               ? conditions[selectedProjectId].map(
                                   (condition, index) => (
                                     <Stack

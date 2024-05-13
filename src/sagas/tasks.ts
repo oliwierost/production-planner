@@ -25,6 +25,7 @@ import {
 import { firestore } from "../../firebase.config"
 import {
   assignTaskToFacility,
+  Condition,
   Facility,
   facilityId,
   removeTaskFromFacility,
@@ -76,6 +77,30 @@ import { updateProjectInFirestore } from "./projects"
 
 interface CustomError extends Error {
   statusCode?: number
+}
+
+const checkConditions = (
+  conditions: Condition[],
+  task: Task,
+  facility: Facility,
+) => {
+  if (!conditions) return true
+  for (const condition of conditions) {
+    const taskAttribute = condition.taskAttribute
+    const operator = condition.operator
+    const facilityAttribute = condition.facilityAttribute
+    const taskAttributeValue = task.attributes[taskAttribute].value
+    const facilityAttributeValue = facility.attributes[facilityAttribute].value
+
+    switch (operator) {
+      case "==":
+        if (taskAttributeValue !== facilityAttributeValue) return false
+        break
+      case "!=":
+        if (taskAttributeValue == facilityAttributeValue) return false
+    }
+  }
+  return true
 }
 
 const checkCanDropTask = (grid: GridType, facility: Facility, task: Task) => {
@@ -337,7 +362,13 @@ export function* addTaskSaga(
     )
     if (facility) {
       const canDrop = checkCanDropTask(grid, facility, task)
-      if (!canDrop) {
+      const conditions = facility.conditions[task.projectId]
+      const areConditionsMet = checkConditions(conditions, task, facility)
+      if (!areConditionsMet) {
+        throw Object.assign(new Error("Nie spełniono warunków"), {
+          statusCode: 111,
+        })
+      } else if (!canDrop) {
         throw Object.assign(new Error("Wykryto kolizję"), { statusCode: 110 })
       } else if (task.startTime && task.facilityId && facility) {
         yield put(
@@ -355,22 +386,22 @@ export function* addTaskSaga(
         yield call(updateGridInFirestore, userId, gridState, workspaceId)
       }
     }
-    if (!_.isEmpty(projectAttributes)) {
-      yield put(
-        setProjectAttributes({
-          projectId: task.projectId,
-          attributes: projectAttributes,
-          workspaceId,
-        }),
-      )
-      yield call(
-        updateProjectInFirestore,
-        userId,
-        task.workspaceId,
-        task.projectId,
-        { taskAttributes: projectAttributes },
-      )
-    }
+
+    yield put(
+      setProjectAttributes({
+        projectId: task.projectId,
+        attributes: projectAttributes,
+        workspaceId,
+      }),
+    )
+    yield call(
+      updateProjectInFirestore,
+      userId,
+      task.workspaceId,
+      task.projectId,
+      { taskAttributes: projectAttributes },
+    )
+
     yield put(upsertTask(task))
     if (task.requiredTasks.length > 0) {
       yield put(
@@ -411,7 +442,7 @@ export function* addTaskSaga(
     } else {
       yield put(
         setToastOpen({
-          message: "Nie udało się dodać zadania",
+          message: error.message,
           severity: "error",
         }),
       )
@@ -696,24 +727,32 @@ export function* updateTaskSaga(
       selectFacility(state, workspaceId, data.facilityId),
     )
 
-    if (
-      task.startTime &&
-      task.facilityId &&
-      (data.startTime !== task.startTime || data.facilityId !== task.facilityId)
-    ) {
-      yield put(
-        removeCells({
-          facility: prevFacility,
-          colId: task.startTime,
-          duration: task.duration,
-          workspaceId,
-        }),
-      )
-    }
     if (newFacility) {
       const canDrop = checkCanDropTask(prevGrid, newFacility, data)
-      if (!canDrop)
+      const conditions = newFacility.conditions[task.projectId]
+      const areConditionsMet = checkConditions(conditions, task, newFacility)
+      if (!areConditionsMet) {
+        throw Object.assign(new Error("Nie spełniono warunków"), {
+          statusCode: 111,
+        })
+      } else if (!canDrop) {
         throw Object.assign(new Error("Wykryto kolizję"), { statusCode: 110 })
+      }
+      if (
+        task.startTime &&
+        task.facilityId &&
+        (data.startTime !== task.startTime ||
+          data.facilityId !== task.facilityId)
+      ) {
+        yield put(
+          removeCells({
+            facility: prevFacility,
+            colId: task.startTime,
+            duration: task.duration,
+            workspaceId,
+          }),
+        )
+      }
       if (
         data.facilityId &&
         data.startTime &&
@@ -745,22 +784,22 @@ export function* updateTaskSaga(
     )
     yield call(updateGridStart, grid)
     yield call(updateTaskInFirestore, userId, id, data, task.workspaceId)
-    if (!_.isEmpty(projectAttributes)) {
-      yield put(
-        setProjectAttributes({
-          projectId: task.projectId,
-          attributes: projectAttributes,
-          workspaceId,
-        }),
-      )
-      yield call(
-        updateProjectInFirestore,
-        userId,
-        task.workspaceId,
-        task.projectId,
-        { taskAttributes: projectAttributes },
-      )
-    }
+
+    yield put(
+      setProjectAttributes({
+        projectId: task.projectId,
+        attributes: projectAttributes,
+        workspaceId,
+      }),
+    )
+    yield call(
+      updateProjectInFirestore,
+      userId,
+      task.workspaceId,
+      task.projectId,
+      { taskAttributes: projectAttributes },
+    )
+
     if (requiredTasks.length > 0) {
       yield call(
         updateRequiredTasksInFirestore,
