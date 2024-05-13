@@ -7,7 +7,6 @@ import {
   Typography,
 } from "@mui/material"
 import { Raport as RaportType } from "../../slices/raports"
-import { Task } from "../Task"
 
 interface RaportProps {
   raport: RaportType

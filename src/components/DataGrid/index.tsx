@@ -74,6 +74,7 @@ export function DataGrid() {
             index: 0,
             workspaceId: "",
             attributes: {},
+            conditions: {},
           },
         ],
       }}

@@ -42,6 +42,7 @@ export function ToggleView({}: ToggleViewProps) {
     event: React.MouseEvent<HTMLElement, MouseEvent>,
     newView: string,
   ) => {
+    console.info("event", event)
     if (cellStateMap && openProject) {
       switch (newView) {
         case "year":
