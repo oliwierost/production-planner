@@ -8,8 +8,11 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 import EditIcon from "@mui/icons-material/Edit"
 import { IconButton, Stack, Typography } from "@mui/material"
+import { isEqual } from "lodash"
 import React, { memo, useCallback, useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
+import { selectCell } from "../../selectors/grid"
+import { selectTask, selectTasksByIds } from "../../selectors/tasks"
 import { setDragDisabled } from "../../slices/drag"
 import {
   Task,
@@ -19,10 +22,6 @@ import {
   setTaskLockedStart,
 } from "../../slices/tasks"
 import { ContextMenu } from "../ContextMenu"
-
-import { isEqual } from "lodash"
-import { selectCell } from "../../selectors/grid"
-import { selectTask, selectTasksByIds } from "../../selectors/tasks"
 
 import { selectFacility } from "../../selectors/facilities"
 import { Arrows } from "../Arrows"
@@ -333,10 +332,6 @@ export const DroppedTask = memo(function DroppedTask({
     setTaskLeftOffset(getLeftOffset())
   }, [task.startTime, colId, cellWidth, view?.daysInCell])
 
-  useEffect(() => {
-    setTaskDuration(task.duration)
-  }, [task.duration])
-
   const handleLock = () => {
     dispatch(
       setTaskLockedStart({
@@ -393,7 +388,6 @@ export const DroppedTask = memo(function DroppedTask({
                 setTooltipOpen(false)
               }}
               sx={{
-                transition: "width 0.1s ease", // Apply transition inline
                 background:
                   task.projectId === projectId
                     ? `linear-gradient(90deg, ${task.bgcolor} ${

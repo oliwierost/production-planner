@@ -23,7 +23,7 @@ function monthsBetweenDates(timestamp1: number, timestamp2: number): number {
 }
 
 export const generateMonthView = (startTime: number, endTime: number) => {
-  const numOfCellsInViewport = 20
+  const numOfCellsInViewport = 14
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
   const numOfCols = Math.ceil((endTime - startTime) / (1000 * 60 * 60 * 24))
 
@@ -73,7 +73,7 @@ export const generateMonthView = (startTime: number, endTime: number) => {
 }
 
 export const generateQuarterYearView = (startTime: number, endTime: number) => {
-  const numOfCellsInViewport = 12 // maximum is 12
+  const numOfCellsInViewport = 14 // maximum is 12
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
   const numOfCols = Math.ceil((endTime - startTime) / (1000 * 60 * 60 * 24 * 7))
   const headerBottomData = [
@@ -119,7 +119,7 @@ export const generateQuarterYearView = (startTime: number, endTime: number) => {
 }
 
 export const generateYearView = (startTime: number, endTime: number) => {
-  const numOfCellsInViewport = 12 // maximum is 12
+  const numOfCellsInViewport = 14 // maximum is 12
   const cellWidth = (window.innerWidth - 225) / numOfCellsInViewport
   const numOfCols = monthsBetweenDates(startTime, endTime)
 

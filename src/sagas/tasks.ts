@@ -442,7 +442,7 @@ export function* addTaskSaga(
     } else {
       yield put(
         setToastOpen({
-          message: error.message,
+          message: "Nie można dodać zadania, wystąpił błąd",
           severity: "error",
         }),
       )
