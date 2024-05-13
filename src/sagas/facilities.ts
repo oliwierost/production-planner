@@ -48,9 +48,15 @@ import { projectId } from "../slices/projects"
 import { Task, taskId, undropMultipleTasks } from "../slices/tasks"
 import { setToastOpen } from "../slices/toast"
 import { userId } from "../slices/user"
-import { workspaceId } from "../slices/workspaces"
+import {
+  ParentAttributes,
+  setWorkspaceAttributes,
+  workspaceId,
+} from "../slices/workspaces"
 import { updateGridInFirestore } from "./grid"
 import { undropMultipleTasksInFirestore } from "./tasks"
+import _ from "lodash"
+import { updateWorkspaceInFirestore } from "./workspaces"
 
 function stableStringify(obj: object) {
   const allKeys: string[] = []
@@ -145,10 +151,14 @@ export const removeTaskFromFacilityInFirestore = async (
 }
 
 export function* updateFacilitySaga(
-  action: PayloadAction<{ facility: Facility; data: any }>,
+  action: PayloadAction<{
+    facility: Facility
+    data: Partial<Facility>
+    workspaceAttributes: ParentAttributes
+  }>,
 ): Generator<any, void, any> {
   try {
-    const { facility, data } = action.payload
+    const { facility, data, workspaceAttributes } = action.payload
     const facilityId: facilityId = facility.id
     const userId: userId = yield select((state) => state.user.user?.openUserId)
     const workspaceId: workspaceId = yield select(
@@ -160,6 +170,17 @@ export function* updateFacilitySaga(
         [id: facilityId]: Facility
       }
     } = yield select((state) => state.facilities.facilities)
+    if (!_.isEmpty(workspaceAttributes)) {
+      yield put(
+        setWorkspaceAttributes({
+          attributes: workspaceAttributes,
+          workspaceId: facility.workspaceId,
+        }),
+      )
+      yield call(updateWorkspaceInFirestore, userId, facility.workspaceId, {
+        facilityAttributes: workspaceAttributes,
+      })
+    }
     yield put(
       sortFacilities({
         facilities: facilities,
@@ -178,10 +199,15 @@ export function* updateFacilitySaga(
   }
 }
 
-export function* addFacilitySaga(action: PayloadAction<Facility>) {
+export function* addFacilitySaga(
+  action: PayloadAction<{
+    facility: Facility
+    workspaceAttributes: ParentAttributes
+  }>,
+) {
   try {
     const userId: userId = yield select((state) => state.user.user?.id)
-    const facility = action.payload
+    const { facility, workspaceAttributes } = action.payload
 
     yield put(upsertFacility(facility))
     yield call(addFacilityToFirestore, userId, facility)
@@ -190,6 +216,17 @@ export function* addFacilitySaga(action: PayloadAction<Facility>) {
         [id: facilityId]: Facility
       }
     } = yield select((state) => state.facilities.facilities)
+    if (!_.isEmpty(workspaceAttributes)) {
+      yield put(
+        setWorkspaceAttributes({
+          attributes: workspaceAttributes,
+          workspaceId: facility.workspaceId,
+        }),
+      )
+      yield call(updateWorkspaceInFirestore, userId, facility.workspaceId, {
+        facilityAttributes: workspaceAttributes,
+      })
+    }
     yield put(
       sortFacilities({
         facilities: facilities,

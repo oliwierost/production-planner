@@ -58,25 +58,20 @@ import {
 import { setToastOpen } from "../slices/toast"
 
 import { FormikHelpers } from "formik"
+import _ from "lodash"
 import React from "react"
 import { TaskFormData } from "../components/CreateTaskModal"
 import { calculateTaskDurationHelper } from "../components/DataGrid/calculateTaskDurationHelper"
 import { Modal } from "../components/DataPanel"
 import { selectFacility } from "../selectors/facilities"
 import { selectGrid } from "../selectors/grid"
-import { setDragDisabled } from "../slices/drag"
-import {
-  Project,
-  ProjectAttributes,
-  projectId,
-  setProjectAttributes,
-} from "../slices/projects"
-import { userId } from "../slices/user"
-import { workspaceId } from "../slices/workspaces"
-import { updateGridInFirestore } from "./grid"
-import { Invite } from "../slices/invites"
 import { selectProject } from "../selectors/projects"
-import _ from "lodash"
+import { setDragDisabled } from "../slices/drag"
+import { Invite } from "../slices/invites"
+import { Project, projectId, setProjectAttributes } from "../slices/projects"
+import { userId } from "../slices/user"
+import { ParentAttributes, workspaceId } from "../slices/workspaces"
+import { updateGridInFirestore } from "./grid"
 import { updateProjectInFirestore } from "./projects"
 
 interface CustomError extends Error {
@@ -319,7 +314,7 @@ const deleteTaskFromFirestore = async (
 export function* addTaskSaga(
   action: PayloadAction<{
     task: Task
-    projectAttributes: ProjectAttributes
+    projectAttributes: ParentAttributes
     workspaceId: workspaceId
     resetForm: FormikHelpers<TaskFormData>["resetForm"]
     setModal: React.Dispatch<React.SetStateAction<Modal | null>>
@@ -676,7 +671,7 @@ export function* updateTaskSaga(
   action: PayloadAction<{
     task: Task
     data: any
-    projectAttributes: ProjectAttributes
+    projectAttributes: ParentAttributes
     workspaceId: workspaceId
     setModal: React.Dispatch<React.SetStateAction<Modal | null>>
     resetForm: FormikHelpers<TaskFormData>["resetForm"]

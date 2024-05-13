@@ -1,15 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { userId } from "./user"
-import { workspaceId } from "./workspaces"
+import { ParentAttributes, workspaceId } from "./workspaces"
 
-export interface ProjectAttribute {
-  name: string
-  options?: string[]
-}
-
-export interface ProjectAttributes {
-  [key: string]: ProjectAttribute
-}
 export interface Project {
   id: string
   title: string
@@ -20,8 +12,7 @@ export interface Project {
   ownerId: userId
   startTime: number
   endTime: number
-  taskAttributes?: ProjectAttributes
-  facilityAttributes?: ProjectAttributes
+  taskAttributes?: ParentAttributes
 }
 
 export type projectId = string
@@ -107,7 +98,7 @@ export const projectsSlice = createSlice({
       action: PayloadAction<{
         workspaceId: workspaceId
         projectId: projectId
-        attributes: ProjectAttributes
+        attributes: ParentAttributes
       }>,
     ) => {
       const { workspaceId, projectId, attributes } = action.payload

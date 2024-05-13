@@ -1,8 +1,17 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { workspaceId } from "./workspaces"
+import { ParentAttributes, workspaceId } from "./workspaces"
 import { Task } from "./tasks"
 import { inviteId } from "./invites"
 // Define the Facility interface
+
+export interface Attribute {
+  name: string
+  value?: string
+}
+
+export interface Attributes {
+  [key: string]: Attribute
+}
 
 export type facilityId = string
 export interface Facility {
@@ -15,6 +24,7 @@ export interface Facility {
   tasks: string[] // Array of task IDs
   manpower: number
   inviteId?: inviteId
+  attributes: Attributes
 }
 
 // Define the state structure for facilities
@@ -178,7 +188,13 @@ export const facilitiesSlice = createSlice({
       state.error = null
     },
 
-    addFacilityStart(state, action: PayloadAction<Facility>) {
+    addFacilityStart(
+      state,
+      action: PayloadAction<{
+        facility: Facility
+        workspaceAttributes: ParentAttributes
+      }>,
+    ) {
       console.info("addFacilityStart", action.payload)
       state.loading = true
       state.error = null
@@ -190,7 +206,11 @@ export const facilitiesSlice = createSlice({
     },
     updateFacilityStart(
       state,
-      action: PayloadAction<{ facility: Facility; data: any }>,
+      action: PayloadAction<{
+        facility: Facility
+        data: Partial<Facility>
+        workspaceAttributes: ParentAttributes
+      }>,
     ) {
       console.info("updateFacilityStart", action.payload)
       state.loading = true

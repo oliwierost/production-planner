@@ -17,6 +17,7 @@ import {
   getDocs,
   onSnapshot,
   setDoc,
+  updateDoc,
 } from "firebase/firestore"
 import { setToastOpen } from "../slices/toast"
 import {
@@ -29,10 +30,12 @@ import {
   syncWorkspacesStart,
   upsertWorkspace,
   upsertWorkspaceStart,
+  workspaceId,
 } from "../slices/workspaces"
 import { EventChannel, eventChannel } from "redux-saga"
 import { hashObject } from "./facilities"
 import { Invite } from "../slices/invites"
+import { userId } from "../slices/user"
 
 const addWorkspaceToFirestore = async (
   userId: string,
@@ -56,6 +59,17 @@ export function* upsertWorkspaceSaga(
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
+}
+
+export const updateWorkspaceInFirestore = async (
+  userId: userId,
+  workspaceId: workspaceId,
+  data: Partial<Workspace>,
+) => {
+  await updateDoc(
+    doc(firestore, `users/${userId}/workspaces/${workspaceId}`),
+    data,
+  )
 }
 
 export function* setDisplayArrowsSaga(

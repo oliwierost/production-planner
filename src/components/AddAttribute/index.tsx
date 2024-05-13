@@ -2,18 +2,18 @@ import { IconButton, Stack, Typography } from "@mui/material"
 
 import { Add, DriveFileRenameOutline } from "@mui/icons-material"
 import { useState } from "react"
-import { ProjectAttributes } from "../../slices/projects"
-import { TaskAttributes } from "../../slices/tasks"
+import { ParentAttributes } from "../../slices/workspaces"
+import { Attributes } from "../../slices/tasks"
 import { TextField } from "../TextField"
 
 interface AddAttributeProps {
-  setAttributes: React.Dispatch<React.SetStateAction<TaskAttributes>>
-  setProjectAttributes: React.Dispatch<React.SetStateAction<ProjectAttributes>>
+  setAttributes: React.Dispatch<React.SetStateAction<Attributes>>
+  setParentAttributes: React.Dispatch<React.SetStateAction<ParentAttributes>>
 }
 
 export function AddAttribute({
   setAttributes,
-  setProjectAttributes,
+  setParentAttributes,
 }: AddAttributeProps) {
   const [attributeName, setAttributeName] = useState<string>("")
   return (
@@ -57,7 +57,7 @@ export function AddAttribute({
                   }
                 }
               })
-              setProjectAttributes((prev) => {
+              setParentAttributes((prev) => {
                 if (prev[attributeName]) {
                   return prev
                 } else {

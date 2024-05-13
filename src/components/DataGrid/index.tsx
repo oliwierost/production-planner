@@ -73,6 +73,7 @@ export function DataGrid() {
             tasks: [],
             index: 0,
             workspaceId: "",
+            attributes: {},
           },
         ],
       }}
@@ -98,6 +99,7 @@ export function DataGrid() {
 
         "& .MuiDataGrid-cell": {
           all: "unset",
+
           "&:focus": {
             all: "unset",
             outline: "none",

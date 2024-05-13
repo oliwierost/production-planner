@@ -1,6 +1,15 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { userId } from "./user"
 
+export interface ParentAttribute {
+  name: string
+  options?: string[]
+}
+
+export interface ParentAttributes {
+  [key: string]: ParentAttribute
+}
+
 export type workspaceId = string
 
 export interface Workspace {
@@ -10,6 +19,7 @@ export interface Workspace {
   inviteId?: string
   ownerId: userId
   displayArrows: boolean
+  facilityAttributes?: ParentAttributes
 }
 
 interface WorkspacesState {
@@ -64,6 +74,16 @@ export const workspacesSlice = createSlice({
       state.loading = true
       state.error = null
     },
+    setWorkspaceAttributes: (
+      state,
+      action: PayloadAction<{
+        workspaceId: workspaceId
+        attributes: ParentAttributes
+      }>,
+    ) => {
+      const { workspaceId, attributes } = action.payload
+      state.workspaces[workspaceId].facilityAttributes = attributes
+    },
     setDisplayArrows: (
       state,
       action: PayloadAction<{
@@ -103,6 +123,7 @@ export const {
   upsertWorkspaceStart,
   setWorkspacesStart,
   setDisplayArrows,
+  setWorkspaceAttributes,
   syncWorkspacesStart,
   setDisplayArrowsStart,
   syncCollabWorkspacesStart,

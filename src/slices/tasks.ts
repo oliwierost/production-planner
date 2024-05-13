@@ -1,22 +1,22 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { ProjectAttributes, projectId } from "./projects"
-import { workspaceId } from "./workspaces"
-import React from "react"
-import { Modal } from "../components/DataPanel"
 import { FormikHelpers } from "formik"
+import React from "react"
 import { TaskFormData } from "../components/CreateTaskModal"
+import { Modal } from "../components/DataPanel"
 import { inviteId } from "./invites"
+import { projectId } from "./projects"
+import { ParentAttributes, workspaceId } from "./workspaces"
 
 // Define the Task interface
 export type taskId = string
 
-export interface TaskAttribute {
+export interface Attribute {
   name: string
   value?: string
 }
 
-export interface TaskAttributes {
-  [key: string]: TaskAttribute
+export interface Attributes {
+  [key: string]: Attribute
 }
 
 export interface Task {
@@ -34,7 +34,7 @@ export interface Task {
   locked: boolean
   inviteId?: inviteId
   progress: number
-  attributes: TaskAttributes
+  attributes: Attributes
 }
 
 // Define the state structure for tasks
@@ -183,7 +183,7 @@ export const tasksSlice = createSlice({
       state,
       action: PayloadAction<{
         task: Task
-        projectAttributes: ProjectAttributes
+        projectAttributes: ParentAttributes
         workspaceId: string
         setModal: React.Dispatch<React.SetStateAction<Modal | null>>
         resetForm: FormikHelpers<TaskFormData>["resetForm"]
@@ -198,7 +198,7 @@ export const tasksSlice = createSlice({
       action: PayloadAction<{
         task: Task
         data: any
-        projectAttributes: ProjectAttributes
+        projectAttributes: ParentAttributes
         workspaceId: workspaceId
         setModal: React.Dispatch<React.SetStateAction<Modal | null>>
         resetForm: FormikHelpers<TaskFormData>["resetForm"]

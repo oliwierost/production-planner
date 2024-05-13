@@ -12,26 +12,22 @@ import {
 import { Add, Delete } from "@mui/icons-material"
 import { TextField as MuiTextField } from "@mui/material"
 import { useState } from "react"
-import {
-  ProjectAttribute,
-  ProjectAttributes,
-  setProject,
-} from "../../slices/projects"
-import { TaskAttributes } from "../../slices/tasks"
+import { ParentAttribute, ParentAttributes } from "../../slices/workspaces"
+import { Attributes } from "../../slices/tasks"
 import { Dropdown } from "../Dropdown"
 
 interface EditAttributeProps {
-  attribute: ProjectAttribute
-  taskAttributes: TaskAttributes
-  setAttributes: React.Dispatch<React.SetStateAction<TaskAttributes>>
-  setProjectAttributes: React.Dispatch<React.SetStateAction<ProjectAttributes>>
+  attribute: ParentAttribute
+  attributes: Attributes
+  setAttributes: React.Dispatch<React.SetStateAction<Attributes>>
+  setParentAttributes: React.Dispatch<React.SetStateAction<ParentAttributes>>
 }
 
 export function EditAttribute({
   attribute,
-  taskAttributes,
+  attributes,
   setAttributes,
-  setProjectAttributes,
+  setParentAttributes,
 }: EditAttributeProps) {
   const [optionName, setOptionName] = useState<string>("")
 
@@ -68,7 +64,7 @@ export function EditAttribute({
                 delete newAttributes[attribute.name]
                 return newAttributes
               })
-              setProjectAttributes((prev) => {
+              setParentAttributes((prev) => {
                 const newAttributes = { ...prev }
                 delete newAttributes[attribute.name]
                 return newAttributes
@@ -103,7 +99,7 @@ export function EditAttribute({
                     })
                   : []
               }
-              value={taskAttributes[attribute.name]?.value || ""}
+              value={attributes[attribute.name]?.value || ""}
               onChange={(event) => {
                 setAttributes((prev) => {
                   return {
@@ -142,7 +138,7 @@ export function EditAttribute({
                         },
                       }}
                       onClick={() => {
-                        setProjectAttributes((prev) => {
+                        setParentAttributes((prev) => {
                           const newOptions = attribute.options?.filter(
                             (item) => item !== option,
                           )
@@ -187,7 +183,7 @@ export function EditAttribute({
                       },
                     }}
                     onClick={() => {
-                      setProjectAttributes((prev) => {
+                      setParentAttributes((prev) => {
                         const newOptions = attribute.options
                           ? [...attribute.options, optionName]
                           : [optionName]

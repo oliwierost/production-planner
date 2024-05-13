@@ -17,13 +17,14 @@ import { firestore } from "../../../firebase.config"
 import { taskModalSchema } from "../../../validationSchema"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectFacilities } from "../../selectors/facilities"
+import { selectProject } from "../../selectors/projects"
 import { selectTask, selectTasks } from "../../selectors/tasks"
 import { setDragDisabled } from "../../slices/drag"
+import { ParentAttributes } from "../../slices/workspaces"
 import {
   addTaskStart,
-  TaskAttribute,
-  TaskAttributes,
   Task,
+  Attributes,
   taskId,
   updateTaskStart,
 } from "../../slices/tasks"
@@ -39,8 +40,6 @@ import { PrimaryButton } from "../PrimaryButton"
 import { SecondaryButton } from "../SecondaryButton"
 import { TextArea } from "../TextArea"
 import { TextField } from "../TextField"
-import { selectProject } from "../../selectors/projects"
-import { ProjectAttributes } from "../../slices/projects"
 
 interface CreateTaskModalProps {
   open: boolean
@@ -127,10 +126,10 @@ export function CreateTaskModal({
     value: facility.id,
   }))
 
-  const [projectAttributes, setProjectAttributes] = useState<ProjectAttributes>(
+  const [projectAttributes, setProjectAttributes] = useState<ParentAttributes>(
     {},
   )
-  const [attributes, setAttributes] = useState<TaskAttributes>({})
+  const [attributes, setAttributes] = useState<Attributes>({})
 
   const dispatch = useAppDispatch()
   const user = useAppSelector((state) => state.user.user)
@@ -639,7 +638,7 @@ export function CreateTaskModal({
                           <Typography variant="body1">Dodaj atrybut</Typography>
                           <AddAttribute
                             setAttributes={setAttributes}
-                            setProjectAttributes={setProjectAttributes}
+                            setParentAttributes={setProjectAttributes}
                           />
                           <Divider />
                           <Typography variant="body1">
@@ -651,9 +650,9 @@ export function CreateTaskModal({
                                 <EditAttribute
                                   key={index}
                                   attribute={attribute}
-                                  taskAttributes={attributes}
+                                  attributes={attributes}
                                   setAttributes={setAttributes}
-                                  setProjectAttributes={setProjectAttributes}
+                                  setParentAttributes={setProjectAttributes}
                                 />
                               ),
                             )}
