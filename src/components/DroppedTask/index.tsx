@@ -176,6 +176,23 @@ export const DroppedTask = memo(function DroppedTask({
       icon: <EditIcon fontSize="small" sx={{ color: "primary.dark" }} />,
     },
     {
+      title: "Zdaj raport",
+      onClick: () => {
+        if (!projectId || !workspaceId) return
+        setModal({
+          open: true,
+          item: "raport",
+          projectId: projectId,
+          workspaceId: workspaceId,
+          taskId: task.id,
+        })
+        dispatch(setDragDisabled(false))
+        setTooltipOpen(false)
+        handleClose()
+      },
+      icon: <DeleteIcon fontSize="small" sx={{ color: "primary.dark" }} />,
+    },
+    {
       title: "Usuń z osi czasu",
       onClick: () => {
         dispatch(

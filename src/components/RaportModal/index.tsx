@@ -36,7 +36,6 @@ interface RaportModalProps {
   setModal: React.Dispatch<React.SetStateAction<ModalType | null>>
   workspaceId: workspaceId
   projectId: projectId
-  inviteId: inviteId | undefined
   taskId: taskId | undefined
 }
 

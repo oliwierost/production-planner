@@ -145,7 +145,6 @@ export function DataPanel() {
             workspaceId={modal.workspaceId}
             projectId={modal.projectId}
             taskId={modal.taskId}
-            inviteId={modal.inviteId}
           />
         ) : null
       default:

@@ -10,6 +10,7 @@ import { Task } from "../../slices/tasks"
 import { CreateFacilityModal } from "../CreateFacilityModal"
 import { CreateTaskModal } from "../CreateTaskModal"
 import { Modal } from "../DataPanel"
+import { RaportModal } from "../RaportModal"
 
 interface ContextMenuProps {
   open: boolean
@@ -108,6 +109,15 @@ export function ContextMenu({
           open={modal.open}
           facilityId={item.id}
           workspaceId={workspaceId}
+        />
+      ) : null}
+      {modal && modal.projectId && modal.taskId && modal.item == "raport" ? (
+        <RaportModal
+          setModal={setModal}
+          open={modal.open}
+          workspaceId={workspaceId}
+          projectId={modal.projectId}
+          taskId={modal.taskId}
         />
       ) : null}
     </>
