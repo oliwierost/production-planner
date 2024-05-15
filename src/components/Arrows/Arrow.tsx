@@ -102,10 +102,10 @@ export function Arrow({
           y: 0,
         }}
         config={{
-          strokeWidth: 2,
+          strokeWidth: 1.5,
           arrowColor: coords.x <= view?.cellWidth! ? "black" : "#C70039",
           arrowHeadEndingSize: 10,
-          dotEndingRadius: 5,
+          dotEndingRadius: 3,
         }}
       />
     </Box>

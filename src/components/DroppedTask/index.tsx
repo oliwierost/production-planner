@@ -428,25 +428,39 @@ export const DroppedTask = memo(function DroppedTask({
                 transform: `translateX(${leftOffset}px)`,
               }}
             >
-              {task.title &&
-              view?.name !== "1 rok" &&
-              Number(task.duration) > currentFacility!.manpower ? (
-                <Typography
-                  variant="body2"
-                  fontWeight={700}
-                  noWrap
-                  sx={{
-                    maxWidth: "100%",
-                    boxSizing: "border-box",
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    px: "min(20px, 10%)",
-                  }}
-                >
-                  {task.title}
-                </Typography>
-              ) : null}
+              {task.title && view?.name !== "1 rok" && taskWidth > cellWidth ? (
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <IconButton
+                    sx={{
+                      color: "white",
 
+                      "&:focus": {
+                        outline: "none",
+                      },
+                    }}
+                    onClick={handleLock}
+                  >
+                    {task.locked ? (
+                      <Lock fontSize="small" />
+                    ) : (
+                      <LockOpen fontSize="small" />
+                    )}
+                  </IconButton>
+                  <Typography
+                    variant="body2"
+                    fontWeight={700}
+                    noWrap
+                    sx={{
+                      maxWidth: "100%",
+                      boxSizing: "border-box",
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {task.title}
+                  </Typography>
+                </Stack>
+              ) : null}
               <ContextMenu
                 options={contextMenuOptions}
                 modal={modal}
@@ -461,53 +475,22 @@ export const DroppedTask = memo(function DroppedTask({
               {view?.name == "1 mies." &&
               task.projectId === projectId &&
               (!invite || invite?.permissions == "edycja") ? (
-                <Stack
-                  direction="row"
-                  mr={1}
-                  height="100%"
-                  alignItems="center"
-                  justifySelf="flex-end"
-                >
-                  <IconButton
-                    sx={{
-                      color: "white",
-                      "&:focus": {
-                        outline: "none",
-                      },
-                    }}
-                    onClick={handleLock}
-                  >
-                    {task.locked ? (
-                      <Lock fontSize="small" />
-                    ) : (
-                      <LockOpen fontSize="small" />
-                    )}
-                  </IconButton>
+                <Stack direction="row" mr={2} height="100%" alignItems="center">
                   <Box
                     sx={{
-                      position: "relative",
+                      position: "absolute",
+                      right: "-10px",
+                      top: "-50%",
+                      transform: "translateY(50%)",
                       minWidth: "10px",
-                      height: "22px",
+                      height: "30px",
                     }}
                     onMouseDown={(e) => handleDragStart(e)}
                   >
                     <Box
-                      minWidth={10}
-                      height="22px"
+                      minWidth={30}
+                      height="30px"
                       sx={{
-                        borderRadius: "0 4px 4px 0",
-                        backgroundImage: `repeating-linear-gradient(45deg, ${
-                          task.projectId === projectId
-                            ? task.bgcolor
-                            : "grey.400"
-                        }, ${
-                          task.projectId === projectId
-                            ? task.bgcolor
-                            : "grey.400"
-                        } 2px, #000000 4px, #000000 2px)`,
-                        backgroundSize: "22px 22px",
-                        border: "1px solid black",
-                        boxSizing: "border-box",
                         cursor: "col-resize",
                         display:
                           isHovered &&
