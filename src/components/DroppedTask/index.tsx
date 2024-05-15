@@ -1,15 +1,9 @@
-import {
-  DndContext,
-  DragMoveEvent,
-  MouseSensor,
-  useSensor,
-} from "@dnd-kit/core"
 import DeleteIcon from "@mui/icons-material/Delete"
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever"
 import EditIcon from "@mui/icons-material/Edit"
-import { IconButton, Stack, Typography } from "@mui/material"
+import { Box, IconButton, Stack, Typography } from "@mui/material"
 import { isEqual } from "lodash"
-import React, { memo, useCallback, useEffect, useState } from "react"
+import React, { memo, useEffect, useState } from "react"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { selectCell } from "../../selectors/grid"
 import { selectTask, selectTasksByIds } from "../../selectors/tasks"
@@ -29,7 +23,6 @@ import { calculateTaskWidthHelper } from "../DataGrid/calculateTaskWidthHelper"
 import { Modal } from "../DataPanel"
 
 import { calculateTaskLeftOffsetHelper } from "../DataGrid/calculateTaskLeftOffsetHelper"
-import { ResizeHandle } from "../ResizeHandle"
 
 import { Lock, LockOpen } from "@mui/icons-material"
 import { selectInvite } from "../../selectors/invites"
@@ -46,6 +39,16 @@ interface DroppedTaskProps {
   rowId: string | number
   colId: number
   isOverlay?: boolean
+  delta?: {
+    startX: number
+    deltaX: number
+  }
+  setDelta: React.Dispatch<
+    React.SetStateAction<{
+      startX: number
+      deltaX: number
+    }>
+  >
 }
 
 export const DroppedTask = memo(function DroppedTask({
@@ -56,6 +59,8 @@ export const DroppedTask = memo(function DroppedTask({
   rowId,
   colId,
   isOverlay = false,
+  delta = { startX: 0, deltaX: 0 },
+  setDelta,
 }: DroppedTaskProps) {
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const projectId = useAppSelector(
@@ -108,6 +113,7 @@ export const DroppedTask = memo(function DroppedTask({
   const [taskDuration, setTaskDuration] = useState<number>(
     Number(task?.duration),
   )
+
   const [isHovered, setIsHovered] = useState(false)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0 })
@@ -230,52 +236,43 @@ export const DroppedTask = memo(function DroppedTask({
     },
   ]
 
-  const debounce = (func: Function, delay: number) => {
-    let timeoutId: NodeJS.Timeout
-    return (...args: any[]) => {
-      clearTimeout(timeoutId)
-      timeoutId = setTimeout(() => {
-        func(...args) // Call func with spread args directly
-      }, delay)
-    }
+  const handleDragMove = (event: MouseEvent) => {
+    const deltaX = event.movementX
+    setDelta((prev) => {
+      return {
+        ...prev,
+        deltaX: prev.deltaX + deltaX,
+      }
+    })
+    setTooltipOpen(false)
   }
 
-  const handleDragMove = useCallback(
-    debounce((event: DragMoveEvent) => {
-      const { delta } = event
-      setTooltipOpen(false)
-      const gridSize = cellWidth
-      const newX = Math.round(delta.x / gridSize) * gridSize
-      const taskDurationNum = Number(task.duration)
-      const daysDiff = (newX / cellWidth) * currentFacility!.manpower
-      const newDuration = daysDiff + taskDurationNum
+  useEffect(() => {
+    if (delta.deltaX === 0) return
 
-      const newDurationRounded =
-        Math.round(newDuration / currentFacility!.manpower) *
-        currentFacility!.manpower
+    const gridSize = cellWidth
+    const newX = Math.round(delta.deltaX / gridSize) * gridSize
+    const taskDurationNum = Number(task.duration)
+    const daysDiff =
+      Math.round(newX / cellWidth / 2) * currentFacility!.manpower
+    const newDuration = Number(daysDiff) + taskDurationNum
 
-      if (newDurationRounded <= currentFacility!.manpower) {
-        setTaskDuration(currentFacility!.manpower)
-      } else if (taskDuration < newDurationRounded) {
-        nextCell?.state == "occupied-start"
-          ? null
-          : setTaskDuration(newDurationRounded)
-      } else if (taskDuration > newDurationRounded) {
-        prevCell?.state == "occupied-start"
-          ? null
-          : setTaskDuration(newDurationRounded)
-      }
-    }, 5),
-    [
-      cellWidth,
-      currentFacility,
-      nextCell,
-      prevCell,
-      setTaskDuration,
-      task.duration,
-      taskDuration,
-    ],
-  )
+    const newDurationRounded =
+      Math.round(newDuration / currentFacility!.manpower) *
+      currentFacility!.manpower
+
+    if (newDurationRounded <= currentFacility!.manpower) {
+      setTaskDuration(currentFacility!.manpower)
+    } else if (taskDuration < newDurationRounded) {
+      nextCell?.state == "occupied-start"
+        ? null
+        : setTaskDuration(newDurationRounded)
+    } else if (taskDuration > newDurationRounded) {
+      prevCell?.state == "occupied-start"
+        ? null
+        : setTaskDuration(newDurationRounded)
+    }
+  }, [delta])
 
   const handleDragEnd = () => {
     setIsResized(false)
@@ -291,7 +288,10 @@ export const DroppedTask = memo(function DroppedTask({
     )
   }
 
-  const handleDragStart = () => {
+  const handleDragStart = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDelta({ deltaX: 0, startX: e.clientX })
     setIsResized(true)
   }
 
@@ -336,7 +336,8 @@ export const DroppedTask = memo(function DroppedTask({
   const [leftOffset, setTaskLeftOffset] = useState(getLeftOffset())
 
   useEffect(() => {
-    setTaskWidth(getTaskWidth())
+    const width = getTaskWidth()
+    setTaskWidth(width)
   }, [
     currentFacility,
     overFacility,
@@ -357,24 +358,32 @@ export const DroppedTask = memo(function DroppedTask({
       }),
     )
   }
-  const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: {
-      distance: 3,
-    },
-  })
+
+  //add mouse move event listener to resize task
+  useEffect(() => {
+    if (isResized) {
+      document.addEventListener("mousemove", handleDragMove)
+      document.addEventListener("mouseup", handleDragEnd)
+      document.addEventListener("mouseleave", handleDragCancel)
+    } else {
+      document.removeEventListener("mousemove", handleDragMove)
+      document.removeEventListener("mouseup", handleDragEnd)
+      document.removeEventListener("mouseleave", handleDragCancel)
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleDragMove)
+      document.removeEventListener("mouseup", handleDragEnd)
+      document.removeEventListener("mouseleave", handleDragCancel)
+    }
+  }, [isResized, taskDuration])
 
   if (!projectId) return null
 
   return (
     <>
       {task ? (
-        <DndContext
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
-          onDragMove={handleDragMove}
-          sensors={[mouseSensor]}
-        >
+        <>
           {requiredTasks &&
           isOverlay &&
           taskWidth &&
@@ -479,17 +488,48 @@ export const DroppedTask = memo(function DroppedTask({
                       <LockOpen fontSize="small" />
                     )}
                   </IconButton>
-                  <ResizeHandle
-                    task={task}
-                    isResized={isResized}
-                    isHovered={isHovered}
-                    projectId={projectId}
-                  />
+                  <Box
+                    sx={{
+                      position: "relative",
+                      minWidth: "10px",
+                      height: "22px",
+                    }}
+                    onMouseDown={(e) => handleDragStart(e)}
+                  >
+                    <Box
+                      minWidth={10}
+                      height="22px"
+                      sx={{
+                        borderRadius: "0 4px 4px 0",
+                        backgroundImage: `repeating-linear-gradient(45deg, ${
+                          task.projectId === projectId
+                            ? task.bgcolor
+                            : "grey.400"
+                        }, ${
+                          task.projectId === projectId
+                            ? task.bgcolor
+                            : "grey.400"
+                        } 2px, #000000 4px, #000000 2px)`,
+                        backgroundSize: "22px 22px",
+                        border: "1px solid black",
+                        boxSizing: "border-box",
+                        cursor: "col-resize",
+                        display:
+                          isHovered &&
+                          !isResized &&
+                          task.projectId === projectId &&
+                          draggedTask?.id !== task.id &&
+                          !task.locked
+                            ? "block"
+                            : "none",
+                      }}
+                    />
+                  </Box>
                 </Stack>
               ) : null}
             </Stack>
           </TaskTooltip>
-        </DndContext>
+        </>
       ) : null}
     </>
   )

@@ -645,7 +645,7 @@ export function* resizeTaskSaga(
   }>,
 ) {
   const { cellId, task, newDuration } = action.payload
-
+  console.log(newDuration)
   const [rowId, colId] = cellId.split("-")
   //get newColId based on the newDuration as days in miliseconds
   try {

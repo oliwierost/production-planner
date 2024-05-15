@@ -7,7 +7,7 @@ import { firestore } from "../../../firebase.config"
 import { workspaceModalSchema } from "../../../validationSchema"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
-import { upsertProjectStart } from "../../slices/projects"
+import { Project, upsertProjectStart } from "../../slices/projects"
 import { Modal as ModalType } from "../DataPanel"
 import { Modal } from "../Modal"
 import { PrimaryButton } from "../PrimaryButton"
@@ -15,11 +15,14 @@ import { SecondaryButton } from "../SecondaryButton"
 import { TextArea } from "../TextArea"
 import { TextField } from "../TextField"
 import { DateField } from "../DateField"
+import { useEffect, useState } from "react"
+import { selectProject } from "../../selectors/projects"
 
 interface CreateProjectModalProps {
   open: boolean
   setModal: React.Dispatch<React.SetStateAction<ModalType | null>>
   workspaceId: string
+  projectId?: string
 }
 
 interface FormData {
@@ -44,9 +47,21 @@ export function CreateProjectModal({
   open,
   setModal,
   workspaceId,
+  projectId,
 }: CreateProjectModalProps) {
   const dispatch = useAppDispatch()
   const user = useAppSelector((state) => state.user.user)
+  const [project, setProject] = useState<Project | null>(null)
+
+  const projectData = useAppSelector((state) =>
+    selectProject(state, workspaceId, projectId),
+  )
+
+  useEffect(() => {
+    if (projectData) {
+      setProject(projectData)
+    }
+  }, [projectData])
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -95,7 +110,7 @@ export function CreateProjectModal({
 
   return (
     <Formik
-      initialValues={initialValues}
+      initialValues={project ? project : initialValues}
       validationSchema={workspaceModalSchema}
       enableReinitialize
       onSubmit={(values: FormData, { resetForm }) =>

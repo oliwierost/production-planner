@@ -1,4 +1,9 @@
-import { Add, KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material"
+import {
+  Add,
+  Edit,
+  KeyboardArrowDown,
+  KeyboardArrowUp,
+} from "@mui/icons-material"
 import {
   AccordionDetails,
   AccordionSummary,
@@ -37,6 +42,7 @@ interface AccordionProps {
   border?: boolean
   userId?: userId
   displayAdd?: boolean
+  displayEdit?: boolean
 }
 
 export function Accordion({
@@ -50,6 +56,7 @@ export function Accordion({
   border = true,
   userId,
   displayAdd = true,
+  displayEdit = false,
 }: AccordionProps) {
   const [expanded, setExpanded] = useState<boolean>(false)
   const dispatch = useAppDispatch()
@@ -69,6 +76,18 @@ export function Accordion({
         item: item,
         projectId: projectId || "",
         workspaceId: workspaceId || "",
+      })
+    }
+  }
+
+  const handleEdit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    if (setModal && projectId && workspaceId) {
+      setModal({
+        open: true,
+        item: item,
+        projectId: projectId,
+        workspaceId: workspaceId,
       })
     }
   }
@@ -144,6 +163,7 @@ export function Accordion({
           justifyContent="space-between"
           spacing={1}
           width="100%"
+          alignItems="center"
         >
           <Stack direction="row" alignItems="center" spacing={1} width="100%">
             {!expanded ? (
@@ -160,15 +180,26 @@ export function Accordion({
               {summary}
             </Typography>
           </Stack>
-          {variant == "document" && item == "project" ? (
-            <Checkbox
-              checked={openProjectId == projectId}
-              onChange={() => handleCheck()}
-              onClick={(e) => e.stopPropagation()}
-              size="small"
-            />
+          {displayEdit ? (
+            <IconButton
+              onClick={(e) => handleEdit(e)}
+              sx={{
+                "&:focus": {
+                  outline: "none",
+                },
+                p: 0.5,
+                width: "30px",
+                height: "30px",
+              }}
+            >
+              <Edit
+                sx={{
+                  fontSize: "15px",
+                }}
+              />
+            </IconButton>
           ) : null}
-          {variant == "collection" && displayAdd ? (
+          {displayAdd ? (
             <IconButton
               onClick={(e) => handleAdd(e)}
               sx={{
@@ -176,6 +207,8 @@ export function Accordion({
                   outline: "none",
                 },
                 p: 0.5,
+                width: "30px",
+                height: "30px",
               }}
             >
               <Add
@@ -184,6 +217,14 @@ export function Accordion({
                 }}
               />
             </IconButton>
+          ) : null}
+          {variant == "document" && item == "project" ? (
+            <Checkbox
+              checked={openProjectId == projectId}
+              onChange={() => handleCheck()}
+              onClick={(e) => e.stopPropagation()}
+              size="small"
+            />
           ) : null}
         </Stack>
       </AccordionSummary>

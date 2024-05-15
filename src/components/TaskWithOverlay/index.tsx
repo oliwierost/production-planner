@@ -25,6 +25,13 @@ export function TaskWithOverlay({
   projectId,
 }: TaskWithOverlayProps) {
   const [isResized, setIsResized] = useState(false)
+  const [delta, setDelta] = useState<{
+    startX: number
+    deltaX: number
+  }>({
+    startX: 0,
+    deltaX: 0,
+  })
 
   const task = useAppSelector((state) => selectTask(state, taskId, projectId))
 
@@ -54,6 +61,8 @@ export function TaskWithOverlay({
               rowId={rowId}
               colId={time}
               isOverlay={false}
+              delta={delta}
+              setDelta={setDelta}
             />
           </Box>
         </Draggable>
@@ -73,6 +82,8 @@ export function TaskWithOverlay({
           rowId={rowId}
           colId={time}
           isOverlay
+          delta={delta}
+          setDelta={setDelta}
         />
       </Stack>
     </Box>

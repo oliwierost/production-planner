@@ -76,6 +76,7 @@ export function DataPanel() {
             setModal={setModal}
             open={true}
             workspaceId={modal.workspaceId}
+            projectId={modal.projectId}
           />
         )
       case "task":
@@ -230,6 +231,9 @@ export function DataPanel() {
                                 workspaceId={workspace.id}
                                 key={project.id}
                                 userId={project.ownerId}
+                                displayEdit
+                                displayAdd={false}
+                                setModal={setModal}
                               >
                                 <Accordion
                                   summary="Zadania"

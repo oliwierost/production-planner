@@ -1,17 +1,17 @@
-import { Droppable } from "../Droppable"
 import { Box, Stack } from "@mui/material"
-import { useAppSelector } from "../../hooks"
-import { Deadlines } from "../Deadlines"
+import { isEqual } from "lodash"
 import { memo } from "react"
-import _, { isEqual } from "lodash"
-import { selectTaskIdsFromCells } from "../../selectors/grid"
+import { useAppSelector } from "../../hooks"
 import {
   selectFacilitiesCount,
   selectFacility,
 } from "../../selectors/facilities"
+import { selectTaskIdsFromCells } from "../../selectors/grid"
 import { selectTimestampsFromMapping } from "../../selectors/view"
-import { TaskWithOverlay } from "../TaskWithOverlay"
 import { CurrentDay } from "../CurrentDay"
+import { Deadlines } from "../Deadlines"
+import { Droppable } from "../Droppable"
+import { TaskWithOverlay } from "../TaskWithOverlay"
 
 interface DataCellProps {
   cellWidth: number
