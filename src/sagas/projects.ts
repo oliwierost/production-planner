@@ -27,6 +27,8 @@ import {
   setProjects,
   syncCollabProjectsStart,
   syncProjectsStart,
+  updateProject,
+  updateProjectStart,
   upsertProject,
   upsertProjectStart,
 } from "../slices/projects"
@@ -76,6 +78,27 @@ export function* upsertProjectSaga(
     yield put(upsertProject({ project: project, workspaceId: workspaceId }))
     yield call(addProjectToFirestore, userId, workspaceId, project)
     yield put(setToastOpen({ message: "Dodano projekt", severity: "success" }))
+  } catch (error) {
+    yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
+  }
+}
+
+export function* updateProjectSaga(
+  action: PayloadAction<{
+    project: Project
+    data: Partial<Project>
+  }>,
+) {
+  const { project, data } = action.payload
+  const userId: userId = project.ownerId
+  const workspaceId: workspaceId = project.workspaceId
+
+  try {
+    yield put(updateProject({ project, data }))
+    yield call(updateProjectInFirestore, userId, workspaceId, project.id, data)
+    yield put(
+      setToastOpen({ message: "Zaktualizowano projekt", severity: "success" }),
+    )
   } catch (error) {
     yield put(setToastOpen({ message: "Wystąpił błąd", severity: "error" }))
   }
@@ -182,6 +205,10 @@ function* watchUpsertProjects() {
   yield takeLatest(upsertProjectStart.type, upsertProjectSaga)
 }
 
+function* watchUpdateProjects() {
+  yield takeLatest(updateProjectStart.type, updateProjectSaga)
+}
+
 function* watchSyncProjects() {
   yield takeLatest(syncProjectsStart.type, syncProjectsSaga)
 }
@@ -193,6 +220,7 @@ function* watchSyncCollabProjects() {
 export default function* projectsSagas() {
   yield all([
     watchUpsertProjects(),
+    watchUpdateProjects(),
     watchSyncProjects(),
     watchSyncCollabProjects(),
   ])

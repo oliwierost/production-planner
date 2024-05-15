@@ -104,11 +104,31 @@ export const projectsSlice = createSlice({
       const { workspaceId, projectId, attributes } = action.payload
       state.projects[workspaceId][projectId].taskAttributes = attributes
     },
+    updateProject: (
+      state,
+      action: PayloadAction<{ project: Project; data: Partial<Project> }>,
+    ) => {
+      const { project, data } = action.payload
+      if (project) {
+        state.projects[project.workspaceId][project.id] = {
+          ...project,
+          ...data,
+        }
+      }
+    },
     upsertProjectStart: (
       state,
       action: PayloadAction<{ workspaceId: workspaceId; project: Project }>,
     ) => {
       console.info("upsertProjectStart", action.payload)
+      state.loading = true
+      state.error = null
+    },
+    updateProjectStart: (
+      state,
+      action: PayloadAction<{ project: Project; data: Partial<Project> }>,
+    ) => {
+      console.info("updateProjectStart", action.payload)
       state.loading = true
       state.error = null
     },
@@ -140,6 +160,8 @@ export const {
   addInvitedUserToProject,
   removeInvitedUserFromProject,
   setProjectsStart,
+  updateProject,
+  updateProjectStart,
   syncProjectsStart,
   setProjectAttributes,
   syncCollabProjectsStart,

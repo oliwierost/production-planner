@@ -7,7 +7,11 @@ import { firestore } from "../../../firebase.config"
 import { workspaceModalSchema } from "../../../validationSchema"
 import { useAppDispatch, useAppSelector } from "../../hooks"
 import { setDragDisabled } from "../../slices/drag"
-import { Project, upsertProjectStart } from "../../slices/projects"
+import {
+  Project,
+  updateProjectStart,
+  upsertProjectStart,
+} from "../../slices/projects"
 import { Modal as ModalType } from "../DataPanel"
 import { Modal } from "../Modal"
 import { PrimaryButton } from "../PrimaryButton"
@@ -76,21 +80,32 @@ export function CreateProjectModal({
     resetForm: FormikHelpers<FormData>["resetForm"],
   ) => {
     try {
-      if (workspaceId && user) {
-        const id = doc(
-          collection(
-            firestore,
-            `users/${user.id}/workspaces/${workspaceId}/projects`,
-          ),
-        ).id
+      if (!project) {
+        if (workspaceId && user) {
+          const id = doc(
+            collection(
+              firestore,
+              `users/${user.id}/workspaces/${workspaceId}/projects`,
+            ),
+          ).id
+          dispatch(
+            upsertProjectStart({
+              workspaceId,
+              project: {
+                ...values,
+                id,
+                workspaceId: workspaceId,
+                ownerId: user.id,
+              },
+            }),
+          )
+        }
+      } else {
         dispatch(
-          upsertProjectStart({
-            workspaceId,
-            project: {
+          updateProjectStart({
+            project,
+            data: {
               ...values,
-              id,
-              workspaceId: workspaceId,
-              ownerId: user.id,
             },
           }),
         )
