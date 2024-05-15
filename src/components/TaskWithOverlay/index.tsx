@@ -25,13 +25,7 @@ export function TaskWithOverlay({
   projectId,
 }: TaskWithOverlayProps) {
   const [isResized, setIsResized] = useState(false)
-  const [delta, setDelta] = useState<{
-    startX: number
-    deltaX: number
-  }>({
-    startX: 0,
-    deltaX: 0,
-  })
+  const [delta, setDelta] = useState<number>(0)
 
   const task = useAppSelector((state) => selectTask(state, taskId, projectId))
 

@@ -39,16 +39,8 @@ interface DroppedTaskProps {
   rowId: string | number
   colId: number
   isOverlay?: boolean
-  delta?: {
-    startX: number
-    deltaX: number
-  }
-  setDelta: React.Dispatch<
-    React.SetStateAction<{
-      startX: number
-      deltaX: number
-    }>
-  >
+  delta: number
+  setDelta: React.Dispatch<React.SetStateAction<number>>
 }
 
 export const DroppedTask = memo(function DroppedTask({
@@ -59,7 +51,7 @@ export const DroppedTask = memo(function DroppedTask({
   rowId,
   colId,
   isOverlay = false,
-  delta = { startX: 0, deltaX: 0 },
+  delta = 0,
   setDelta,
 }: DroppedTaskProps) {
   const [tooltipOpen, setTooltipOpen] = useState(false)
@@ -239,19 +231,16 @@ export const DroppedTask = memo(function DroppedTask({
   const handleDragMove = (event: MouseEvent) => {
     const deltaX = event.movementX
     setDelta((prev) => {
-      return {
-        ...prev,
-        deltaX: prev.deltaX + deltaX,
-      }
+      return prev + deltaX
     })
     setTooltipOpen(false)
   }
 
   useEffect(() => {
-    if (delta.deltaX === 0) return
+    if (delta === 0) return
 
     const gridSize = cellWidth
-    const newX = Math.round(delta.deltaX / gridSize) * gridSize
+    const newX = Math.round(delta / gridSize) * gridSize
     const taskDurationNum = Number(task.duration)
     const daysDiff =
       Math.round(newX / cellWidth / 2) * currentFacility!.manpower
@@ -291,7 +280,7 @@ export const DroppedTask = memo(function DroppedTask({
   const handleDragStart = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault()
     e.stopPropagation()
-    setDelta({ deltaX: 0, startX: e.clientX })
+    setDelta(0)
     setIsResized(true)
   }
 
@@ -308,14 +297,14 @@ export const DroppedTask = memo(function DroppedTask({
       !isOverlay
     ) {
       return calculateTaskWidthHelper({
-        duration: taskDuration,
+        duration: isOverlay ? task.duration : taskDuration,
         cellWidth: cellWidth,
         manpower: overFacility!.manpower,
         daysInCell: view?.daysInCell,
       })
     } else {
       return calculateTaskWidthHelper({
-        duration: taskDuration,
+        duration: isOverlay ? task.duration : taskDuration,
         cellWidth: cellWidth,
         manpower: currentFacility!.manpower,
         daysInCell: view?.daysInCell,
@@ -343,6 +332,7 @@ export const DroppedTask = memo(function DroppedTask({
     overFacility,
     drag.draggedTask,
     taskDuration,
+    task.duration,
     view?.name,
   ])
 
