@@ -325,6 +325,10 @@ export const DroppedTask = memo(function DroppedTask({
   const [leftOffset, setTaskLeftOffset] = useState(getLeftOffset())
 
   useEffect(() => {
+    setTaskDuration(task.duration)
+  }, [task.duration])
+
+  useEffect(() => {
     const width = getTaskWidth()
     setTaskWidth(width)
   }, [
@@ -332,8 +336,8 @@ export const DroppedTask = memo(function DroppedTask({
     overFacility,
     drag.draggedTask,
     taskDuration,
-    task.duration,
     view?.name,
+    isResized,
   ])
 
   useEffect(() => {
@@ -366,7 +370,7 @@ export const DroppedTask = memo(function DroppedTask({
       document.removeEventListener("mouseup", handleDragEnd)
       document.removeEventListener("mouseleave", handleDragCancel)
     }
-  }, [isResized, taskDuration])
+  }, [isResized, taskDuration, task.duration])
 
   if (!projectId) return null
 
@@ -442,6 +446,7 @@ export const DroppedTask = memo(function DroppedTask({
                   {task.title}
                 </Typography>
               ) : null}
+
               <ContextMenu
                 options={contextMenuOptions}
                 modal={modal}
